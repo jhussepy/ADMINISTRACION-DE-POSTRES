@@ -34,6 +34,8 @@ import {
 import { prepareCheckout } from "@/app/checkout-action";
 import type { CartItem, CheckoutDetails, Product, Profile } from "@/lib/types";
 import { categories } from "@/lib/types";
+import { ProductDetails } from "./product-details";
+import { StoreFaq } from "./store-faq";
 type Account = {
   name: string;
   email: string;
@@ -77,6 +79,8 @@ export function Storefront({
     [menu, setMenu] = useState(false),
     [cartOpen, setCartOpen] = useState(false),
     [notice, setNotice] = useState("");
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const detailTrigger = useRef<HTMLElement | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
     try {
@@ -109,11 +113,18 @@ export function Storefront({
   const visible = products.filter(
     (p) =>
       (category === "Todos" || p.category === category) &&
-      normalize(`${p.name} ${p.description}`).includes(normalize(query)),
+      normalize(`${p.name} ${p.description}`).includes(normalize(query.trim())),
   );
+  function scrollToCatalog() {
+    document.getElementById("catalogo")?.scrollIntoView({
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        ? "instant"
+        : "smooth",
+    });
+  }
   const choose = (value: string) => {
     setCategory(value);
-    document.getElementById("catalogo")?.scrollIntoView({ behavior: "smooth" });
+    scrollToCatalog();
   };
   function quantity(id: string, amount: number) {
     setCart((prev) => {
@@ -123,12 +134,12 @@ export function Storefront({
       if (next > MAX_QUANTITY) return prev;
       return current
         ? prev.map((p) => (p.id === id ? { ...p, quantity: next } : p))
-        : [...prev, { id, quantity: 1 }];
+        : [...prev, { id, quantity: next }];
     });
   }
-  function add(product: Product) {
-    quantity(product.id, 1);
-    setNotice(`${product.name} agregado a tu carrito`);
+  function add(product: Product, amount = 1) {
+    quantity(product.id, amount);
+    setNotice(`${amount} × ${product.name} agregado a tu carrito`);
     if (timer.current) clearTimeout(timer.current);
     timer.current = setTimeout(() => setNotice(""), 3000);
   }
@@ -148,9 +159,7 @@ export function Storefront({
             className="header-search"
             onSubmit={(e) => {
               e.preventDefault();
-              document
-                .getElementById("catalogo")
-                ?.scrollIntoView({ behavior: "smooth" });
+              scrollToCatalog();
             }}
           >
             <Search size={19} aria-hidden="true" />
@@ -159,7 +168,20 @@ export function Storefront({
               placeholder="¿Qué se te antoja hoy?"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Escape") setQuery("");
+              }}
             />
+            {query && (
+              <button
+                type="button"
+                className="search-clear"
+                aria-label="Limpiar búsqueda"
+                onClick={() => setQuery("")}
+              >
+                <X size={17} />
+              </button>
+            )}
           </form>
           <div className="header-actions">
             <Link
@@ -243,7 +265,7 @@ export function Storefront({
               src="/images/fresa.webp"
               alt="Diseño de Yemape: cheesecake de fresa para compartir"
               fill
-              priority
+              preload
               sizes="(max-width: 760px) 100vw, 55vw"
               className="hero-image"
             />
@@ -295,7 +317,7 @@ export function Storefront({
               <h2>¿Qué compartimos hoy?</h2>
               <p>Elige tus favoritos. Nosotros ponemos el cariño.</p>
             </div>
-            <span className="catalog-count">
+            <span className="catalog-count" role="status" aria-live="polite">
               {visible.length} {visible.length === 1 ? "opción" : "opciones"}{" "}
               para ti
             </span>
@@ -307,7 +329,20 @@ export function Storefront({
               placeholder="Busca tu antojo favorito"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Escape") setQuery("");
+              }}
             />
+            {query && (
+              <button
+                type="button"
+                className="search-clear"
+                aria-label="Limpiar búsqueda"
+                onClick={() => setQuery("")}
+              >
+                <X size={17} />
+              </button>
+            )}
           </div>
           {visible.length ? (
             <div className="product-grid">
@@ -315,20 +350,41 @@ export function Storefront({
                 const count = cart.find((x) => x.id === p.id)?.quantity ?? 0;
                 return (
                   <article className={`product-card card-${i % 4}`} key={p.id}>
-                    <div className="product-photo">
+                    <button
+                      type="button"
+                      className="product-photo product-photo-button"
+                      onClick={(e) => {
+                        detailTrigger.current = e.currentTarget;
+                        setSelectedProduct(p);
+                      }}
+                      aria-label={`Ver detalles de ${p.name}`}
+                    >
                       <Image
                         src={p.image}
                         alt={`Imagen referencial de ${p.name}`}
                         fill
-                        sizes="(max-width: 620px) 100vw, (max-width: 1020px) 50vw, 25vw"
+                        sizes="(max-width: 359px) 100vw, (max-width: 1020px) 50vw, 25vw"
                       />
                       <span className="product-label">{p.category}</span>
-                    </div>
+                      <span className="product-discover">
+                        Ver detalles <ArrowRight size={15} />
+                      </span>
+                    </button>
                     <div className="product-info">
                       <span className="product-presentation">
                         {p.presentation}
                       </span>
-                      <h3>{p.name}</h3>
+                      <h3>
+                        <button
+                          className="product-title-button"
+                          onClick={(e) => {
+                            detailTrigger.current = e.currentTarget;
+                            setSelectedProduct(p);
+                          }}
+                        >
+                          {p.name}
+                        </button>
+                      </h3>
                       <p>{p.description}</p>
                       <div className="product-buy">
                         <strong>
@@ -446,6 +502,7 @@ export function Storefront({
             </article>
           </div>
         </section>
+        <StoreFaq />
         <section className="contact-band">
           <div>
             <span className="eyebrow">CADA CELEBRACIÓN ES DIFERENTE</span>
@@ -465,7 +522,9 @@ export function Storefront({
           </a>
         </section>
       </main>
-      <footer className="site-footer">
+      <footer
+        className={`site-footer ${summary.count > 0 ? "has-cart-dock" : ""}`}
+      >
         <div className="footer-top">
           <Brand />
           <div>
@@ -506,7 +565,10 @@ export function Storefront({
           </div>
         </div>
       </footer>
-      <div className={`toast ${notice ? "show" : ""}`} role="status">
+      <div
+        className={`toast ${notice ? "show" : ""} ${summary.count > 0 ? "above-dock" : ""}`}
+        role="status"
+      >
         {notice && (
           <>
             <Check size={17} />
@@ -520,6 +582,38 @@ export function Storefront({
           Tu navegador no permite guardar el carrito. Mantenlo abierto hasta
           finalizar.
         </div>
+      )}
+      {summary.count > 0 && (
+        <div className="mobile-cart-dock" aria-label="Acceso rápido al carrito">
+          <div>
+            <strong>
+              {summary.count} {summary.count === 1 ? "producto" : "productos"}
+            </strong>
+            <span>
+              {summary.unpriced
+                ? "Importe por confirmar"
+                : money(summary.subtotal)}
+            </span>
+          </div>
+          <button className="button" onClick={() => setCartOpen(true)}>
+            <ShoppingBag size={18} /> Ver mi carrito <ArrowRight size={16} />
+          </button>
+        </div>
+      )}
+      {selectedProduct && (
+        <ProductDetails
+          key={selectedProduct.id}
+          product={selectedProduct}
+          returnFocusTo={detailTrigger.current}
+          inCart={
+            cart.find((item) => item.id === selectedProduct.id)?.quantity ?? 0
+          }
+          onClose={() => setSelectedProduct(null)}
+          onAdd={(amount) => {
+            add(selectedProduct, amount);
+            setSelectedProduct(null);
+          }}
+        />
       )}
       <CartDialog
         open={cartOpen}
@@ -567,15 +661,19 @@ function CartDialog({
     if (open) {
       ref.current?.showModal();
       setToday(limaToday());
+      setStep("cart");
+      setError("");
       document.body.style.overflow = "hidden";
     } else {
       ref.current?.close();
-      document.body.style.overflow = "";
     }
     return () => {
       document.body.style.overflow = "";
     };
   }, [open]);
+  useEffect(() => {
+    if (open) ref.current?.scrollTo({ top: 0, behavior: "instant" });
+  }, [step, open]);
   const update = <K extends keyof CheckoutDetails>(
     key: K,
     value: CheckoutDetails[K],
@@ -825,6 +923,55 @@ function CartDialog({
                     onChange={(e) => update("notes", e.target.value)}
                   />
                 </label>
+                <section
+                  className="checkout-review"
+                  aria-labelledby="checkout-review-title"
+                >
+                  <div className="checkout-review-heading">
+                    <h3 id="checkout-review-title">Revisa tu selección</h3>
+                    <button
+                      type="button"
+                      className="text-button"
+                      onClick={() => setStep("cart")}
+                    >
+                      Editar
+                    </button>
+                  </div>
+                  <ul>
+                    {lines.map((line) => (
+                      <li key={line.id}>
+                        <span>
+                          {line.quantity} × {line.product.name}
+                          <small>{line.product.presentation}</small>
+                        </span>
+                        <strong>
+                          {line.product.price_cents === null
+                            ? "Por cotizar"
+                            : money(line.product.price_cents * line.quantity)}
+                        </strong>
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="review-total">
+                    <span>
+                      {unpriced
+                        ? "Importe de productos"
+                        : "Subtotal de productos"}
+                    </span>
+                    <strong>
+                      {unpriced
+                        ? subtotal > 0
+                          ? `${money(subtotal)} + por cotizar`
+                          : "Por cotizar"
+                        : money(subtotal)}
+                    </strong>
+                  </div>
+                  <p>
+                    {details.delivery === "delivery"
+                      ? "Costo de delivery pendiente de confirmar."
+                      : "Punto y horario de recojo por coordinar."}
+                  </p>
+                </section>
                 <div className="order-notice">
                   <MessageCircle size={20} />
                   <p>

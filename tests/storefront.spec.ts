@@ -121,3 +121,97 @@ test("filters, empty states, protected administration and responsive layout", as
   await page.goto("/cuenta/clave");
   await expect(page).toHaveURL(/\/cuenta$/);
 });
+
+test("product details support quantities, keyboard closing and mobile cart access", async ({
+  page,
+}, testInfo) => {
+  await page.goto("/");
+  const open = page.getByRole("button", {
+    name: "Ver detalles de Cheesecake de fresa",
+    exact: true,
+  });
+  await open.click();
+  const detail = page.getByRole("dialog", {
+    name: "Cheesecake de fresa",
+    exact: true,
+  });
+  await expect(detail).toBeVisible();
+  await expect(
+    detail.getByAltText("Diseño referencial completo de Cheesecake de fresa"),
+  ).toBeVisible();
+  await expect
+    .poll(() =>
+      detail
+        .locator("img")
+        .evaluate((img) => (img as HTMLImageElement).naturalWidth),
+    )
+    .toBeGreaterThan(0);
+  await page.screenshot({
+    path: `test-results/yemape-detail-${testInfo.project.name}.png`,
+  });
+  await detail
+    .getByRole("button", { name: "Aumentar cantidad del producto" })
+    .click();
+  await detail
+    .getByRole("button", { name: "Aumentar cantidad del producto" })
+    .click();
+  await detail
+    .getByRole("button", { name: "Agregar 3 al carrito", exact: true })
+    .click();
+  await expect(detail).not.toBeVisible();
+  await expect(
+    page.getByRole("button", {
+      name: "Abrir carrito, 3 productos",
+      exact: true,
+    }),
+  ).toBeVisible();
+  await open.click();
+  await expect(detail.getByText("Ya tienes 3 en el carrito.")).toBeVisible();
+  for (let i = 0; i < 16; i++)
+    await detail
+      .getByRole("button", { name: "Aumentar cantidad del producto" })
+      .click();
+  await expect(
+    detail.getByRole("button", { name: "Aumentar cantidad del producto" }),
+  ).toBeDisabled();
+  await detail
+    .getByRole("button", { name: "Agregar 17 al carrito", exact: true })
+    .click();
+  await open.click();
+  await expect(
+    detail.getByRole("button", { name: "Límite de unidades alcanzado" }),
+  ).toBeDisabled();
+  await page.keyboard.press("Escape");
+  await expect(detail).not.toBeVisible();
+  await expect(open).toBeFocused();
+  if (testInfo.project.name === "mobile")
+    await page
+      .getByRole("button", { name: "Ver mi carrito", exact: true })
+      .click();
+  else
+    await page
+      .getByRole("button", { name: "Abrir carrito, 20 productos", exact: true })
+      .click();
+  const cart = page.getByRole("dialog", { name: "Tu carrito", exact: true });
+  await cart.getByRole("button", { name: "Continuar como invitado" }).click();
+  await page.getByLabel("Tu nombre", { exact: true }).fill("Cliente de prueba");
+  await page.getByLabel("Fecha deseada").fill("2099-09-30");
+  await expect(
+    page.getByRole("heading", { name: "Revisa tu selección" }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Editar", exact: true }).click();
+  await page.getByRole("button", { name: "Continuar como invitado" }).click();
+  await expect(page.getByLabel("Tu nombre", { exact: true })).toHaveValue(
+    "Cliente de prueba",
+  );
+  await expect(page.getByLabel("Fecha deseada")).toHaveValue("2099-09-30");
+  await page.keyboard.press("Escape");
+  await page
+    .getByText("¿Necesito una cuenta para pedir?", { exact: true })
+    .click();
+  await expect(
+    page.getByText(
+      "No. Puedes elegir tus productos, completar los datos del pedido y continuar por WhatsApp como invitado.",
+    ),
+  ).toBeVisible();
+});
