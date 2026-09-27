@@ -2,6 +2,7 @@ export const categories = [
   "Cheesecakes",
   "Tortas",
   "Kekes",
+  "Postres",
   "Salados",
 ] as const;
 export type Category = (typeof categories)[number];

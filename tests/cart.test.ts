@@ -42,9 +42,9 @@ test("normalizes corrupt storage, duplicate lines, removed products and quantiti
   );
 });
 test("integer cents avoid rounding errors and unpriced products never become free", () => {
-  const products = initialProducts.map((p, i) => ({
+  const products = initialProducts.map((p) => ({
     ...p,
-    price_cents: i === 0 ? 1010 : null,
+    price_cents: p.id === "cheesecake-fresa" ? 1010 : null,
   }));
   const s = cartSummary(
     [

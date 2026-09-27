@@ -4,6 +4,7 @@ import Image from "next/image";
 import { X, Minus, Plus, ShoppingBag, MessageCircle } from "lucide-react";
 import type { Product } from "@/lib/types";
 import { MAX_QUANTITY, money } from "@/lib/cart";
+import { productImages } from "@/lib/products";
 export function ProductDetails({
   product,
   inCart,
@@ -18,6 +19,7 @@ export function ProductDetails({
   onAdd: (quantity: number) => void;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
+  const imageSize = productImages.find((image) => image.path === product.image);
   const [quantity, setQuantity] = useState(1);
   const remaining = Math.max(0, MAX_QUANTITY - inCart);
   const selected = Math.min(quantity, remaining);
@@ -54,9 +56,9 @@ export function ProductDetails({
         <div className="detail-image">
           <Image
             src={product.image}
-            alt={`Diseño referencial completo de ${product.name}`}
-            width={700}
-            height={940}
+            alt={`Presentación de ${product.name}`}
+            width={imageSize?.width ?? 700}
+            height={imageSize?.height ?? 940}
             sizes="(max-width: 680px) 85vw, 450px"
           />
         </div>

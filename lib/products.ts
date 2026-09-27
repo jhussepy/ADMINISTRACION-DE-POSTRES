@@ -1,6 +1,42 @@
 import type { Product } from "./types";
-// Productos basados en los diseños aportados por el negocio. Precios sin confirmar.
+// Fotografías y diseños aportados por el negocio. Precios y tamaños por confirmar.
 export const initialProducts: Product[] = [
+  {
+    id: "torta-chocolate",
+    name: "Torta de chocolate",
+    description:
+      "Chocolate para celebrar y compartir. Consulta las presentaciones y opciones de decoración disponibles.",
+    category: "Tortas",
+    presentation: "Tamaño por coordinar",
+    price_cents: null,
+    image: "/images/torta-chocolate.webp",
+    active: true,
+    sort_order: 1,
+  },
+  {
+    id: "terremoto-lucuma",
+    name: "Terremoto de lúcuma",
+    description:
+      "Un antojo de lúcuma y chocolate para disfrutar a cucharadas. Consulta la presentación disponible.",
+    category: "Postres",
+    presentation: "Presentación por coordinar",
+    price_cents: null,
+    image: "/images/terremoto-lucuma.webp",
+    active: true,
+    sort_order: 2,
+  },
+  {
+    id: "keke-arandanos",
+    name: "Keke de arándanos",
+    description:
+      "El compañero de una pausa con café o de una tarde para compartir. Consulta tamaños y porciones disponibles.",
+    category: "Kekes",
+    presentation: "Tamaño por coordinar",
+    price_cents: null,
+    image: "/images/keke-arandanos.webp",
+    active: true,
+    sort_order: 3,
+  },
   {
     id: "cheesecake-fresa",
     name: "Cheesecake de fresa",
@@ -11,7 +47,7 @@ export const initialProducts: Product[] = [
     price_cents: null,
     image: "/images/fresa.webp",
     active: true,
-    sort_order: 1,
+    sort_order: 4,
   },
   {
     id: "cheesecake-maracumango",
@@ -23,7 +59,7 @@ export const initialProducts: Product[] = [
     price_cents: null,
     image: "/images/maracumango.webp",
     active: true,
-    sort_order: 2,
+    sort_order: 5,
   },
   {
     id: "torta-personalizada",
@@ -35,7 +71,7 @@ export const initialProducts: Product[] = [
     price_cents: null,
     image: "/images/tortas.webp",
     active: true,
-    sort_order: 3,
+    sort_order: 6,
   },
   {
     id: "triples",
@@ -47,12 +83,46 @@ export const initialProducts: Product[] = [
     price_cents: null,
     image: "/images/triples.webp",
     active: true,
-    sort_order: 4,
+    sort_order: 7,
   },
 ];
 export const productImages = [
-  { path: "/images/fresa.webp", label: "Cheesecake de fresa" },
-  { path: "/images/maracumango.webp", label: "Cheesecake de maracumango" },
-  { path: "/images/tortas.webp", label: "Tortas personalizadas" },
-  { path: "/images/triples.webp", label: "Triples" },
+  {
+    path: "/images/torta-chocolate.webp",
+    width: 1122,
+    height: 1402,
+    label: "Torta de chocolate",
+  },
+  {
+    path: "/images/terremoto-lucuma.webp",
+    width: 1312,
+    height: 1199,
+    label: "Terremoto de lúcuma",
+  },
+  {
+    path: "/images/keke-arandanos.webp",
+    width: 1130,
+    height: 1392,
+    label: "Keke de arándanos",
+  },
+
+  {
+    path: "/images/fresa.webp",
+    width: 1086,
+    height: 1448,
+    label: "Cheesecake de fresa",
+  },
+  {
+    path: "/images/maracumango.webp",
+    width: 1086,
+    height: 1448,
+    label: "Cheesecake de maracumango",
+  },
+  {
+    path: "/images/tortas.webp",
+    width: 1086,
+    height: 1448,
+    label: "Tortas personalizadas",
+  },
+  { path: "/images/triples.webp", width: 1086, height: 1448, label: "Triples" },
 ];
