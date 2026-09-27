@@ -72,6 +72,11 @@ test("public catalogue, cart persistence, guest checkout and WhatsApp handoff", 
   await dialog
     .getByRole("button", { name: "Finalizar pedido por WhatsApp", exact: true })
     .click();
+  // Receiving the request is earlier than completing navigation. Wait for the
+  // intercepted document before asserting or returning to the storefront.
+  await page.waitForURL((url) => url.hostname === "wa.me", {
+    waitUntil: "load",
+  });
   await expect.poll(() => whatsapp).not.toBe("");
   const url = new URL(whatsapp);
   expect(url.pathname).toBe("/51934219749");
@@ -313,6 +318,11 @@ test("photographic catalogue filters and new products reach the WhatsApp handoff
   await page
     .getByRole("button", { name: "Finalizar pedido por WhatsApp", exact: true })
     .click();
+  // Receiving the request is earlier than completing navigation. Wait for the
+  // intercepted document before asserting or returning to the storefront.
+  await page.waitForURL((url) => url.hostname === "wa.me", {
+    waitUntil: "load",
+  });
   await expect.poll(() => whatsapp).not.toBe("");
   const message = new URL(whatsapp).searchParams.get("text")!;
   for (const name of [

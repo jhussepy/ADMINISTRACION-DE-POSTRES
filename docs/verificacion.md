@@ -27,3 +27,9 @@ El entorno de trabajo usa Node 24; el repositorio y la integración continua fij
 ## Notas del entorno de prueba
 
 La automatización `agent-browser` no pudo iniciar su proceso auxiliar en este entorno. Se verificó la aplicación con Playwright y Chromium instalado, mediante las pruebas incluidas. La comprobación final usa el servidor de producción, sin depender del canal HMR de desarrollo.
+
+## Corrección de la comprobación en GitHub
+
+El primer recorrido de escritorio podía intentar volver al catálogo antes de completar la navegación interceptada a WhatsApp. Ahora los dos recorridos de WhatsApp esperan la carga del documento simulado antes de continuar. Se mantienen todas las comprobaciones de contenido del pedido y persistencia del carrito.
+
+El SQL de instalación reubica las cuatro posiciones originales al incorporar los tres postres nuevos, sin sobrescribir precios, textos o visibilidad; conserva las posiciones que difieran de los valores originales. No se ejecutó contra un servicio externo.

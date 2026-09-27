@@ -97,7 +97,11 @@ insert into public.products(id,name,description,category,presentation,price_cent
 ('cheesecake-maracumango','Cheesecake de maracumango','El encuentro de dos sabores tropicales para compartir un momento especial.','Cheesecakes','Presentación por coordinar',null,'/images/maracumango.webp',true,5),
 ('torta-personalizada','Tu torta, tu celebración','Cuéntanos tu idea, la temática y para cuántas personas. Coordinamos contigo cada detalle.','Tortas','Diseño personalizado',null,'/images/tortas.webp',true,6),
 ('triples','Triples de jamón, queso y tocino','También hay lugar para un antojo salado. Consulta las presentaciones para tu reunión.','Salados','Cantidad por coordinar',null,'/images/triples.webp',true,7)
-on conflict(id) do nothing;
+-- Reubicar solo las posiciones originales de los cuatro productos anteriores.
+-- Conservar precios, textos, visibilidad y cualquier otra posición personalizada.
+on conflict(id) do update set sort_order=excluded.sort_order
+where products.id in ('cheesecake-fresa','cheesecake-maracumango','torta-personalizada','triples')
+  and products.sort_order=excluded.sort_order-3;
 commit;
 
 -- Conceder administración SOLO desde SQL Editor, después de crear y verificar la cuenta.
