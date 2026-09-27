@@ -1,57 +1,76 @@
-# Repostería Yemape
+# Yemape · Repostería artesanal
 
-Proyecto de catálogo y administración de postres. **Estado: definición inicial; la aplicación todavía no está implementada ni desplegada.**
+Primera versión de la tienda de **Repostería Yemape**, desarrollada con Next.js, React y TypeScript para desplegar en Vercel.
 
-## Experiencia acordada
+## Qué está implementado
 
-- Catálogo público, adaptable a celular y computadora.
-- Dos opciones para el cliente: comprar como invitado o iniciar sesión voluntariamente.
-- Explorar, buscar y agregar productos al carrito sin registrarse.
-- Mantener el carrito al iniciar sesión y al volver al catálogo.
-- Elegir cantidades y presentaciones, revisar el pedido y completar los datos de entrega o recojo.
-- Finalizar por WhatsApp en ambos modos. Iniciar sesión nunca debe ser obligatorio para comprar.
-- WhatsApp del negocio: +51 934 219 749. El sitio prepara el mensaje; el cliente decide enviarlo desde WhatsApp.
-- Enviar productos, presentaciones, cantidades, importes disponibles, nombre, modalidad, fecha solicitada y observaciones. Solicitar dirección solo para delivery.
-- Confirmar disponibilidad, fecha, costo de delivery y forma de pago por WhatsApp. Abrir WhatsApp no equivale a confirmar, pagar ni entregar un pedido.
-- No vaciar el carrito automáticamente al abrir WhatsApp: no se puede comprobar que el cliente haya enviado el mensaje.
+- Página principal responsive, con identidad propia y diseños de Yemape optimizados en WebP.
+- Catálogo inicial de cuatro productos, buscador y categorías.
+- Carrito persistente en el navegador: agregar, quitar, cambiar cantidades y recuperar la selección al volver.
+- Compra como invitado, sin registro obligatorio.
+- Formulario de pedido: nombre, recojo/delivery, dirección condicional, fecha y observaciones.
+- Revalidación del catálogo en el servidor antes de preparar el enlace a **WhatsApp +51 934 219 749**.
+- Autenticación opcional con Supabase: registro, confirmación de correo, inicio/cierre de sesión, recuperación/cambio de contraseña y perfil con nombre, teléfono y dirección.
+- Administración protegida por comprobación de identidad en el servidor y políticas RLS en la base de datos.
+- Productos: alta, edición, presentación, precio, categoría, orden y visibilidad.
+- Pedidos: registro manual, fecha de entrega, total, importe abonado y estados. Resumen de productos visibles, pedidos por atender y saldo por cobrar.
 
-## Cuenta opcional
+**Los productos iniciales tienen precio por consultar.** No se han inventado precios ni medidas comerciales. Cada presentación puede registrarse como una entrada independiente en el catálogo.
 
-La cuenta del cliente podrá guardar sus datos y direcciones para facilitar compras futuras. La autenticación deberá ser real y el acceso a datos privados deberá validarse en el servidor. Un pedido preparado o una apertura de WhatsApp no se presentará como una compra confirmada. El historial de pedidos confirmados requerirá registro y actualización desde la administración.
+## Qué funciona sin configurar servicios
 
-La administración del negocio será privada y tendrá permisos distintos a los de los clientes. No publicar datos personales, claves ni secretos en este repositorio.
+El catálogo, el carrito y la solicitud por WhatsApp funcionan sin cuenta y sin base de datos, usando `lib/products.ts`. Al no existir configuración de Supabase, `/cuenta` informa que las cuentas aún no están habilitadas. No simula una sesión ni permite entrar a la administración.
 
-## Dirección visual
+Al configurar Supabase, el catálogo pasa a leerse de la base de datos. Ante un fallo de la base de datos se muestra un error; no se sustituye silenciosamente por un catálogo antiguo.
 
-Referencia aportada por el propietario: https://www.mariaalmenara.pe/ y una captura de su página principal.
+## Publicar desde GitHub y Vercel
 
-Adaptar la organización observada: encabezado con marca, buscador, acceso a cuenta y carrito; fotografía principal de producto; categorías visibles; catálogo fácil de recorrer. Mantener identidad propia de Yemape, sin reutilizar el logo, las fotos ni los textos comerciales de la referencia.
+No necesitas instalar nada en tu computadora.
 
-Propuesta para desarrollar: fondos claros, acentos pastel variados, texto oscuro de buen contraste, fotografías de producto protagonistas y botones legibles. En móvil, mantener acceso claro al carrito y evitar que los elementos flotantes tapen formularios.
+1. Integra la rama de este proyecto en `main` desde el pull request.
+2. En Vercel, selecciona **Add New → Project** e importa `jhussepy/ADMINISTRACION-DE-POSTRES`.
+3. Usa el framework **Next.js**, directorio raíz del repositorio, Node.js **22.x** y los comandos automáticos (`npm install` / `npm run build`). No cambies el directorio de salida.
+4. Pulsa **Deploy**. La tienda pública y WhatsApp funcionarán sin añadir variables.
+5. Para activar las cuentas y la administración, sigue [la guía de configuración](docs/configuracion.md).
 
-## Administración propuesta
+La creación de este código no despliega automáticamente un sitio público ni provisiona una base de datos.
 
-Productos y presentaciones, precios, disponibilidad, pedidos, adelantos y saldos, costos de recetas, inventario de insumos, ingresos y gastos. Estos módulos son alcance propuesto para las siguientes etapas; no están implementados.
+## Desarrollo y comprobaciones
 
-## Criterios de aceptación
+```bash
+npm ci
+npm run dev
+npm run test
+npm run typecheck
+npm run build
+```
 
-1. Un invitado completa el recorrido hasta WhatsApp sin encontrar un bloqueo de registro.
-2. Un cliente que inicia sesión conserva su carrito y puede usar sus datos guardados.
-3. El carrito permite cambiar cantidades y eliminar productos, con importes recalculados y moneda PEN.
-4. Los precios, presentaciones y disponibilidad proceden del catálogo del negocio; no se inventan precios de venta.
-5. El costo de delivery pendiente se distingue del subtotal de productos.
-6. Los datos obligatorios se validan; las fechas usan la zona horaria America/Lima y se validan como fechas reales.
-7. El mensaje de WhatsApp conserva tildes, saltos de línea y caracteres especiales mediante codificación de URL.
-8. Abrir WhatsApp no genera estados de pago ni confirmaciones falsas.
-9. Un cliente o visitante no puede consultar ni modificar información administrativa.
-10. La navegación y formularios funcionan con teclado, etiquetas visibles y tamaños adecuados en móvil.
+Las pruebas unitarias cubren carrito inválido, cantidades máximas, productos retirados, cálculos en céntimos, fechas reales/zona horaria de Lima, dirección condicional y codificación del mensaje de WhatsApp.
 
-## Información pendiente para la implementación comercial
+La prueba de navegador está en `tests/storefront.spec.ts` y se ejecuta con `npm run test:e2e` después de `npm run build` y `npx playwright install chromium`. Utiliza el catálogo inicial sin variables de Supabase; **no envía mensajes** ni realiza compras.
 
-- Catálogo definitivo, presentaciones, precios y fotos de cada producto.
-- Dirección de recojo, horarios, zonas y condiciones de delivery.
-- Anticipación mínima por producto y condiciones de pedidos personalizados.
-- Identidad visual definitiva y datos que se guardarán en cuentas.
-- Configuración de autenticación y almacenamiento persistente antes de habilitar cuentas reales.
+## Estructura
 
-El repositorio será la fuente del proyecto. El destino previsto para el despliegue es Vercel; todavía no existe una publicación de esta aplicación.
+- `app/`: rutas, acciones de servidor y estilos.
+- `components/`: tienda, formularios de cuenta y administración.
+- `lib/cart.ts`: cantidades, totales, fechas y mensaje de WhatsApp.
+- `lib/products.ts`: catálogo inicial y diseños disponibles.
+- `lib/supabase/`: cliente de servidor con cookies.
+- `supabase/schema.sql`: tablas, restricciones, permisos y datos iniciales.
+- `docs/`: configuración, alcance y notas de verificación.
+
+## Límites de esta primera versión
+
+- Abrir WhatsApp no envía el mensaje por sí solo, no cobra y no confirma una compra. El cliente debe enviarlo; el negocio debe acordar disponibilidad, precio y entrega.
+- El carrito no se borra al abrir WhatsApp. Se conserva en ese navegador; no se sincroniza entre dispositivos.
+- Los mensajes de WhatsApp no se importan automáticamente: los pedidos se registran en el panel después de coordinarlos.
+- Cuentas y administración requieren un proyecto Supabase configurado, migración SQL y un usuario administrador verificado.
+- Se incluyen cuatro diseños existentes; la carga de nuevas imágenes desde el panel no forma parte de esta versión.
+- Inventario de ingredientes, costos de recetas, egresos y reportes completos corresponden a una siguiente etapa; el saldo por cobrar no equivale a ganancia.
+- Antes de abrir ventas, el propietario debe confirmar precios, presentaciones, catálogo, horarios, recojo y condiciones de delivery.
+
+Referencia de estructura aportada por el propietario: María Almenara. No se han reutilizado sus imágenes, textos ni logotipos.
+
+## Capturas de la versión verificada
+
+[Vista de computadora](docs/preview-desktop.webp) · [Vista de celular](docs/preview-mobile.webp)
