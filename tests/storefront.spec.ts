@@ -1,4 +1,29 @@
 import { test, expect } from "@playwright/test";
+test("front-page categories open a filtered carta and preserve the cart", async ({
+  page,
+}, testInfo) => {
+  await page.goto("/");
+  await page.getByRole("link", { name: "Kekes", exact: true }).click();
+  await expect(page).toHaveURL(/\/catalogo\?categoria=Kekes$/);
+  await expect(page.locator(".product-card")).toHaveCount(1);
+  await page
+    .getByRole("button", { name: "Agregar Keke de arándanos al carrito" })
+    .click();
+  await page.goto("/");
+  await expect(
+    page.getByRole("button", { name: "Abrir carrito, 1 productos" }),
+  ).toBeVisible();
+  if (testInfo.project.name === "desktop") {
+    const search = page.getByRole("textbox", { name: "Buscar postres" });
+    await search.fill("lúcuma");
+    await search.press("Enter");
+    await expect(page).toHaveURL(/\/catalogo\?buscar=/);
+    await expect(page.locator(".product-card")).toHaveCount(1);
+    await expect(
+      page.getByText("Terremoto de lúcuma", { exact: true }),
+    ).toBeVisible();
+  }
+});
 test("public catalogue, cart persistence, guest checkout and WhatsApp handoff", async ({
   page,
 }, testInfo) => {
@@ -8,6 +33,11 @@ test("public catalogue, cart persistence, guest checkout and WhatsApp handoff", 
   await expect(
     page.getByRole("heading", { name: /La vida sabe/ }),
   ).toBeVisible();
+  await expect(page.locator(".product-card")).toHaveCount(3);
+  await page
+    .getByRole("link", { name: "Ver toda la carta", exact: true })
+    .click();
+  await expect(page).toHaveURL(/\/catalogo$/);
   await expect(page.locator(".product-card")).toHaveCount(7);
   await expect
     .poll(() =>
@@ -35,7 +65,7 @@ test("public catalogue, cart persistence, guest checkout and WhatsApp handoff", 
     path: `test-results/yemape-home-${testInfo.project.name}.png`,
     fullPage: true,
   });
-  await page.reload();
+  await page.goto("/");
   await page
     .getByRole("button", { name: "Abrir carrito, 1 productos", exact: true })
     .click();
@@ -85,7 +115,7 @@ test("public catalogue, cart persistence, guest checkout and WhatsApp handoff", 
   expect(message).toContain("María & José");
   expect(message).toContain("Celebración + fresas");
   expect(message).toContain("aún no está confirmado");
-  await page.goto("/");
+  await page.goto("/catalogo");
   await expect(
     page.getByRole("button", {
       name: "Abrir carrito, 2 productos",
@@ -97,7 +127,7 @@ test("public catalogue, cart persistence, guest checkout and WhatsApp handoff", 
 test("filters, empty states, protected administration and responsive layout", async ({
   page,
 }, testInfo) => {
-  await page.goto("/");
+  await page.goto("/catalogo");
   const search =
     testInfo.project.name === "mobile"
       ? page.getByRole("textbox", { name: "Buscar en catálogo" })
@@ -131,6 +161,7 @@ test("product details support quantities, keyboard closing and mobile cart acces
   page,
 }, testInfo) => {
   await page.goto("/");
+  await page.getByRole("link", { name: "Toda la carta", exact: true }).click();
   const open = page.getByRole("button", {
     name: "Ver detalles de Cheesecake de fresa",
     exact: true,
@@ -264,6 +295,9 @@ test("photographic catalogue filters and new products reach the WhatsApp handoff
   });
   await page.keyboard.press("Escape");
   await expect(heroButton).toBeFocused();
+  await page
+    .getByRole("link", { name: "Ver toda la carta", exact: true })
+    .click();
   await page.getByRole("button", { name: "Kekes", exact: true }).click();
   await expect(page.locator(".product-card")).toHaveCount(1);
   await page

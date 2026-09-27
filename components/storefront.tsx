@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import {
   ArrowRight,
   CakeSlice,
@@ -69,15 +70,22 @@ export function Brand() {
 export function Storefront({
   products,
   account,
+  view = "home",
+  initialCategory = "Todos",
+  initialQuery = "",
 }: {
   products: Product[];
   account: Account;
+  view?: "home" | "catalog";
+  initialCategory?: string;
+  initialQuery?: string;
 }) {
+  const router = useRouter();
   const [cart, setCart] = useState<CartItem[]>([]),
     [ready, setReady] = useState(false),
     [storageError, setStorageError] = useState(false);
-  const [category, setCategory] = useState("Todos"),
-    [query, setQuery] = useState(""),
+  const [category, setCategory] = useState(initialCategory),
+    [query, setQuery] = useState(initialQuery),
     [menu, setMenu] = useState(false),
     [cartOpen, setCartOpen] = useState(false),
     [notice, setNotice] = useState("");
@@ -119,7 +127,17 @@ export function Storefront({
       (category === "Todos" || p.category === category) &&
       normalize(`${p.name} ${p.description}`).includes(normalize(query.trim())),
   );
+  const displayed = view === "home" ? products.slice(0, 3) : visible;
+  const availableCategories = categories.filter((c) =>
+    products.some((p) => p.category === c),
+  );
   function scrollToCatalog() {
+    if (view === "home") {
+      router.push(
+        `/catalogo${query.trim() ? `?buscar=${encodeURIComponent(query.trim())}` : ""}`,
+      );
+      return;
+    }
     document.getElementById("catalogo")?.scrollIntoView({
       behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
         ? "instant"
@@ -149,8 +167,11 @@ export function Storefront({
   }
   return (
     <>
-      <a className="skip-link" href="#catalogo">
-        Ir al catálogo
+      <a
+        className="skip-link"
+        href={view === "home" ? "#destacados" : "#catalogo"}
+      >
+        Ir al contenido
       </a>
       <div className="announcement">
         Hecho para compartir, preparado con cariño{" "}
@@ -226,15 +247,19 @@ export function Storefront({
           className={`main-nav ${menu ? "is-open" : ""}`}
           aria-label="Navegación principal"
         >
-          <a href="#catalogo" onClick={() => setMenu(false)}>
+          <Link
+            href="/catalogo"
+            onClick={() => setMenu(false)}
+            aria-current={view === "catalog" ? "page" : undefined}
+          >
             Nuestra carta
-          </a>
-          <a href="#hecho-con-carino" onClick={() => setMenu(false)}>
+          </Link>
+          <Link href="/#hecho-con-carino" onClick={() => setMenu(false)}>
             El toque Yemape
-          </a>
-          <a href="#como-pedir" onClick={() => setMenu(false)}>
+          </Link>
+          <Link href="/#como-pedir" onClick={() => setMenu(false)}>
             Cómo pedir
-          </a>
+          </Link>
           <a href="https://wa.me/51934219749" target="_blank" rel="noreferrer">
             Hablemos por WhatsApp <ArrowRight size={14} />
           </a>
@@ -242,306 +267,390 @@ export function Storefront({
         </nav>
       </header>
       <main>
-        <section
-          className={`hero photo-hero ${featured ? "" : "hero-without-product"}`}
-          aria-labelledby="hero-title"
-        >
-          <div className="hero-copy">
-            <span className="eyebrow">
-              <span className="little-line" /> REPOSTERÍA YEMAPE · HECHA CON
-              CARIÑO
-            </span>
-            <h1 id="hero-title">
-              La vida sabe
-              <br />
-              mejor con <em>postre.</em>
-            </h1>
-            <p>
-              Tortas, kekes y pequeños antojos para compartir. Elige tu favorito
-              y coordinamos cada detalle por WhatsApp.
-            </p>
-            <a href="#catalogo" className="button">
-              Ver catálogo <ArrowRight size={18} />
-            </a>
-            <div className="hero-note">
-              <Heart size={17} />
-              <span>Elige a tu ritmo. Coordinamos por WhatsApp.</span>
-            </div>
-          </div>
-          {featured && (
-            <div className="hero-visual">
-              <Image
-                src={featured.image}
-                alt={featured.name}
-                fill
-                preload
-                sizes="(max-width: 620px) 100vw, (max-width: 1440px) 55vw, 790px"
-                className="hero-image"
-              />
-              <div className="hero-caption">
-                <span>UN MOMENTO PARA DISFRUTAR</span>
-                <strong>{featured.name}</strong>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    detailTrigger.current = e.currentTarget;
-                    setSelectedProduct(featured);
-                  }}
-                  aria-label={`Descubrir ${featured.name}`}
-                >
-                  <ArrowRight />
-                </button>
+        {view === "home" && (
+          <>
+            <section
+              className={`hero photo-hero ${featured ? "" : "hero-without-product"}`}
+              aria-labelledby="hero-title"
+            >
+              <div className="hero-copy">
+                <span className="eyebrow">
+                  <span className="little-line" /> REPOSTERÍA YEMAPE · HECHA CON
+                  CARIÑO
+                </span>
+                <h1 id="hero-title">
+                  La vida sabe
+                  <br />
+                  mejor con <em>postre.</em>
+                </h1>
+                <p>
+                  Tortas, kekes y pequeños antojos para compartir. Elige tu
+                  favorito y coordinamos cada detalle por WhatsApp.
+                </p>
+                <Link href="/catalogo" className="button">
+                  Ver catálogo <ArrowRight size={18} />
+                </Link>
+                <div className="hero-note">
+                  <Heart size={17} />
+                  <span>Elige a tu ritmo. Coordinamos por WhatsApp.</span>
+                </div>
               </div>
-            </div>
-          )}
-        </section>
-        <div className="shopping-benefits" aria-label="Cómo comprar en Yemape">
-          <span>
-            <ShoppingBag size={18} aria-hidden="true" /> Pide sin crear una
-            cuenta
-          </span>
-          <span>
-            <MessageCircle size={18} aria-hidden="true" /> Atención por WhatsApp
-          </span>
-          <span>
-            <Truck size={18} aria-hidden="true" /> Delivery y recojo por
-            coordinar
-          </span>
-        </div>
-        <section
-          className="category-section"
-          aria-label="Categorías de postres"
-        >
-          <div className="category-list">
-            {(["Todos", ...categories] as const).map((c) => {
-              const Icon = categoryIcons[c];
-              return (
-                <button
-                  className={`category ${category === c ? "selected" : ""}`}
-                  key={c}
-                  onClick={() => choose(c)}
-                  aria-pressed={category === c}
-                >
-                  <span className="category-icon">
-                    <Icon size={27} strokeWidth={1.4} />
-                  </span>
-                  <span>{c === "Todos" ? "Todos los antojos" : c}</span>
-                </button>
-              );
-            })}
-          </div>
-        </section>
-        <section id="catalogo" className="catalog section-wrap">
-          <div className="section-heading">
-            <div>
-              <span className="eyebrow">NUESTRA CARTA</span>
-              <h2>¿Qué compartimos hoy?</h2>
-              <p>Encuentra ese antojo que hace especial tu día.</p>
-            </div>
-            <span className="catalog-count" role="status" aria-live="polite">
-              {visible.length} {visible.length === 1 ? "opción" : "opciones"}{" "}
-              para ti
-            </span>
-          </div>
-          <div className="mobile-search">
-            <Search size={19} />
-            <input
-              aria-label="Buscar en catálogo"
-              placeholder="Busca tu antojo favorito"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Escape") setQuery("");
-              }}
-            />
-            {query && (
-              <button
-                type="button"
-                className="search-clear"
-                aria-label="Limpiar búsqueda"
-                onClick={() => setQuery("")}
-              >
-                <X size={17} />
-              </button>
-            )}
-          </div>
-          {visible.length ? (
-            <div className="product-grid">
-              {visible.map((p, i) => {
-                const count = cart.find((x) => x.id === p.id)?.quantity ?? 0;
-                return (
-                  <article className={`product-card card-${i % 4}`} key={p.id}>
+              {featured && (
+                <div className="hero-visual">
+                  <Image
+                    src={featured.image}
+                    alt={featured.name}
+                    fill
+                    preload
+                    sizes="(max-width: 620px) 100vw, (max-width: 1440px) 55vw, 790px"
+                    className="hero-image"
+                  />
+                  <div className="hero-caption">
+                    <span>UN MOMENTO PARA DISFRUTAR</span>
+                    <strong>{featured.name}</strong>
                     <button
                       type="button"
-                      className="product-photo product-photo-button"
                       onClick={(e) => {
                         detailTrigger.current = e.currentTarget;
-                        setSelectedProduct(p);
+                        setSelectedProduct(featured);
                       }}
-                      aria-label={`Ver detalles de ${p.name}`}
+                      aria-label={`Descubrir ${featured.name}`}
                     >
-                      <Image
-                        src={p.image}
-                        alt={`Imagen referencial de ${p.name}`}
-                        fill
-                        sizes="(max-width: 359px) 100vw, (max-width: 1020px) 50vw, 25vw"
-                      />
-                      <span className="product-label">{p.category}</span>
-                      <span className="product-discover">
-                        Ver detalles <ArrowRight size={15} />
-                      </span>
+                      <ArrowRight />
                     </button>
-                    <div className="product-info">
-                      <span className="product-presentation">
-                        {p.presentation}
-                      </span>
-                      <h3>
-                        <button
-                          className="product-title-button"
-                          onClick={(e) => {
-                            detailTrigger.current = e.currentTarget;
-                            setSelectedProduct(p);
-                          }}
-                        >
-                          {p.name}
-                        </button>
-                      </h3>
-                      <p>{p.description}</p>
-                      <div className="product-buy">
-                        <strong>
-                          {p.price_cents === null
-                            ? "Precio por consultar"
-                            : money(p.price_cents)}
-                        </strong>
-                        <button
-                          className={`add-button ${count ? "has-items" : ""}`}
-                          disabled={!ready || count >= MAX_QUANTITY}
-                          onClick={() => add(p)}
-                          aria-label={`Agregar ${p.name} al carrito`}
-                        >
-                          {count ? <Check size={18} /> : <Plus size={18} />}
-                          <span>
-                            {count ? `Agregar (${count})` : "Agregar"}
-                          </span>
-                        </button>
-                      </div>
-                    </div>
-                  </article>
+                  </div>
+                </div>
+              )}
+            </section>
+            <div
+              className="shopping-benefits"
+              aria-label="Cómo comprar en Yemape"
+            >
+              <span>
+                <ShoppingBag size={18} aria-hidden="true" /> Pide sin crear una
+                cuenta
+              </span>
+              <span>
+                <MessageCircle size={18} aria-hidden="true" /> Atención por
+                WhatsApp
+              </span>
+              <span>
+                <Truck size={18} aria-hidden="true" /> Delivery y recojo por
+                coordinar
+              </span>
+            </div>
+          </>
+        )}
+        {view === "catalog" && (
+          <div className="catalog-intro section-wrap">
+            <span className="eyebrow">NUESTRA CARTA</span>
+            <h1>Elige tu próximo antojo.</h1>
+            <p>
+              Explora la carta, arma tu carrito y coordinamos tu pedido por
+              WhatsApp.
+            </p>
+          </div>
+        )}
+        <div
+          className={
+            view === "home" ? "discovery-layout section-wrap" : "catalog-layout"
+          }
+        >
+          <section
+            className="category-section"
+            aria-label="Categorías de postres"
+          >
+            <div className="category-list">
+              {(["Todos", ...availableCategories] as const).map((c) => {
+                const Icon = categoryIcons[c];
+                return view === "home" ? (
+                  <Link
+                    className="category"
+                    key={c}
+                    href={
+                      c === "Todos"
+                        ? "/catalogo"
+                        : `/catalogo?categoria=${encodeURIComponent(c)}`
+                    }
+                  >
+                    <span className="category-icon">
+                      <Icon size={27} strokeWidth={1.4} />
+                    </span>
+                    <span>{c === "Todos" ? "Toda la carta" : c}</span>
+                  </Link>
+                ) : (
+                  <button
+                    className={`category ${category === c ? "selected" : ""}`}
+                    key={c}
+                    onClick={() => choose(c)}
+                    aria-pressed={category === c}
+                  >
+                    <span className="category-icon">
+                      <Icon size={27} strokeWidth={1.4} />
+                    </span>
+                    <span>{c === "Todos" ? "Todos los antojos" : c}</span>
+                  </button>
                 );
               })}
             </div>
-          ) : (
-            <div className="empty-state">
-              <Cookie size={40} />
-              <h3>
-                {query
-                  ? "No encontramos ese antojo"
-                  : "Estamos preparando esta categoría"}
-              </h3>
-              <p>
-                {query
-                  ? "Prueba con otro nombre o explora todas las opciones."
-                  : "Puedes consultarnos por WhatsApp o descubrir el resto de la carta."}
-              </p>
-              <button
-                className="button secondary"
-                onClick={() => {
-                  setCategory("Todos");
-                  setQuery("");
-                }}
-              >
-                Ver toda la carta
-              </button>
-            </div>
-          )}
-          <p className="catalog-footnote">
-            Fotografías y diseños de referencia. Consulta tamaños y porciones.
-            Confirmaremos presentación, disponibilidad y precio por WhatsApp.
-          </p>
-        </section>
-        <section id="hecho-con-carino" className="brand-section section-wrap">
-          <div className="brand-art">
-            <Image
-              src="/images/emblema.webp"
-              alt="Emblema de Repostería Artesanal Yemape"
-              width={300}
-              height={300}
-            />
-          </div>
-          <div className="brand-story">
-            <span className="eyebrow">EL TOQUE YEMAPE</span>
-            <h2>
-              No solo hacemos postres.
-              <br />
-              <em>Acompañamos tus momentos.</em>
-            </h2>
-            <p>
-              Ese cumpleaños que esperabas, una tarde en familia o un detalle
-              para alguien especial. Nos encanta ser parte de lo que celebras.
-            </p>
-            <a
-              className="text-link"
-              href="https://wa.me/51934219749"
-              target="_blank"
-              rel="noreferrer"
-            >
-              Cuéntanos qué tienes en mente <ArrowRight size={18} />
-            </a>
-          </div>
-        </section>
-        <section id="como-pedir" className="how-section section-wrap">
-          <div className="section-heading">
-            <div>
-              <span className="eyebrow">ASÍ DE FÁCIL</span>
-              <h2>De un antojo a tu mesa.</h2>
-            </div>
-            <span className="no-account">
-              <UserRound size={17} /> Con cuenta o sin ella
-            </span>
-          </div>
-          <div className="steps">
-            <article>
-              <span>01</span>
-              <ShoppingBag />
-              <h3>Llena tu carrito</h3>
-              <p>Elige tus postres y las cantidades que quieres compartir.</p>
-            </article>
-            <article>
-              <span>02</span>
-              <MapPin />
-              <h3>Cuéntanos los detalles</h3>
-              <p>Indica tu fecha deseada y si prefieres recojo o delivery.</p>
-            </article>
-            <article>
-              <span>03</span>
-              <MessageCircle />
-              <h3>Lo coordinamos contigo</h3>
-              <p>
-                Envía tu carrito por WhatsApp. Confirmamos disponibilidad,
-                importe y pago.
-              </p>
-            </article>
-          </div>
-        </section>
-        <StoreFaq />
-        <section className="contact-band">
-          <div>
-            <span className="eyebrow">CADA CELEBRACIÓN ES DIFERENTE</span>
-            <h2>¿Tienes algo especial en mente?</h2>
-            <p>
-              Hablemos de tu torta, tu reunión o ese detalle que quieres
-              regalar.
-            </p>
-          </div>
-          <a
-            href="https://wa.me/51934219749"
-            target="_blank"
-            rel="noreferrer"
-            className="button"
+          </section>
+          <section
+            id={view === "home" ? "destacados" : "catalogo"}
+            className={`catalog section-wrap ${view === "home" ? "featured-catalog" : ""}`}
           >
-            <MessageCircle size={19} /> Escríbenos
-          </a>
-        </section>
+            <div className="section-heading">
+              <div>
+                <span className="eyebrow">
+                  {view === "home" ? "PARA EMPEZAR" : "TODOS LOS ANTOJOS"}
+                </span>
+                <h2>
+                  {view === "home"
+                    ? "Los favoritos para compartir."
+                    : "¿Qué compartimos hoy?"}
+                </h2>
+                <p>
+                  {view === "home"
+                    ? "Una pequeña selección de nuestra carta."
+                    : "Encuentra ese antojo que hace especial tu día."}
+                </p>
+              </div>
+              {view === "home" ? (
+                <Link className="text-link" href="/catalogo">
+                  Ver toda la carta <ArrowRight size={18} />
+                </Link>
+              ) : (
+                <span
+                  className="catalog-count"
+                  role="status"
+                  aria-live="polite"
+                >
+                  {visible.length}{" "}
+                  {visible.length === 1 ? "opción" : "opciones"} para ti
+                </span>
+              )}
+            </div>
+            {view === "catalog" && (
+              <div className="mobile-search">
+                <Search size={19} />
+                <input
+                  aria-label="Buscar en catálogo"
+                  placeholder="Busca tu antojo favorito"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Escape") setQuery("");
+                  }}
+                />
+                {query && (
+                  <button
+                    type="button"
+                    className="search-clear"
+                    aria-label="Limpiar búsqueda"
+                    onClick={() => setQuery("")}
+                  >
+                    <X size={17} />
+                  </button>
+                )}
+              </div>
+            )}
+            {displayed.length ? (
+              <div className="product-grid">
+                {displayed.map((p, i) => {
+                  const count = cart.find((x) => x.id === p.id)?.quantity ?? 0;
+                  return (
+                    <article
+                      className={`product-card card-${i % 4}`}
+                      key={p.id}
+                    >
+                      <button
+                        type="button"
+                        className="product-photo product-photo-button"
+                        onClick={(e) => {
+                          detailTrigger.current = e.currentTarget;
+                          setSelectedProduct(p);
+                        }}
+                        aria-label={`Ver detalles de ${p.name}`}
+                      >
+                        <Image
+                          src={p.image}
+                          alt={`Imagen referencial de ${p.name}`}
+                          fill
+                          sizes="(max-width: 359px) 100vw, (max-width: 1020px) 50vw, 25vw"
+                        />
+                        <span className="product-label">{p.category}</span>
+                        <span className="product-discover">
+                          Ver detalles <ArrowRight size={15} />
+                        </span>
+                      </button>
+                      <div className="product-info">
+                        <span className="product-presentation">
+                          {p.presentation}
+                        </span>
+                        <h3>
+                          <button
+                            className="product-title-button"
+                            onClick={(e) => {
+                              detailTrigger.current = e.currentTarget;
+                              setSelectedProduct(p);
+                            }}
+                          >
+                            {p.name}
+                          </button>
+                        </h3>
+                        <p>{p.description}</p>
+                        <div className="product-buy">
+                          <strong>
+                            {p.price_cents === null
+                              ? "Precio por consultar"
+                              : money(p.price_cents)}
+                          </strong>
+                          <button
+                            className={`add-button ${count ? "has-items" : ""}`}
+                            disabled={!ready || count >= MAX_QUANTITY}
+                            onClick={() => add(p)}
+                            aria-label={`Agregar ${p.name} al carrito`}
+                          >
+                            {count ? <Check size={18} /> : <Plus size={18} />}
+                            <span>
+                              {count ? `Agregar (${count})` : "Agregar"}
+                            </span>
+                          </button>
+                        </div>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="empty-state">
+                <Cookie size={40} />
+                <h3>
+                  {query
+                    ? "No encontramos ese antojo"
+                    : "Estamos preparando esta categoría"}
+                </h3>
+                <p>
+                  {query
+                    ? "Prueba con otro nombre o explora todas las opciones."
+                    : "Puedes consultarnos por WhatsApp o descubrir el resto de la carta."}
+                </p>
+                <button
+                  className="button secondary"
+                  onClick={() => {
+                    setCategory("Todos");
+                    setQuery("");
+                  }}
+                >
+                  Ver toda la carta
+                </button>
+              </div>
+            )}
+            <p className="catalog-footnote">
+              Fotografías y diseños de referencia. Consulta tamaños y porciones.
+              Confirmaremos presentación, disponibilidad y precio por WhatsApp.
+            </p>
+            {view === "home" && (
+              <Link className="button featured-cta" href="/catalogo">
+                Explorar el catálogo completo <ArrowRight size={18} />
+              </Link>
+            )}
+          </section>
+        </div>
+        {view === "home" && (
+          <>
+            <section
+              id="hecho-con-carino"
+              className="brand-section section-wrap"
+            >
+              <div className="brand-art">
+                <Image
+                  src="/images/emblema.webp"
+                  alt="Emblema de Repostería Artesanal Yemape"
+                  width={300}
+                  height={300}
+                />
+              </div>
+              <div className="brand-story">
+                <span className="eyebrow">EL TOQUE YEMAPE</span>
+                <h2>
+                  No solo hacemos postres.
+                  <br />
+                  <em>Acompañamos tus momentos.</em>
+                </h2>
+                <p>
+                  Ese cumpleaños que esperabas, una tarde en familia o un
+                  detalle para alguien especial. Nos encanta ser parte de lo que
+                  celebras.
+                </p>
+                <a
+                  className="text-link"
+                  href="https://wa.me/51934219749"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Cuéntanos qué tienes en mente <ArrowRight size={18} />
+                </a>
+              </div>
+            </section>
+            <section id="como-pedir" className="how-section section-wrap">
+              <div className="section-heading">
+                <div>
+                  <span className="eyebrow">ASÍ DE FÁCIL</span>
+                  <h2>De un antojo a tu mesa.</h2>
+                </div>
+                <span className="no-account">
+                  <UserRound size={17} /> Con cuenta o sin ella
+                </span>
+              </div>
+              <div className="steps">
+                <article>
+                  <span>01</span>
+                  <ShoppingBag />
+                  <h3>Llena tu carrito</h3>
+                  <p>
+                    Elige tus postres y las cantidades que quieres compartir.
+                  </p>
+                </article>
+                <article>
+                  <span>02</span>
+                  <MapPin />
+                  <h3>Cuéntanos los detalles</h3>
+                  <p>
+                    Indica tu fecha deseada y si prefieres recojo o delivery.
+                  </p>
+                </article>
+                <article>
+                  <span>03</span>
+                  <MessageCircle />
+                  <h3>Lo coordinamos contigo</h3>
+                  <p>
+                    Envía tu carrito por WhatsApp. Confirmamos disponibilidad,
+                    importe y pago.
+                  </p>
+                </article>
+              </div>
+            </section>
+            <section className="contact-band">
+              <div>
+                <span className="eyebrow">CADA CELEBRACIÓN ES DIFERENTE</span>
+                <h2>¿Tienes algo especial en mente?</h2>
+                <p>
+                  Hablemos de tu torta, tu reunión o ese detalle que quieres
+                  regalar.
+                </p>
+              </div>
+              <a
+                href="https://wa.me/51934219749"
+                target="_blank"
+                rel="noreferrer"
+                className="button"
+              >
+                <MessageCircle size={19} /> Escríbenos
+              </a>
+            </section>
+          </>
+        )}
+        {view === "catalog" && <StoreFaq />}
       </main>
       <footer
         className={`site-footer ${summary.count > 0 ? "has-cart-dock" : ""}`}
