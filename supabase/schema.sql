@@ -30,13 +30,18 @@ create table if not exists public.products (
   id text primary key check(char_length(id) between 1 and 80),
   name text not null check(char_length(name) between 3 and 120),
   description text not null default '' check(char_length(description)<=500),
-  category text not null check(category in ('Cheesecakes','Tortas','Kekes','Salados')),
+  category text not null,
   presentation text not null check(char_length(presentation) between 2 and 120),
   price_cents integer check(price_cents between 0 and 99999999),
-  image text not null check(image in ('/images/fresa.webp','/images/maracumango.webp','/images/tortas.webp','/images/triples.webp')),
+  image text not null,
   active boolean not null default true,
   sort_order integer not null default 10 check(sort_order between 0 and 999)
 );
+-- Ampliar las opciones también si se ejecuta sobre una instalación anterior.
+alter table public.products drop constraint if exists products_category_check;
+alter table public.products add constraint products_category_check check(category in ('Cheesecakes','Tortas','Kekes','Postres','Salados'));
+alter table public.products drop constraint if exists products_image_check;
+alter table public.products add constraint products_image_check check(image in ('/images/fresa.webp','/images/maracumango.webp','/images/tortas.webp','/images/triples.webp','/images/torta-chocolate.webp','/images/terremoto-lucuma.webp','/images/keke-arandanos.webp'));
 alter table public.products enable row level security;
 revoke all on public.products from anon, authenticated;
 grant select on public.products to anon, authenticated;
@@ -85,10 +90,13 @@ revoke all on function public.admin_summary(date) from public;
 grant execute on function public.admin_summary(date) to authenticated;
 
 insert into public.products(id,name,description,category,presentation,price_cents,image,active,sort_order) values
-('cheesecake-fresa','Cheesecake de fresa','Una pausa dulce con el encanto de las fresas. Consulta tamaños y porciones disponibles.','Cheesecakes','Presentación por coordinar',null,'/images/fresa.webp',true,1),
-('cheesecake-maracumango','Cheesecake de maracumango','El encuentro de dos sabores tropicales para compartir un momento especial.','Cheesecakes','Presentación por coordinar',null,'/images/maracumango.webp',true,2),
-('torta-personalizada','Tu torta, tu celebración','Cuéntanos tu idea, la temática y para cuántas personas. Coordinamos contigo cada detalle.','Tortas','Diseño personalizado',null,'/images/tortas.webp',true,3),
-('triples','Triples de jamón, queso y tocino','También hay lugar para un antojo salado. Consulta las presentaciones para tu reunión.','Salados','Cantidad por coordinar',null,'/images/triples.webp',true,4)
+('torta-chocolate','Torta de chocolate','Chocolate para celebrar y compartir. Consulta las presentaciones y opciones de decoración disponibles.','Tortas','Tamaño por coordinar',null,'/images/torta-chocolate.webp',true,1),
+('terremoto-lucuma','Terremoto de lúcuma','Un antojo de lúcuma y chocolate para disfrutar a cucharadas. Consulta la presentación disponible.','Postres','Presentación por coordinar',null,'/images/terremoto-lucuma.webp',true,2),
+('keke-arandanos','Keke de arándanos','El compañero de una pausa con café o de una tarde para compartir. Consulta tamaños y porciones disponibles.','Kekes','Tamaño por coordinar',null,'/images/keke-arandanos.webp',true,3),
+('cheesecake-fresa','Cheesecake de fresa','Una pausa dulce con el encanto de las fresas. Consulta tamaños y porciones disponibles.','Cheesecakes','Presentación por coordinar',null,'/images/fresa.webp',true,4),
+('cheesecake-maracumango','Cheesecake de maracumango','El encuentro de dos sabores tropicales para compartir un momento especial.','Cheesecakes','Presentación por coordinar',null,'/images/maracumango.webp',true,5),
+('torta-personalizada','Tu torta, tu celebración','Cuéntanos tu idea, la temática y para cuántas personas. Coordinamos contigo cada detalle.','Tortas','Diseño personalizado',null,'/images/tortas.webp',true,6),
+('triples','Triples de jamón, queso y tocino','También hay lugar para un antojo salado. Consulta las presentaciones para tu reunión.','Salados','Cantidad por coordinar',null,'/images/triples.webp',true,7)
 on conflict(id) do nothing;
 commit;
 

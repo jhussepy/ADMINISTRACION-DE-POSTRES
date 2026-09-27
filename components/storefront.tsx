@@ -5,6 +5,7 @@ import Image from "next/image";
 import {
   ArrowRight,
   CakeSlice,
+  IceCreamBowl,
   ChefHat,
   Cookie,
   Heart,
@@ -52,6 +53,7 @@ const categoryIcons = {
   Cheesecakes: CakeSlice,
   Tortas: ChefHat,
   Kekes: Cookie,
+  Postres: IceCreamBowl,
   Salados: Sandwich,
 };
 export function Brand() {
@@ -110,6 +112,8 @@ export function Storefront({
     [],
   );
   const summary = cartSummary(cart, products);
+  const featured =
+    products.find((p) => p.id === "torta-chocolate") ?? products[0];
   const visible = products.filter(
     (p) =>
       (category === "Todos" || p.category === category) &&
@@ -238,10 +242,14 @@ export function Storefront({
         </nav>
       </header>
       <main>
-        <section className="hero" aria-labelledby="hero-title">
+        <section
+          className={`hero photo-hero ${featured ? "" : "hero-without-product"}`}
+          aria-labelledby="hero-title"
+        >
           <div className="hero-copy">
             <span className="eyebrow">
-              <span className="little-line" /> PEQUEÑOS MOMENTOS, MUCHO CARIÑO
+              <span className="little-line" /> REPOSTERÍA YEMAPE · HECHA CON
+              CARIÑO
             </span>
             <h1 id="hero-title">
               La vida sabe
@@ -249,44 +257,57 @@ export function Storefront({
               mejor con <em>postre.</em>
             </h1>
             <p>
-              Un antojo, una celebración o simplemente porque sí. Encuentra algo
-              rico para compartir con los tuyos.
+              Tortas, kekes y pequeños antojos para compartir. Elige tu favorito
+              y coordinamos cada detalle por WhatsApp.
             </p>
             <a href="#catalogo" className="button">
-              Encuentra tu favorito <ArrowRight size={18} />
+              Ver catálogo <ArrowRight size={18} />
             </a>
             <div className="hero-note">
               <Heart size={17} />
               <span>Elige a tu ritmo. Coordinamos por WhatsApp.</span>
             </div>
           </div>
-          <div className="hero-visual">
-            <Image
-              src="/images/fresa.webp"
-              alt="Diseño de Yemape: cheesecake de fresa para compartir"
-              fill
-              preload
-              sizes="(max-width: 760px) 100vw, 55vw"
-              className="hero-image"
-            />
-            <span className="hero-sticker">
-              <span>Un poquito de</span>
-              <strong>felicidad</strong>
-              <Heart size={22} />
-            </span>
-            <div className="hero-caption">
-              <span>EL ANTOJO DE HOY</span>
-              <strong>Cheesecake de fresa</strong>
-              <a
-                href="#catalogo"
-                onClick={() => setCategory("Cheesecakes")}
-                aria-label="Ver cheesecakes"
-              >
-                <ArrowRight />
-              </a>
+          {featured && (
+            <div className="hero-visual">
+              <Image
+                src={featured.image}
+                alt={featured.name}
+                fill
+                preload
+                sizes="(max-width: 620px) 100vw, (max-width: 1440px) 55vw, 790px"
+                className="hero-image"
+              />
+              <div className="hero-caption">
+                <span>UN MOMENTO PARA DISFRUTAR</span>
+                <strong>{featured.name}</strong>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    detailTrigger.current = e.currentTarget;
+                    setSelectedProduct(featured);
+                  }}
+                  aria-label={`Descubrir ${featured.name}`}
+                >
+                  <ArrowRight />
+                </button>
+              </div>
             </div>
-          </div>
+          )}
         </section>
+        <div className="shopping-benefits" aria-label="Cómo comprar en Yemape">
+          <span>
+            <ShoppingBag size={18} aria-hidden="true" /> Pide sin crear una
+            cuenta
+          </span>
+          <span>
+            <MessageCircle size={18} aria-hidden="true" /> Atención por WhatsApp
+          </span>
+          <span>
+            <Truck size={18} aria-hidden="true" /> Delivery y recojo por
+            coordinar
+          </span>
+        </div>
         <section
           className="category-section"
           aria-label="Categorías de postres"
@@ -315,7 +336,7 @@ export function Storefront({
             <div>
               <span className="eyebrow">NUESTRA CARTA</span>
               <h2>¿Qué compartimos hoy?</h2>
-              <p>Elige tus favoritos. Nosotros ponemos el cariño.</p>
+              <p>Encuentra ese antojo que hace especial tu día.</p>
             </div>
             <span className="catalog-count" role="status" aria-live="polite">
               {visible.length} {visible.length === 1 ? "opción" : "opciones"}{" "}
@@ -434,8 +455,8 @@ export function Storefront({
             </div>
           )}
           <p className="catalog-footnote">
-            Imágenes referenciales de nuestros diseños. Confirmaremos
-            presentación, disponibilidad y precio antes de preparar tu pedido.
+            Fotografías y diseños de referencia. Consulta tamaños y porciones.
+            Confirmaremos presentación, disponibilidad y precio por WhatsApp.
           </p>
         </section>
         <section id="hecho-con-carino" className="brand-section section-wrap">

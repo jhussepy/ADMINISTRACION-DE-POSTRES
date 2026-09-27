@@ -4,7 +4,7 @@
 
 - Compilación de producción con Next.js 16.3.6 y comprobación TypeScript.
 - Cinco pruebas unitarias: normalización del carrito, cálculos en céntimos, fechas/Lima, dirección según modalidad y mensaje de WhatsApp.
-- Seis pruebas de navegador Chromium: tres recorridos en computadora (1440 px) y tres en móvil (390 px).
+- Ocho pruebas de navegador Chromium: cuatro recorridos en computadora (1440 px) y cuatro en móvil (390 px).
 - Verificado: renderizado del catálogo, carga de imagen principal, búsqueda sin depender de tildes, resultados vacíos, recuperación del carrito tras recarga, incremento de cantidades y solicitud como invitado.
 - El enlace externo de WhatsApp fue interceptado durante las pruebas: se comprobó el destinatario y el mensaje, sin enviar nada.
 - Verificado: el carrito permanece al regresar y los visitantes son redirigidos a `/cuenta` al abrir la administración o el cambio de contraseña.
@@ -12,6 +12,9 @@
 - Verificado: detalle del producto, imagen completa, selección de varias unidades y límite acumulado de 20 por producto.
 - Verificado: cierre con Escape y devolución del foco al botón de origen, acceso al carrito desde la barra móvil y preguntas frecuentes desplegables.
 - Verificado: resumen del pedido y conservación del nombre y fecha al volver a editar la selección.
+- Verificado: siete productos, carga de todas las imágenes del catálogo, apertura de la ficha desde la portada y filtros de Tortas, Kekes y Postres.
+- Verificado: torta de chocolate, terremoto de lúcuma y keke de arándanos llegan juntos al enlace de WhatsApp tras la validación en el servidor.
+- La lista de imágenes y las categorías del SQL de instalación incluyen las nuevas fotografías. No se ha ejecutado ese SQL ni conectado una base de datos.
 
 ## Pendiente de configuración externa
 

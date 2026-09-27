@@ -6,7 +6,7 @@ La tienda pública y el carrito ya funcionan sin esta configuración. Supabase a
 
 1. En tu cuenta de Supabase, crea un proyecto para Yemape.
 2. Abre **SQL Editor**, copia el contenido de `supabase/schema.sql` y ejecútalo.
-3. El script crea `products`, `profiles`, `orders` y `admins`, activa RLS, restringe los permisos y añade los cuatro productos iniciales sin precios.
+3. El script crea `products`, `profiles`, `orders` y `admins`, activa RLS, restringe los permisos y añade los siete productos iniciales sin precios.
 4. Guarda la contraseña de la base de datos en tu gestor de contraseñas. No la necesitas en el frontend ni en el repositorio.
 
 ## 2. Configurar Vercel

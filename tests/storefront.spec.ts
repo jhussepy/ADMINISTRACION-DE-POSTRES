@@ -8,7 +8,7 @@ test("public catalogue, cart persistence, guest checkout and WhatsApp handoff", 
   await expect(
     page.getByRole("heading", { name: /La vida sabe/ }),
   ).toBeVisible();
-  await expect(page.locator(".product-card")).toHaveCount(4);
+  await expect(page.locator(".product-card")).toHaveCount(7);
   await expect
     .poll(() =>
       page
@@ -102,7 +102,7 @@ test("filters, empty states, protected administration and responsive layout", as
   await search.fill("inexistente");
   await expect(page.getByText("No encontramos ese antojo")).toBeVisible();
   await page.getByRole("button", { name: "Ver toda la carta" }).click();
-  await expect(page.locator(".product-card")).toHaveCount(4);
+  await expect(page.locator(".product-card")).toHaveCount(7);
   await expect(page.locator("body")).toHaveJSProperty(
     "scrollWidth",
     await page.locator("body").evaluate((el) => el.clientWidth),
@@ -137,7 +137,7 @@ test("product details support quantities, keyboard closing and mobile cart acces
   });
   await expect(detail).toBeVisible();
   await expect(
-    detail.getByAltText("Diseño referencial completo de Cheesecake de fresa"),
+    detail.getByAltText("Presentación de Cheesecake de fresa"),
   ).toBeVisible();
   await expect
     .poll(() =>
@@ -214,4 +214,113 @@ test("product details support quantities, keyboard closing and mobile cart acces
       "No. Puedes elegir tus productos, completar los datos del pedido y continuar por WhatsApp como invitado.",
     ),
   ).toBeVisible();
+});
+
+test("photographic catalogue filters and new products reach the WhatsApp handoff", async ({
+  page,
+}, testInfo) => {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await page.goto("/");
+  await expect(page.locator(".hero-image")).toHaveAttribute(
+    "alt",
+    "Torta de chocolate",
+  );
+  for (const img of await page.locator(".product-photo img").all()) {
+    await img.scrollIntoViewIfNeeded();
+    await expect
+      .poll(() => img.evaluate((el) => (el as HTMLImageElement).naturalWidth))
+      .toBeGreaterThan(0);
+  }
+  await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+  await page.screenshot({
+    path: `test-results/yemape-photos-${testInfo.project.name}.png`,
+    fullPage: true,
+  });
+  const heroButton = page.getByRole("button", {
+    name: "Descubrir Torta de chocolate",
+    exact: true,
+  });
+  await heroButton.click();
+  const detail = page.getByRole("dialog", {
+    name: "Torta de chocolate",
+    exact: true,
+  });
+  await expect(detail).toBeVisible();
+  await expect
+    .poll(() =>
+      detail
+        .locator("img")
+        .evaluate((el) => (el as HTMLImageElement).naturalWidth),
+    )
+    .toBeGreaterThan(0);
+  await page.screenshot({
+    path: `test-results/yemape-photo-detail-${testInfo.project.name}.png`,
+  });
+  await page.keyboard.press("Escape");
+  await expect(heroButton).toBeFocused();
+  await page.getByRole("button", { name: "Kekes", exact: true }).click();
+  await expect(page.locator(".product-card")).toHaveCount(1);
+  await page
+    .getByRole("button", {
+      name: "Agregar Keke de arándanos al carrito",
+      exact: true,
+    })
+    .click();
+  await page.getByRole("button", { name: "Postres", exact: true }).click();
+  await expect(page.locator(".product-card")).toHaveCount(1);
+  await page
+    .getByRole("button", {
+      name: "Agregar Terremoto de lúcuma al carrito",
+      exact: true,
+    })
+    .click();
+  await page.getByRole("button", { name: "Tortas", exact: true }).click();
+  await expect(page.locator(".product-card")).toHaveCount(2);
+  await page
+    .getByRole("button", {
+      name: "Agregar Torta de chocolate al carrito",
+      exact: true,
+    })
+    .click();
+  await page
+    .getByRole("button", { name: "Abrir carrito, 3 productos", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Continuar como invitado", exact: true })
+    .click();
+  await page.getByLabel("Tu nombre", { exact: true }).fill("Pedido de prueba");
+  await page.getByLabel("Fecha deseada").fill("2099-09-30");
+  for (const name of [
+    "Torta de chocolate",
+    "Keke de arándanos",
+    "Terremoto de lúcuma",
+  ])
+    await expect(
+      page
+        .locator(".checkout-review")
+        .getByText(`1 × ${name}`, { exact: false }),
+    ).toBeVisible();
+  let whatsapp = "";
+  await page.route("https://wa.me/**", async (route) => {
+    whatsapp = route.request().url();
+    await route.fulfill({
+      status: 200,
+      contentType: "text/html",
+      body: "Prueba sin envío de mensajes.",
+    });
+  });
+  await page
+    .getByRole("button", { name: "Finalizar pedido por WhatsApp", exact: true })
+    .click();
+  await expect.poll(() => whatsapp).not.toBe("");
+  const message = new URL(whatsapp).searchParams.get("text")!;
+  for (const name of [
+    "Torta de chocolate",
+    "Keke de arándanos",
+    "Terremoto de lúcuma",
+  ])
+    expect(message).toContain(`1 × ${name}`);
+  expect(message).toContain("por cotizar");
+  expect(errors).toEqual([]);
 });
