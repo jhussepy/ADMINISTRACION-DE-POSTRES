@@ -1,14 +1,17 @@
-# Verificación de la primera versión
+# Verificación de la tienda y sus mejoras
 
 ## Completado
 
 - Compilación de producción con Next.js 16.3.6 y comprobación TypeScript.
 - Cinco pruebas unitarias: normalización del carrito, cálculos en céntimos, fechas/Lima, dirección según modalidad y mensaje de WhatsApp.
-- Cuatro pruebas de navegador Chromium: dos recorridos en computadora (1440 px) y dos en móvil (390 px).
+- Seis pruebas de navegador Chromium: tres recorridos en computadora (1440 px) y tres en móvil (390 px).
 - Verificado: renderizado del catálogo, carga de imagen principal, búsqueda sin depender de tildes, resultados vacíos, recuperación del carrito tras recarga, incremento de cantidades y solicitud como invitado.
 - El enlace externo de WhatsApp fue interceptado durante las pruebas: se comprobó el destinatario y el mensaje, sin enviar nada.
 - Verificado: el carrito permanece al regresar y los visitantes son redirigidos a `/cuenta` al abrir la administración o el cambio de contraseña.
 - Revisadas capturas de escritorio y celular, sin desplazamiento horizontal de la página.
+- Verificado: detalle del producto, imagen completa, selección de varias unidades y límite acumulado de 20 por producto.
+- Verificado: cierre con Escape y devolución del foco al botón de origen, acceso al carrito desde la barra móvil y preguntas frecuentes desplegables.
+- Verificado: resumen del pedido y conservación del nombre y fecha al volver a editar la selección.
 
 ## Pendiente de configuración externa
 

@@ -5,10 +5,14 @@ Primera versión de la tienda de **Repostería Yemape**, desarrollada con Next.j
 ## Qué está implementado
 
 - Página principal responsive, con identidad propia y diseños de Yemape optimizados en WebP.
-- Catálogo inicial de cuatro productos, buscador y categorías.
+- Catálogo inicial de cuatro productos, buscador con limpieza rápida y categorías.
+- Ficha ampliada de cada postre con imagen completa, presentación y selector de cantidad.
+- Catálogo de dos columnas en celulares desde 360 px y acceso fijo al carrito cuando contiene productos.
 - Carrito persistente en el navegador: agregar, quitar, cambiar cantidades y recuperar la selección al volver.
 - Compra como invitado, sin registro obligatorio.
 - Formulario de pedido: nombre, recojo/delivery, dirección condicional, fecha y observaciones.
+- Resumen editable antes de abrir WhatsApp; conserva los datos al volver a revisar el carrito.
+- Preguntas frecuentes sobre cuentas, confirmación, entrega y pedidos personalizados.
 - Revalidación del catálogo en el servidor antes de preparar el enlace a **WhatsApp +51 934 219 749**.
 - Autenticación opcional con Supabase: registro, confirmación de correo, inicio/cierre de sesión, recuperación/cambio de contraseña y perfil con nombre, teléfono y dirección.
 - Administración protegida por comprobación de identidad en el servidor y políticas RLS en la base de datos.
@@ -73,4 +77,4 @@ Referencia de estructura aportada por el propietario: María Almenara. No se han
 
 ## Capturas de la versión verificada
 
-[Vista de computadora](docs/preview-desktop.webp) · [Vista de celular](docs/preview-mobile.webp)
+[Vista de computadora](docs/preview-desktop.webp) · [Vista de celular](docs/preview-mobile.webp) · [Ficha de producto](docs/preview-product.webp)
