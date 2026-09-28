@@ -460,6 +460,17 @@ export function Storefront({
               className="category-section"
               aria-label="Categorías de postres"
             >
+              {view === "catalog" && (
+                <div className="catalog-category-heading">
+                  <div>
+                    <span className="eyebrow">EXPLORA YEMAPE</span>
+                    <h2>Encuentra tu favorito</h2>
+                  </div>
+                  <span className="category-scroll-hint" aria-hidden="true">
+                    Desliza para ver más <ArrowRight size={14} />
+                  </span>
+                </div>
+              )}
               <div className="category-list">
                 {(["Todos", ...availableCategories] as const).map((c) => {
                   const Icon = categoryIcons[c];
@@ -529,6 +540,24 @@ export function Storefront({
                   </span>
                 )}
               </div>
+              {view === "catalog" && (category !== "Todos" || query) && (
+                <div className="active-filters">
+                  <span>
+                    {category !== "Todos" ? category : "Toda la carta"}
+                    {query ? ` · “${query}”` : ""}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCategory("Todos");
+                      setQuery("");
+                      updateCatalogUrl("Todos", "", "push");
+                    }}
+                  >
+                    Limpiar filtros <X size={15} aria-hidden="true" />
+                  </button>
+                </div>
+              )}
               {view === "catalog" && (
                 <div className="mobile-search">
                   <Search size={19} />
