@@ -387,7 +387,7 @@ export function Storefront({
                           fill
                           preload
                           sizes="(max-width: 620px) 90vw, (max-width: 1440px) 52vw, 700px"
-                          className="hero-dessert-image"
+                          className="hero-image hero-dessert-image"
                         />
                       </div>
                       <button
