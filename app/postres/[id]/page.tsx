@@ -14,11 +14,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: product.name,
     description: `${product.description} Descubre este postre de Yemape y coordina tu pedido por WhatsApp.`,
+    alternates: { canonical: `/postres/${product.id}` },
     openGraph: {
       title: `${product.name} | Yemape`,
       description: product.description,
       type: "website",
+      images: [{ url: product.image, alt: product.name }],
     },
+    twitter: { card: "summary_large_image", images: [product.image] },
   };
 }
 

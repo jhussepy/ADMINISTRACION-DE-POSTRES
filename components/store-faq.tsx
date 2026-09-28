@@ -18,7 +18,7 @@ const questions = [
   {
     question: "¿Cómo pido una torta personalizada?",
     answer:
-      "Agrega la torta personalizada a tu carrito y cuéntanos en las observaciones la temática, la fecha y el número de personas. Coordinaremos contigo el diseño, la presentación y la cotización.",
+      "Agrega la torta personalizada a tu carrito. Al completar el pedido, indica la fecha y para cuántas personas será; también puedes describir el sabor y la temática. Coordinaremos contigo el diseño, la presentación y la cotización.",
   },
 ];
 export function StoreFaq() {

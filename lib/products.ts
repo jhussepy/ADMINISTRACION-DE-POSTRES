@@ -85,6 +85,54 @@ export const initialProducts: Product[] = [
     active: true,
     sort_order: 7,
   },
+  {
+    id: "pie-limon",
+    name: "Pie de limón",
+    description:
+      "Un clásico de limón con una presentación irresistible para compartir. Consulta las opciones disponibles.",
+    category: "Pies",
+    presentation: "Presentación por coordinar",
+    price_cents: null,
+    image: "/images/pie-limon.webp",
+    active: true,
+    sort_order: 8,
+  },
+  {
+    id: "pie-maracuya",
+    name: "Pie de maracuyá",
+    description:
+      "El sabor del maracuyá en un pie para disfrutar en cualquier ocasión. Consulta las presentaciones.",
+    category: "Pies",
+    presentation: "Presentación por coordinar",
+    price_cents: null,
+    image: "/images/pie-maracuya.webp",
+    active: true,
+    sort_order: 9,
+  },
+  {
+    id: "brownie-chocolate",
+    name: "Brownie de chocolate",
+    description:
+      "Un antojo de chocolate para acompañar una pausa o compartir. Consulta la cantidad disponible.",
+    category: "Postres",
+    presentation: "Cantidad por coordinar",
+    price_cents: null,
+    image: "/images/brownie-chocolate.webp",
+    active: true,
+    sort_order: 10,
+  },
+  {
+    id: "pie-manzana",
+    name: "Pie de manzana",
+    description:
+      "Un pie de manzana para compartir en la mesa. Consulta las presentaciones disponibles.",
+    category: "Pies",
+    presentation: "Presentación por coordinar",
+    price_cents: null,
+    image: "/images/pie-manzana.webp",
+    active: true,
+    sort_order: 11,
+  },
 ];
 export const productImages = [
   {
@@ -125,4 +173,28 @@ export const productImages = [
     label: "Tortas personalizadas",
   },
   { path: "/images/triples.webp", width: 1086, height: 1448, label: "Triples" },
+  {
+    path: "/images/pie-limon.webp",
+    width: 1122,
+    height: 1402,
+    label: "Pie de limón",
+  },
+  {
+    path: "/images/pie-maracuya.webp",
+    width: 1122,
+    height: 1402,
+    label: "Pie de maracuyá",
+  },
+  {
+    path: "/images/brownie-chocolate.webp",
+    width: 1254,
+    height: 1254,
+    label: "Brownie de chocolate",
+  },
+  {
+    path: "/images/pie-manzana.webp",
+    width: 1163,
+    height: 1353,
+    label: "Pie de manzana",
+  },
 ];

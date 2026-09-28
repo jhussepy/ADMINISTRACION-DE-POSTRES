@@ -178,8 +178,8 @@ export function ProductPage({
               <Palette aria-hidden="true" />
               <strong>Tu idea</strong>
               <p>
-                Describe la temática, los colores y el estilo en las
-                observaciones del pedido.
+                Describe la temática, los colores y el estilo en el formulario
+                de pedido.
               </p>
             </div>
             <div>

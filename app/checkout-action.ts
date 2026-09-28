@@ -12,7 +12,13 @@ export async function prepareCheckout(
       typeof details.name !== "string" ||
       typeof details.date !== "string" ||
       typeof details.address !== "string" ||
-      typeof details.notes !== "string"
+      typeof details.notes !== "string" ||
+      (details.cakeGuests !== undefined &&
+        typeof details.cakeGuests !== "string") ||
+      (details.cakeFlavor !== undefined &&
+        typeof details.cakeFlavor !== "string") ||
+      (details.cakeDesign !== undefined &&
+        typeof details.cakeDesign !== "string")
     )
       return { error: "Revisa los datos de tu pedido." };
     const products = await getProducts();

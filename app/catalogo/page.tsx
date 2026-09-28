@@ -8,6 +8,7 @@ export const metadata: Metadata = {
   title: "Nuestra carta",
   description:
     "Descubre los postres de Yemape, arma tu carrito y coordina el pedido por WhatsApp.",
+  alternates: { canonical: "/catalogo" },
 };
 
 export default async function Catalog({

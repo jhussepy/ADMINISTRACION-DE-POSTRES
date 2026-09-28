@@ -103,3 +103,39 @@ test("WhatsApp uses correct recipient and encodes accents, plus signs and newlin
   assert.ok(text.includes("\n"));
   assert.throws(() => whatsappUrl([], initialProducts, details));
 });
+test("personalized cake requires guests and carries its details to WhatsApp", () => {
+  const custom = {
+    ...details,
+    delivery: "recojo" as const,
+    address: "",
+    cakeGuests: "12",
+    cakeFlavor: "Chocolate",
+    cakeDesign: "Flores pastel",
+  };
+  assert.match(
+    checkoutError({ ...custom, cakeGuests: "" }, "2099-09-30", true)!,
+    /cuántas personas/,
+  );
+  assert.match(
+    checkoutError({ ...custom, cakeGuests: "501" }, "2099-09-30", true)!,
+    /cuántas personas/,
+  );
+  assert.equal(checkoutError(custom, "2099-09-30", true), null);
+  const url = new URL(
+    whatsappUrl(
+      [{ id: "torta-personalizada", quantity: 1 }],
+      initialProducts,
+      custom,
+    ),
+  );
+  const message = url.searchParams.get("text")!;
+  assert.match(message, /Personas: 12/);
+  assert.match(message, /Sabor deseado: Chocolate/);
+  assert.match(message, /Diseño o temática: Flores pastel/);
+  assert.throws(() =>
+    whatsappUrl([{ id: "torta-personalizada", quantity: 1 }], initialProducts, {
+      ...custom,
+      cakeGuests: "",
+    }),
+  );
+});

@@ -23,6 +23,7 @@ import {
   Sandwich,
   Check,
   MapPin,
+  Dessert,
 } from "lucide-react";
 import {
   CART_KEY,
@@ -55,6 +56,7 @@ const categoryIcons = {
   Cheesecakes: CakeSlice,
   Tortas: ChefHat,
   Kekes: Cookie,
+  Pies: Dessert,
   Postres: IceCreamBowl,
   Salados: Sandwich,
 };
@@ -865,6 +867,7 @@ function CartDialog({
   });
   const [today, setToday] = useState("");
   const { lines, count, subtotal, unpriced } = cartSummary(cart, products);
+  const hasCustomCake = lines.some((line) => line.id === "torta-personalizada");
   useEffect(() => {
     if (open) {
       ref.current?.showModal();
@@ -888,7 +891,7 @@ function CartDialog({
   ) => setDetails((d) => ({ ...d, [key]: value }));
   function submit(e: React.FormEvent) {
     e.preventDefault();
-    const problem = checkoutError(details);
+    const problem = checkoutError(details, limaToday(), hasCustomCake);
     if (problem) {
       setError(problem);
       return;
@@ -1121,12 +1124,52 @@ function CartDialog({
                   />
                   <small>La fecha está sujeta a disponibilidad.</small>
                 </label>
+                {hasCustomCake && (
+                  <fieldset className="cake-request">
+                    <legend>Detalles de tu torta personalizada</legend>
+                    <p>
+                      Estos datos nos ayudan a preparar tu cotización. Si tienes
+                      una foto de referencia, envíanosla por WhatsApp después.
+                    </p>
+                    <label>
+                      ¿Para cuántas personas?
+                      <input
+                        type="number"
+                        inputMode="numeric"
+                        min={1}
+                        max={500}
+                        required
+                        value={details.cakeGuests ?? ""}
+                        onChange={(e) => update("cakeGuests", e.target.value)}
+                      />
+                    </label>
+                    <label>
+                      Sabor que te gustaría <small>(opcional)</small>
+                      <input
+                        maxLength={80}
+                        placeholder="Si aún no lo sabes, lo coordinamos"
+                        value={details.cakeFlavor ?? ""}
+                        onChange={(e) => update("cakeFlavor", e.target.value)}
+                      />
+                    </label>
+                    <label>
+                      Temática, colores o idea <small>(opcional)</small>
+                      <textarea
+                        maxLength={300}
+                        rows={3}
+                        placeholder="Cuéntanos cómo la imaginas"
+                        value={details.cakeDesign ?? ""}
+                        onChange={(e) => update("cakeDesign", e.target.value)}
+                      />
+                    </label>
+                  </fieldset>
+                )}
                 <label>
                   ¿Algo que debamos saber? <small>(opcional)</small>
                   <textarea
                     maxLength={500}
                     rows={3}
-                    placeholder="Presentación, número de personas, temática de la torta…"
+                    placeholder="Alguna indicación para los demás productos…"
                     value={details.notes}
                     onChange={(e) => update("notes", e.target.value)}
                   />
