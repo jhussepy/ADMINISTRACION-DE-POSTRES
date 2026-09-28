@@ -18,7 +18,7 @@ export type Product = {
   active: boolean;
   sort_order: number;
 };
-export type CartItem = { id: string; quantity: number };
+export type CartItem = { id: string; quantity: number; variant?: string };
 export type CheckoutDetails = {
   name: string;
   delivery: "recojo" | "delivery";
@@ -28,6 +28,8 @@ export type CheckoutDetails = {
   cakeGuests?: string;
   cakeFlavor?: string;
   cakeDesign?: string;
+  occasion?: string;
+  giftNote?: string;
 };
 export type Profile = { full_name: string; address: string; phone: string };
 export type ActionState = { error?: string; success?: string };

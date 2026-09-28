@@ -31,7 +31,7 @@ test("normalizes corrupt storage, duplicate lines, removed products and quantiti
       ],
       initialProducts,
     ),
-    [{ id: "cheesecake-fresa", quantity: 20 }],
+    [{ id: "cheesecake-fresa", variant: "porcion", quantity: 20 }],
   );
   assert.deepEqual(
     normalizeCart(
@@ -49,13 +49,14 @@ test("integer cents avoid rounding errors and unpriced products never become fre
   const s = cartSummary(
     [
       { id: "cheesecake-fresa", quantity: 3 },
-      { id: "triples", quantity: 2 },
+      { id: "torta-personalizada", quantity: 2 },
     ],
     products,
   );
   assert.equal(s.subtotal, 3030);
   assert.equal(s.count, 5);
   assert.equal(s.unpriced, true);
+  assert.equal(s.examples, false);
   assert.equal(parsePrice("10.10"), 1010);
   assert.equal(parsePrice("", true), null);
   for (const input of ["-1", "1e3", "0.001", "abc", "Infinity"])
@@ -97,11 +98,52 @@ test("WhatsApp uses correct recipient and encodes accents, plus signs and newlin
   assert.match(text, /María & José/);
   assert.match(text, /Cumpleaños \+ fresas/);
   assert.match(text, /2 × Cheesecake de fresa/);
-  assert.match(text, /por cotizar/);
+  assert.match(text, /Estimado de muestra/);
+  assert.match(text, /no son precios finales/);
   assert.match(text, /aún no está confirmado/);
   assert.match(text, /Delivery: costo por confirmar/);
   assert.ok(text.includes("\n"));
   assert.throws(() => whatsappUrl([], initialProducts, details));
+});
+test("separate presentations survive cart normalization and cannot be forged", () => {
+  const cart = normalizeCart(
+    [
+      { id: "pie-limon", variant: "porcion", quantity: 2 },
+      { id: "pie-limon", variant: "entero", quantity: 1 },
+      { id: "pie-limon", variant: "inventada", quantity: 1 },
+    ],
+    initialProducts,
+  );
+  assert.deepEqual(cart, [
+    { id: "pie-limon", variant: "porcion", quantity: 2 },
+    { id: "pie-limon", variant: "entero", quantity: 1 },
+  ]);
+  const summary = cartSummary(cart, initialProducts);
+  assert.equal(summary.count, 3);
+  assert.equal(summary.subtotal, 11000);
+  assert.equal(summary.examples, true);
+  const message = new URL(
+    whatsappUrl(cart, initialProducts, details),
+  ).searchParams.get("text")!;
+  assert.match(message, /2 × Pie de limón — Porción/);
+  assert.match(message, /1 × Pie de limón — Entero/);
+  assert.match(message, /importes y presentaciones de ejemplo/);
+});
+test("gift note and occasion are included but cannot exceed limits", () => {
+  const order = {
+    ...details,
+    occasion: "Cumpleaños",
+    giftNote: "¡Feliz día, Ana!",
+  };
+  assert.equal(checkoutError(order, "2099-09-30"), null);
+  const message = new URL(
+    whatsappUrl([{ id: "pie-manzana", quantity: 1 }], initialProducts, order),
+  ).searchParams.get("text")!;
+  assert.match(message, /Ocasión: Cumpleaños/);
+  assert.match(message, /Dedicatoria solicitada: ¡Feliz día, Ana!/);
+  assert.ok(
+    checkoutError({ ...order, giftNote: "x".repeat(181) }, "2099-09-30"),
+  );
 });
 test("personalized cake requires guests and carries its details to WhatsApp", () => {
   const custom = {

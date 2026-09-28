@@ -6,6 +6,8 @@ import { X, Minus, Plus, ShoppingBag, MessageCircle } from "lucide-react";
 import type { Product } from "@/lib/types";
 import { MAX_QUANTITY, money } from "@/lib/cart";
 import { productImages } from "@/lib/products";
+import { presentation, presentations } from "@/lib/demo-catalog";
+import { PresentationPicker } from "./presentation-picker";
 export function ProductDetails({
   product,
   inCart,
@@ -17,11 +19,13 @@ export function ProductDetails({
   inCart: number;
   returnFocusTo: HTMLElement | null;
   onClose: () => void;
-  onAdd: (quantity: number) => void;
+  onAdd: (quantity: number, variant: string) => void;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const imageSize = productImages.find((image) => image.path === product.image);
   const [quantity, setQuantity] = useState(1);
+  const [variant, setVariant] = useState(() => presentations(product)[0].id);
+  const offer = presentation(product, variant)!;
   const remaining = Math.max(0, MAX_QUANTITY - inCart);
   const selected = Math.min(quantity, remaining);
   useEffect(() => {
@@ -70,17 +74,23 @@ export function ProductDetails({
           <dl className="detail-specs">
             <div>
               <dt>Presentación</dt>
-              <dd>{product.presentation}</dd>
+              <dd>{offer.label}</dd>
             </div>
             <div>
               <dt>Precio por presentación</dt>
               <dd>
-                {product.price_cents === null
+                {offer.priceCents === null
                   ? "Por consultar"
-                  : money(product.price_cents)}
+                  : `${money(offer.priceCents)}${offer.example ? " · ejemplo" : ""}`}
               </dd>
             </div>
           </dl>
+          <PresentationPicker
+            product={product}
+            selected={variant}
+            onSelect={setVariant}
+            name={`dialog-presentation-${product.id}`}
+          />
           <p className="detail-note">
             Imagen referencial. Confirmaremos el tamaño y la presentación de tu
             pedido por WhatsApp.
@@ -115,14 +125,17 @@ export function ProductDetails({
           <button
             className="button full"
             disabled={remaining === 0}
-            onClick={() => onAdd(selected)}
+            onClick={() => onAdd(selected, variant)}
           >
             <ShoppingBag size={18} />
             {remaining === 0
               ? "Límite de unidades alcanzado"
               : `Agregar ${selected} al carrito`}
-            {product.price_cents !== null && remaining > 0 && (
-              <span>· {money(product.price_cents * selected)}</span>
+            {offer.priceCents !== null && remaining > 0 && (
+              <span>
+                · {money(offer.priceCents * selected)}
+                {offer.example ? " de ejemplo" : ""}
+              </span>
             )}
           </button>
           <p className="detail-reassurance">

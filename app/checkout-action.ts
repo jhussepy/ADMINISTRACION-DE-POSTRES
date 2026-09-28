@@ -1,6 +1,7 @@
 "use server";
 import { getProducts } from "@/lib/data";
 import { whatsappUrl, normalizeCart } from "@/lib/cart";
+import { presentation } from "@/lib/demo-catalog";
 import type { CheckoutDetails } from "@/lib/types";
 export async function prepareCheckout(
   cart: unknown,
@@ -18,7 +19,10 @@ export async function prepareCheckout(
       (details.cakeFlavor !== undefined &&
         typeof details.cakeFlavor !== "string") ||
       (details.cakeDesign !== undefined &&
-        typeof details.cakeDesign !== "string")
+        typeof details.cakeDesign !== "string") ||
+      (details.occasion !== undefined &&
+        typeof details.occasion !== "string") ||
+      (details.giftNote !== undefined && typeof details.giftNote !== "string")
     )
       return { error: "Revisa los datos de tu pedido." };
     const products = await getProducts();
@@ -29,7 +33,14 @@ export async function prepareCheckout(
       clean.length !== cart.length ||
       cart.some(
         (item, i) =>
-          item?.id !== clean[i]?.id || item?.quantity !== clean[i]?.quantity,
+          item?.id !== clean[i]?.id ||
+          item?.quantity !== clean[i]?.quantity ||
+          (item.variant !== undefined
+            ? item.variant
+            : presentation(
+                products.find((p) => p.id === item.id)!,
+                undefined,
+              )?.id) !== clean[i]?.variant,
       )
     )
       return {

@@ -24,6 +24,7 @@ import {
   Check,
   MapPin,
   Dessert,
+  CalendarDays,
 } from "lucide-react";
 import {
   CART_KEY,
@@ -37,6 +38,12 @@ import {
 import { prepareCheckout } from "@/app/checkout-action";
 import type { CartItem, CheckoutDetails, Product, Profile } from "@/lib/types";
 import { categories } from "@/lib/types";
+import {
+  DEMO_MODE,
+  exampleDelivery,
+  presentation,
+  presentations,
+} from "@/lib/demo-catalog";
 import { ProductDetails } from "./product-details";
 import { ProductPage } from "./product-page";
 import { StoreFaq } from "./store-faq";
@@ -187,19 +194,30 @@ export function Storefront({
     if (view === "catalog") updateCatalogUrl(value, query, "push");
     scrollToCatalog();
   };
-  function quantity(id: string, amount: number) {
+  function quantity(id: string, amount: number, variant: string) {
     setCart((prev) => {
-      const current = prev.find((p) => p.id === id)?.quantity ?? 0;
+      const current =
+        prev.find((p) => p.id === id && p.variant === variant)?.quantity ?? 0;
+      const total = prev
+        .filter((p) => p.id === id)
+        .reduce((sum, p) => sum + p.quantity, 0);
       const next = current + amount;
-      if (next < 1) return prev.filter((p) => p.id !== id);
-      if (next > MAX_QUANTITY) return prev;
+      if (next < 1)
+        return prev.filter((p) => p.id !== id || p.variant !== variant);
+      if (total + amount > MAX_QUANTITY) return prev;
       return current
-        ? prev.map((p) => (p.id === id ? { ...p, quantity: next } : p))
-        : [...prev, { id, quantity: next }];
+        ? prev.map((p) =>
+            p.id === id && p.variant === variant ? { ...p, quantity: next } : p,
+          )
+        : [...prev, { id, variant, quantity: next }];
     });
   }
-  function add(product: Product, amount = 1) {
-    quantity(product.id, amount);
+  function add(
+    product: Product,
+    amount = 1,
+    variant = presentations(product)[0].id,
+  ) {
+    quantity(product.id, amount, variant);
     setNotice(`${amount} × ${product.name} agregado a tu carrito`);
     if (timer.current) clearTimeout(timer.current);
     timer.current = setTimeout(() => setNotice(""), 3000);
@@ -219,7 +237,9 @@ export function Storefront({
         Ir al contenido
       </a>
       <div className="announcement">
-        Hecho para compartir, preparado con cariño{" "}
+        {DEMO_MODE
+          ? "CATÁLOGO DE MUESTRA · precios, porciones y condiciones por confirmar"
+          : "Hecho para compartir, preparado con cariño"}{" "}
         <Heart size={13} aria-hidden="true" />
       </div>
       <header className="site-header">
@@ -403,6 +423,12 @@ export function Storefront({
               Explora la carta, arma tu carrito y coordinamos tu pedido por
               WhatsApp.
             </p>
+            {DEMO_MODE && (
+              <p className="demo-disclaimer">
+                Los tamaños, precios y condiciones mostrados son ejemplos. La
+                cotización real llegará por WhatsApp.
+              </p>
+            )}
           </div>
         )}
         {view === "product" && product && (
@@ -410,11 +436,13 @@ export function Storefront({
             key={product.id}
             product={product}
             products={products}
-            inCart={cart.find((item) => item.id === product.id)?.quantity ?? 0}
+            inCart={cart
+              .filter((item) => item.id === product.id)
+              .reduce((n, item) => n + item.quantity, 0)}
             ready={ready}
-            onAdd={(amount) => add(product, amount)}
-            onOrder={(amount) => {
-              add(product, amount);
+            onAdd={(amount, variant) => add(product, amount, variant)}
+            onOrder={(amount, variant) => {
+              add(product, amount, variant);
               setCartOpen(true);
             }}
             onViewCart={() => setCartOpen(true)}
@@ -529,8 +557,10 @@ export function Storefront({
               {displayed.length ? (
                 <div className="product-grid">
                   {displayed.map((p, i) => {
-                    const count =
-                      cart.find((x) => x.id === p.id)?.quantity ?? 0;
+                    const count = cart
+                      .filter((x) => x.id === p.id)
+                      .reduce((n, x) => n + x.quantity, 0);
+                    const first = presentations(p)[0];
                     return (
                       <article
                         className={`product-card card-${i % 4}`}
@@ -558,7 +588,7 @@ export function Storefront({
                         </button>
                         <div className="product-info">
                           <span className="product-presentation">
-                            {p.presentation}
+                            {first.label}
                           </span>
                           <h3>
                             <Link
@@ -571,9 +601,9 @@ export function Storefront({
                           <p>{p.description}</p>
                           <div className="product-buy">
                             <strong>
-                              {p.price_cents === null
+                              {first.priceCents === null
                                 ? "Precio por consultar"
-                                : money(p.price_cents)}
+                                : `${first.example ? "Ejemplo desde " : "Desde "}${money(first.priceCents)}`}
                             </strong>
                             <button
                               className={`add-button ${count ? "has-items" : ""}`}
@@ -618,9 +648,12 @@ export function Storefront({
                 </div>
               )}
               <p className="catalog-footnote">
-                Fotografías y diseños de referencia. Consulta tamaños y
-                porciones. Confirmaremos presentación, disponibilidad y precio
-                por WhatsApp.
+                Fotografías referenciales.{" "}
+                {DEMO_MODE
+                  ? "Tamaños e importes de muestra."
+                  : "Consulta tamaños y porciones."}{" "}
+                Confirmaremos presentación, disponibilidad y precio por
+                WhatsApp.
               </p>
               {view === "home" && (
                 <Link className="button featured-cta" href="/catalogo">
@@ -632,6 +665,55 @@ export function Storefront({
         )}
         {view === "home" && (
           <>
+            <section
+              className="occasion-section section-wrap"
+              aria-labelledby="occasions-title"
+            >
+              <div className="section-heading">
+                <div>
+                  <span className="eyebrow">ENCUENTRA TU MOMENTO</span>
+                  <h2 id="occasions-title">Un postre para cada ocasión.</h2>
+                  <p>Explora ideas y después coordina tu pedido a tu manera.</p>
+                </div>
+              </div>
+              <div className="occasion-grid">
+                {[
+                  {
+                    title: "Para celebrar",
+                    category: "Tortas",
+                    image: "/images/torta-chocolate.webp",
+                  },
+                  {
+                    title: "Para compartir",
+                    category: "Pies",
+                    image: "/images/pie-manzana.webp",
+                  },
+                  {
+                    title: "Para darte un gusto",
+                    category: "Postres",
+                    image: "/images/brownie-chocolate.webp",
+                  },
+                ].map((item) => (
+                  <Link
+                    key={item.title}
+                    href={`/catalogo?categoria=${item.category}`}
+                    className="occasion-card"
+                  >
+                    <Image
+                      src={item.image}
+                      alt=""
+                      fill
+                      sizes="(max-width: 640px) 85vw, 33vw"
+                    />
+                    <span>
+                      <small>{item.category}</small>
+                      <strong>{item.title}</strong>
+                      <ArrowRight size={20} aria-hidden="true" />
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            </section>
             <section
               id="hecho-con-carino"
               className="brand-section section-wrap"
@@ -703,6 +785,34 @@ export function Storefront({
                   </p>
                 </article>
               </div>
+            </section>
+            <section
+              className="delivery-sample section-wrap"
+              aria-labelledby="delivery-title"
+            >
+              <div>
+                <span className="eyebrow">COORDINEMOS TU PEDIDO</span>
+                <h2 id="delivery-title">Entrega y recojo, paso a paso.</h2>
+                <p>
+                  {DEMO_MODE
+                    ? "Condiciones de muestra para explorar el sitio. Confirmaremos las reales por WhatsApp."
+                    : "Confirma cobertura, costo y horario al coordinar tu pedido."}
+                </p>
+              </div>
+              <ul>
+                <li>
+                  <CalendarDays size={19} aria-hidden="true" />
+                  {exampleDelivery.leadTime}
+                </li>
+                <li>
+                  <MapPin size={19} aria-hidden="true" />
+                  {exampleDelivery.pickup}
+                </li>
+                <li>
+                  <Truck size={19} aria-hidden="true" />
+                  {exampleDelivery.coverage}. {exampleDelivery.cost}
+                </li>
+              </ul>
             </section>
             <section className="contact-band">
               <div>
@@ -815,12 +925,12 @@ export function Storefront({
           key={selectedProduct.id}
           product={selectedProduct}
           returnFocusTo={detailTrigger.current}
-          inCart={
-            cart.find((item) => item.id === selectedProduct.id)?.quantity ?? 0
-          }
+          inCart={cart
+            .filter((item) => item.id === selectedProduct.id)
+            .reduce((n, item) => n + item.quantity, 0)}
           onClose={() => setSelectedProduct(null)}
-          onAdd={(amount) => {
-            add(selectedProduct, amount);
+          onAdd={(amount, variant) => {
+            add(selectedProduct, amount, variant);
             setSelectedProduct(null);
           }}
         />
@@ -832,7 +942,33 @@ export function Storefront({
         products={products}
         account={account}
         change={quantity}
-        remove={(id) => setCart((prev) => prev.filter((p) => p.id !== id))}
+        chooseVariant={(id, oldVariant, newVariant) =>
+          setCart((prev) => {
+            const previous = prev.find(
+              (p) => p.id === id && p.variant === oldVariant,
+            );
+            if (
+              !previous ||
+              !presentation(
+                products.find((p) => p.id === id)!,
+                newVariant,
+              )
+            )
+              return prev;
+            return normalizeCart(
+              [
+                ...prev.filter((p) => p.id !== id || p.variant !== oldVariant),
+                { id, variant: newVariant, quantity: previous.quantity },
+              ],
+              products,
+            );
+          })
+        }
+        remove={(id, variant) =>
+          setCart((prev) =>
+            prev.filter((p) => p.id !== id || p.variant !== variant),
+          )
+        }
       />
     </>
   );
@@ -844,6 +980,7 @@ function CartDialog({
   products,
   account,
   change,
+  chooseVariant,
   remove,
 }: {
   open: boolean;
@@ -851,8 +988,9 @@ function CartDialog({
   cart: CartItem[];
   products: Product[];
   account: Account;
-  change: (id: string, q: number) => void;
-  remove: (id: string) => void;
+  change: (id: string, q: number, variant: string) => void;
+  chooseVariant: (id: string, oldVariant: string, newVariant: string) => void;
+  remove: (id: string, variant: string) => void;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   const [step, setStep] = useState<"cart" | "details">("cart");
@@ -866,7 +1004,10 @@ function CartDialog({
     notes: "",
   });
   const [today, setToday] = useState("");
-  const { lines, count, subtotal, unpriced } = cartSummary(cart, products);
+  const { lines, count, subtotal, unpriced, examples } = cartSummary(
+    cart,
+    products,
+  );
   const hasCustomCake = lines.some((line) => line.id === "torta-personalizada");
   useEffect(() => {
     if (open) {
@@ -961,7 +1102,7 @@ function CartDialog({
               <>
                 <div className="cart-items">
                   {lines.map((l) => (
-                    <article className="cart-item" key={l.id}>
+                    <article className="cart-item" key={`${l.id}:${l.variant}`}>
                       <Image
                         src={l.product.image}
                         alt={l.product.name}
@@ -970,24 +1111,47 @@ function CartDialog({
                       />
                       <div className="cart-item-info">
                         <h3>{l.product.name}</h3>
-                        <p>{l.product.presentation}</p>
+                        {presentations(l.product).length > 1 ? (
+                          <label className="cart-presentation">
+                            Presentación de {l.product.name}
+                            <select
+                              value={l.variant}
+                              onChange={(e) =>
+                                chooseVariant(l.id, l.variant!, e.target.value)
+                              }
+                            >
+                              {presentations(l.product).map((option) => (
+                                <option key={option.id} value={option.id}>
+                                  {option.label}
+                                </option>
+                              ))}
+                            </select>
+                          </label>
+                        ) : (
+                          <p>{l.offer.label}</p>
+                        )}
                         <strong>
-                          {l.product.price_cents === null
+                          {l.offer.priceCents === null
                             ? "Por cotizar"
-                            : money(l.product.price_cents * l.quantity)}
+                            : `${money(l.offer.priceCents * l.quantity)}${l.offer.example ? " · ejemplo" : ""}`}
                         </strong>
                         <div className="quantity">
                           <button
                             aria-label={`Quitar una unidad de ${l.product.name}`}
-                            onClick={() => change(l.id, -1)}
+                            onClick={() => change(l.id, -1, l.variant!)}
                           >
                             <Minus size={14} />
                           </button>
                           <span aria-label="Cantidad">{l.quantity}</span>
                           <button
                             aria-label={`Sumar una unidad de ${l.product.name}`}
-                            disabled={l.quantity >= MAX_QUANTITY}
-                            onClick={() => change(l.id, 1)}
+                            disabled={
+                              lines
+                                .filter((line) => line.id === l.id)
+                                .reduce((n, line) => n + line.quantity, 0) >=
+                              MAX_QUANTITY
+                            }
+                            onClick={() => change(l.id, 1, l.variant!)}
                           >
                             <Plus size={14} />
                           </button>
@@ -995,7 +1159,7 @@ function CartDialog({
                       </div>
                       <button
                         className="remove-button"
-                        onClick={() => remove(l.id)}
+                        onClick={() => remove(l.id, l.variant!)}
                         aria-label={`Eliminar ${l.product.name}`}
                       >
                         <X size={17} />
@@ -1005,9 +1169,11 @@ function CartDialog({
                 </div>
                 <div className="cart-total">
                   <span>
-                    {unpriced
-                      ? "Productos con precio"
-                      : "Subtotal de productos"}
+                    {examples
+                      ? "Estimado de muestra"
+                      : unpriced
+                        ? "Productos con precio"
+                        : "Subtotal de productos"}
                   </span>
                   <strong>
                     {unpriced && subtotal === 0
@@ -1019,6 +1185,12 @@ function CartDialog({
                   <p className="helper">
                     Tu selección incluye productos por cotizar. Confirmaremos el
                     importe final por WhatsApp.
+                  </p>
+                )}
+                {examples && (
+                  <p className="demo-disclaimer">
+                    Importes de ejemplo para probar el carrito. El precio final
+                    se cotiza por WhatsApp; no se cobra en la web.
                   </p>
                 )}
                 <p className="helper">
@@ -1091,6 +1263,13 @@ function CartDialog({
                       <Truck size={18} /> Delivery
                     </label>
                   </div>
+                  {DEMO_MODE && (
+                    <p className="helper">
+                      {details.delivery === "delivery"
+                        ? `${exampleDelivery.coverage}. ${exampleDelivery.cost}`
+                        : exampleDelivery.pickup}
+                    </p>
+                  )}
                 </fieldset>
                 {details.delivery === "delivery" ? (
                   <label>
@@ -1174,6 +1353,34 @@ function CartDialog({
                     onChange={(e) => update("notes", e.target.value)}
                   />
                 </label>
+                <details className="gift-request">
+                  <summary>
+                    ¿Es para regalo o celebración? Añade una dedicatoria
+                  </summary>
+                  <label>
+                    Ocasión <small>(opcional)</small>
+                    <input
+                      maxLength={80}
+                      placeholder="Por ejemplo, cumpleaños"
+                      value={details.occasion ?? ""}
+                      onChange={(e) => update("occasion", e.target.value)}
+                    />
+                  </label>
+                  <label>
+                    Dedicatoria solicitada <small>(opcional)</small>
+                    <textarea
+                      maxLength={180}
+                      rows={2}
+                      placeholder="Mensaje que te gustaría incluir"
+                      value={details.giftNote ?? ""}
+                      onChange={(e) => update("giftNote", e.target.value)}
+                    />
+                  </label>
+                  <p>
+                    Confirmaremos por WhatsApp si podemos incluir la
+                    dedicatoria.
+                  </p>
+                </details>
                 <section
                   className="checkout-review"
                   aria-labelledby="checkout-review-title"
@@ -1190,24 +1397,26 @@ function CartDialog({
                   </div>
                   <ul>
                     {lines.map((line) => (
-                      <li key={line.id}>
+                      <li key={`${line.id}:${line.variant}`}>
                         <span>
                           {line.quantity} × {line.product.name}
-                          <small>{line.product.presentation}</small>
+                          <small>{line.offer.label}</small>
                         </span>
                         <strong>
-                          {line.product.price_cents === null
+                          {line.offer.priceCents === null
                             ? "Por cotizar"
-                            : money(line.product.price_cents * line.quantity)}
+                            : `${money(line.offer.priceCents * line.quantity)}${line.offer.example ? " · ejemplo" : ""}`}
                         </strong>
                       </li>
                     ))}
                   </ul>
                   <div className="review-total">
                     <span>
-                      {unpriced
-                        ? "Importe de productos"
-                        : "Subtotal de productos"}
+                      {examples
+                        ? "Estimado de muestra"
+                        : unpriced
+                          ? "Importe de productos"
+                          : "Subtotal de productos"}
                     </span>
                     <strong>
                       {unpriced
@@ -1217,6 +1426,12 @@ function CartDialog({
                         : money(subtotal)}
                     </strong>
                   </div>
+                  {examples && (
+                    <p className="demo-disclaimer">
+                      Estimación ficticia para mostrar el flujo. El importe
+                      definitivo se confirma por WhatsApp.
+                    </p>
+                  )}
                   <p>
                     {details.delivery === "delivery"
                       ? "Costo de delivery pendiente de confirmar."

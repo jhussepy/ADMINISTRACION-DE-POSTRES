@@ -972,6 +972,184 @@ legend {
   display: grid;
   gap: 16px;
 }
+.demo-disclaimer {
+  padding: 12px 15px;
+  border: 1px solid #ddbfa7;
+  border-radius: 10px;
+  background: #fff7ee;
+  color: #674525;
+  font-size: 13px;
+  line-height: 1.55;
+}
+.catalog-intro .demo-disclaimer {
+  margin-top: 18px;
+  max-width: 650px;
+}
+.presentation-picker {
+  margin-top: 20px;
+  padding: 0;
+  border: 0;
+  width: 100%;
+}
+.presentation-picker legend {
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+.presentation-options {
+  display: grid;
+  gap: 9px;
+}
+.presentation-options label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+}
+.presentation-options label.is-selected {
+  border-color: var(--wine);
+  background: var(--pink);
+}
+.presentation-options input {
+  accent-color: var(--wine);
+}
+.presentation-options span {
+  flex: 1;
+  font-size: 13px;
+}
+.presentation-options strong {
+  white-space: nowrap;
+  color: var(--wine);
+  font-size: 13px;
+}
+.presentation-picker > p {
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 9px;
+}
+.cart-presentation {
+  display: grid;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.cart-presentation select {
+  width: 100%;
+  max-width: 230px;
+  min-height: 40px;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: white;
+  color: var(--ink);
+}
+.gift-request {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+}
+.gift-request summary {
+  cursor: pointer;
+  color: var(--wine);
+  font-weight: 700;
+}
+.gift-request[open] {
+  display: grid;
+  gap: 14px;
+}
+.gift-request p {
+  color: var(--muted);
+  font-size: 12px;
+}
+.occasion-section {
+  padding-top: 20px;
+}
+.occasion-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+.occasion-card {
+  position: relative;
+  display: block;
+  height: 260px;
+  overflow: hidden;
+  border-radius: 18px;
+  background: var(--pink);
+}
+.occasion-card img {
+  object-fit: cover;
+  transition: transform 0.25s ease;
+}
+.occasion-card:hover img {
+  transform: scale(1.03);
+}
+.occasion-card > span {
+  position: absolute;
+  inset: auto 0 0;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: end;
+  gap: 4px;
+  padding: 38px 20px 18px;
+  color: white;
+  background: linear-gradient(transparent, #321b1be0);
+}
+.occasion-card small {
+  grid-column: 1 / -1;
+}
+.occasion-card strong {
+  font-family: var(--font-serif);
+  font-size: 23px;
+  line-height: 1.2;
+}
+.delivery-sample {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+  border-top: 1px solid var(--border);
+}
+.delivery-sample p,
+.delivery-sample li {
+  color: var(--muted);
+  font-size: 14px;
+}
+.delivery-sample ul {
+  display: grid;
+  gap: 12px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.delivery-sample li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.delivery-sample svg {
+  flex: none;
+  color: var(--wine);
+}
+@media (max-width: 700px) {
+  .occasion-grid {
+    grid-template-columns: 1fr;
+  }
+  .occasion-card {
+    height: 205px;
+  }
+  .delivery-sample {
+    grid-template-columns: 1fr;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .occasion-card img {
+    transition: none;
+  }
+}
 .back-button {
   margin: 0;
   padding: 0;

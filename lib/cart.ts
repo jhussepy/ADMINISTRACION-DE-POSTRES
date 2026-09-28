@@ -1,4 +1,5 @@
 import type { CartItem, Product, CheckoutDetails } from "./types";
+import { DEMO_MODE, presentation } from "./demo-catalog";
 export const CART_KEY = "yemape-cart-v1";
 export const MAX_QUANTITY = 20;
 export const WHATSAPP = "51934219749";
@@ -10,7 +11,8 @@ export function money(cents: number) {
 }
 export function normalizeCart(value: unknown, products: Product[]): CartItem[] {
   if (!Array.isArray(value)) return [];
-  const result = new Map<string, number>();
+  const result = new Map<string, CartItem>();
+  const totals = new Map<string, number>();
   for (const row of value.slice(0, 200)) {
     if (
       !row ||
@@ -20,27 +22,42 @@ export function normalizeCart(value: unknown, products: Product[]): CartItem[] {
       row.quantity < 1
     )
       continue;
-    if (!products.some((p) => p.id === row.id && p.active)) continue;
-    result.set(
-      row.id,
-      Math.min(MAX_QUANTITY, (result.get(row.id) ?? 0) + row.quantity),
-    );
+    const product = products.find((p) => p.id === row.id && p.active);
+    if (
+      !product ||
+      (row.variant !== undefined && typeof row.variant !== "string")
+    )
+      continue;
+    const offer = presentation(product, row.variant);
+    if (!offer) continue;
+    const available = MAX_QUANTITY - (totals.get(row.id) ?? 0);
+    if (available <= 0) continue;
+    const accepted = Math.min(row.quantity, available);
+    const key = `${row.id}:${offer.id}`;
+    const previous = result.get(key);
+    result.set(key, {
+      id: row.id,
+      variant: offer.id,
+      quantity: (previous?.quantity ?? 0) + accepted,
+    });
+    totals.set(row.id, (totals.get(row.id) ?? 0) + accepted);
   }
-  return [...result].map(([id, quantity]) => ({ id, quantity }));
+  return [...result.values()];
 }
 export function cartSummary(cart: CartItem[], products: Product[]) {
-  const lines = normalizeCart(cart, products).map((item) => ({
-    ...item,
-    product: products.find((p) => p.id === item.id)!,
-  }));
+  const lines = normalizeCart(cart, products).map((item) => {
+    const product = products.find((p) => p.id === item.id)!;
+    return { ...item, product, offer: presentation(product, item.variant)! };
+  });
   return {
     lines,
     count: lines.reduce((n, l) => n + l.quantity, 0),
     subtotal: lines.reduce(
-      (n, l) => n + (l.product.price_cents ?? 0) * l.quantity,
+      (n, l) => n + (l.offer.priceCents ?? 0) * l.quantity,
       0,
     ),
-    unpriced: lines.some((l) => l.product.price_cents === null),
+    unpriced: lines.some((l) => l.offer.priceCents === null),
+    examples: lines.some((l) => l.offer.example),
   };
 }
 export function limaToday(now = new Date()) {
@@ -76,6 +93,8 @@ export function checkoutError(
     return "Indica tu distrito y dirección de entrega (8 a 250 caracteres).";
   if (d.notes.length > 500)
     return "Las observaciones no pueden superar 500 caracteres.";
+  if ((d.occasion?.length ?? 0) > 80 || (d.giftNote?.length ?? 0) > 180)
+    return "Revisa la ocasión y la dedicatoria (máximo 80 y 180 caracteres).";
   if (hasCustomCake) {
     const guests = d.cakeGuests?.trim() ?? "";
     if (!/^[1-9]\d{0,2}$/.test(guests) || Number(guests) > 500)
@@ -95,7 +114,7 @@ export function whatsappUrl(
   const hasCustomCake = cart.some((item) => item.id === "torta-personalizada");
   const error = checkoutError(details, limaToday(), hasCustomCake);
   if (error) throw new Error(error);
-  const { lines, subtotal, unpriced } = cartSummary(cart, products);
+  const { lines, subtotal, unpriced, examples } = cartSummary(cart, products);
   if (!lines.length) throw new Error("Agrega un producto antes de continuar.");
   const date = details.date.split("-").reverse().join("/");
   const message = [
@@ -103,32 +122,48 @@ export function whatsappUrl(
     "",
     ...lines.map(
       (l) =>
-        `• ${l.quantity} × ${l.product.name} — ${l.product.presentation}: ${l.product.price_cents === null ? "precio por consultar" : money(l.product.price_cents * l.quantity)}`,
+        `• ${l.quantity} × ${l.product.name} — ${l.offer.label}: ${l.offer.priceCents === null ? "precio por consultar" : `${money(l.offer.priceCents * l.quantity)}${l.offer.example ? " (ejemplo)" : ""}`}`,
     ),
     "",
     unpriced
       ? subtotal > 0
-        ? `Subtotal de productos con precio: ${money(subtotal)}. Faltan productos por cotizar.`
+        ? `${examples ? "Estimado de muestra" : "Subtotal de productos con precio"}: ${money(subtotal)}. Faltan productos por cotizar.`
         : "Importe de productos: por cotizar."
-      : `Subtotal de productos: ${money(subtotal)}`,
+      : `${examples ? "Estimado de muestra" : "Subtotal de productos"}: ${money(subtotal)}`,
+    examples
+      ? "IMPORTANTE: importes y presentaciones de ejemplo; no son precios finales. Confirmar cotización real."
+      : undefined,
     `Nombre: ${details.name.trim()}`,
     `Modalidad: ${details.delivery === "delivery" ? "Delivery" : "Recojo"}`,
     details.delivery === "delivery"
       ? `Dirección: ${details.address.trim()}`
-      : "Punto de recojo: por coordinar.",
+      : "Punto y horario de recojo: por confirmar.",
+    details.delivery === "delivery"
+      ? DEMO_MODE
+        ? "Cobertura y costo de envío: por confirmar (los ejemplos de la web no son tarifas)."
+        : "Cobertura y costo de envío: por confirmar."
+      : undefined,
     `Fecha solicitada: ${date}`,
-    hasCustomCake ? "Torta personalizada:" : "",
-    hasCustomCake ? `Personas: ${details.cakeGuests!.trim()}` : "",
+    details.occasion?.trim()
+      ? `Ocasión: ${details.occasion.trim()}`
+      : undefined,
+    details.giftNote?.trim()
+      ? `Dedicatoria solicitada: ${details.giftNote.trim()}`
+      : undefined,
+    hasCustomCake ? "Torta personalizada:" : undefined,
+    hasCustomCake ? `Personas: ${details.cakeGuests!.trim()}` : undefined,
     hasCustomCake && details.cakeFlavor?.trim()
       ? `Sabor deseado: ${details.cakeFlavor.trim()}`
-      : "",
+      : undefined,
     hasCustomCake && details.cakeDesign?.trim()
       ? `Diseño o temática: ${details.cakeDesign.trim()}`
-      : "",
-    details.notes.trim() ? `Observaciones: ${details.notes.trim()}` : "",
+      : undefined,
+    details.notes.trim() ? `Observaciones: ${details.notes.trim()}` : undefined,
     "",
     "Por favor, confirmar disponibilidad, presentación, importe final y forma de pago.",
-    details.delivery === "delivery" ? "Delivery: costo por confirmar." : "",
+    details.delivery === "delivery"
+      ? "Delivery: costo por confirmar."
+      : undefined,
     "Este mensaje es una solicitud; el pedido aún no está confirmado.",
   ]
     .filter((x) => x !== undefined)
