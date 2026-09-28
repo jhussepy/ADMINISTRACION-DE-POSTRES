@@ -2548,13 +2548,6 @@ legend {
 }
 .photo-hero .hero-dessert-scene {
   isolation: isolate;
-  --hero-slice-rest-x: 18px;
-  --hero-slice-arc-x: 78px;
-  --hero-slice-arc-y: -18px;
-  --hero-slice-sweep-x: -32px;
-  --hero-slice-sweep-y: -48px;
-  --hero-pointer-x: 0deg;
-  --hero-pointer-y: 0deg;
   background: radial-gradient(
     circle at 52% 43%,
     #fff9f0 0%,
@@ -2577,7 +2570,6 @@ legend {
     #fff6e82b 68%,
     transparent 72%
   );
-  animation: hero-dessert-light 10.8s ease-in-out infinite;
 }
 .hero-dessert-shadow {
   position: absolute;
@@ -2588,177 +2580,14 @@ legend {
   border-radius: 50%;
   background: #65352d38;
   filter: blur(20px);
-  animation: hero-dessert-shadow 10.8s ease-in-out infinite;
-}
-.hero-dessert-slice-shadow {
-  position: absolute;
-  width: 31%;
-  height: 24px;
-  left: 58%;
-  bottom: 96px;
-  border-radius: 50%;
-  background: #65352d2e;
-  filter: blur(15px);
-  animation: hero-dessert-slice-shadow 10.8s ease-in-out infinite;
 }
 .hero-dessert-frame {
   position: absolute;
-  inset: 12px 5% 96px;
-  perspective: 900px;
-  transform-style: preserve-3d;
-  transform: rotateX(var(--hero-pointer-x)) rotateY(var(--hero-pointer-y));
-  transition: transform 0.35s ease-out;
+  inset: 8px 3% 90px;
 }
 .hero-dessert-image {
   object-fit: contain;
-  filter: drop-shadow(0 24px 22px #6c352b2a);
-  will-change: transform;
-  backface-visibility: hidden;
-}
-.hero-dessert-cake {
-  transform-origin: 50% 52%;
-  animation: hero-dessert-cake 10.8s cubic-bezier(0.42, 0, 0.2, 1) infinite;
-}
-.hero-dessert-slice {
-  transform-origin: 68% 64%;
-  animation: hero-dessert-slice 10.8s cubic-bezier(0.42, 0, 0.2, 1) infinite;
-}
-.hero-motion-toggle {
-  position: absolute;
-  z-index: 2;
-  top: 20px;
-  right: 20px;
-  min-height: 44px;
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 9px 13px;
-  border: 1px solid #fff9f0;
-  border-radius: 999px;
-  background: #fffdf8e8;
-  color: var(--wine-dark);
-  font-size: 12px;
-  font-weight: 700;
-  box-shadow: 0 4px 16px #44221616;
-}
-.hero-motion-toggle:hover {
-  background: white;
-}
-.hero-dessert-scene.is-motion-paused .hero-dessert-cake,
-.hero-dessert-scene.is-motion-paused .hero-dessert-slice,
-.hero-dessert-scene.is-motion-paused .hero-dessert-shadow,
-.hero-dessert-scene.is-motion-paused .hero-dessert-slice-shadow,
-.hero-dessert-scene.is-motion-paused .hero-dessert-halo {
-  animation-play-state: paused;
-}
-@keyframes hero-dessert-cake {
-  0%,
-  8%,
-  100% {
-    transform: translate3d(0, 0, 0) rotateX(4deg) rotateY(-14deg) rotateZ(-2deg);
-  }
-  22%,
-  30% {
-    transform: translate3d(9px, -6px, 0) rotateX(7deg) rotateY(25deg)
-      rotateZ(2deg);
-  }
-  48%,
-  56% {
-    transform: translate3d(-7px, -8px, 0) rotateX(2deg) rotateY(-26deg)
-      rotateZ(-2deg);
-  }
-  72%,
-  80% {
-    transform: translate3d(11px, -4px, 0) rotateX(5deg) rotateY(30deg)
-      rotateZ(2deg);
-  }
-}
-@keyframes hero-dessert-slice {
-  0%,
-  8%,
-  100% {
-    transform: translate3d(var(--hero-slice-rest-x), 0, 18px) rotateY(-14deg)
-      rotateZ(2deg);
-  }
-  22%,
-  30% {
-    transform: translate3d(
-        var(--hero-slice-arc-x),
-        var(--hero-slice-arc-y),
-        90px
-      )
-      rotateY(32deg) rotateZ(11deg);
-  }
-  48%,
-  56% {
-    transform: translate3d(
-        var(--hero-slice-sweep-x),
-        var(--hero-slice-sweep-y),
-        108px
-      )
-      rotateY(-35deg) rotateZ(-12deg);
-  }
-  72%,
-  80% {
-    transform: translate3d(48px, -30px, 72px) rotateY(24deg) rotateZ(7deg);
-  }
-}
-@keyframes hero-dessert-shadow {
-  0%,
-  8%,
-  94%,
-  100% {
-    transform: scale(1.02);
-    opacity: 0.65;
-  }
-  22%,
-  30%,
-  72%,
-  80% {
-    transform: scaleX(0.84) translateX(8px);
-    opacity: 0.5;
-  }
-  48%,
-  56% {
-    transform: scaleX(0.87) translateX(-8px);
-    opacity: 0.52;
-  }
-}
-@keyframes hero-dessert-slice-shadow {
-  0%,
-  8%,
-  94%,
-  100% {
-    transform: translate3d(0, 0, 0) scale(0.9);
-    opacity: 0.45;
-  }
-  22%,
-  30% {
-    transform: translate3d(36px, -10px, 0) scale(0.78);
-    opacity: 0.32;
-  }
-  48%,
-  56% {
-    transform: translate3d(-28px, -16px, 0) scale(0.72);
-    opacity: 0.27;
-  }
-  72%,
-  80% {
-    transform: translate3d(24px, -12px, 0) scale(0.8);
-    opacity: 0.32;
-  }
-}
-@keyframes hero-dessert-light {
-  0%,
-  8%,
-  94%,
-  100% {
-    transform: translateX(-50%) scale(1);
-  }
-  48%,
-  56% {
-    transform: translateX(-52%) scale(1.04);
-  }
+  filter: drop-shadow(0 20px 22px #6c352b29);
 }
 .photo-hero .hero-caption {
   z-index: 2;
@@ -2887,25 +2716,11 @@ legend {
     min-height: 0;
     aspect-ratio: 1 / 1.06;
   }
-  .photo-hero .hero-dessert-scene {
-    --hero-slice-rest-x: 8px;
-    --hero-slice-arc-x: 28px;
-    --hero-slice-arc-y: -12px;
-    --hero-slice-sweep-x: -16px;
-    --hero-slice-sweep-y: -32px;
-  }
   .hero-dessert-frame {
-    inset: 4px 1% 84px;
+    inset: 4px 1% 78px;
   }
   .hero-dessert-shadow {
     bottom: 100px;
-  }
-  .hero-dessert-slice-shadow {
-    bottom: 82px;
-  }
-  .hero-motion-toggle {
-    top: 12px;
-    right: 12px;
   }
   .photo-hero .hero-caption {
     left: 14px;
@@ -2938,30 +2753,6 @@ legend {
     font-size: 12px;
   }
 }
-@media (prefers-reduced-motion: reduce) {
-  .hero-motion-toggle {
-    display: none;
-  }
-  .hero-dessert-cake,
-  .hero-dessert-slice,
-  .hero-dessert-shadow,
-  .hero-dessert-slice-shadow,
-  .hero-dessert-halo {
-    animation: none;
-  }
-  .hero-dessert-frame {
-    transform: none;
-    transition: none;
-  }
-  .hero-dessert-cake {
-    transform: translate3d(0, 0, 0) rotateX(4deg) rotateY(-14deg) rotateZ(-2deg);
-  }
-  .hero-dessert-slice {
-    transform: translate3d(var(--hero-slice-rest-x), 0, 18px) rotateY(-14deg)
-      rotateZ(2deg);
-  }
-}
-
 /* A short front page introduces the range; the full carta lives at /catalogo. */
 .catalog-intro {
   padding-bottom: 24px;
