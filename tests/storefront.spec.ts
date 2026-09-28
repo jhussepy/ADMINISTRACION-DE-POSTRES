@@ -1,4 +1,37 @@
 import { test, expect } from "@playwright/test";
+test("catalog filters, search, reload and browser history follow the URL", async ({
+  page,
+}, testInfo) => {
+  await page.goto("/catalogo?categoria=Kekes");
+  await expect(page.locator(".product-card")).toHaveCount(1);
+  await page.getByRole("button", { name: "Tortas", exact: true }).click();
+  await expect(page).toHaveURL(/\/catalogo\?categoria=Tortas$/);
+  await expect(page.locator(".product-card")).toHaveCount(2);
+  await page.goBack();
+  await expect(page).toHaveURL(/\/catalogo\?categoria=Kekes$/);
+  await expect(page.locator(".product-card")).toHaveCount(1);
+  await page.goForward();
+  await expect(page.locator(".product-card")).toHaveCount(2);
+
+  const search =
+    testInfo.project.name === "mobile"
+      ? page.getByRole("textbox", { name: "Buscar en catálogo" })
+      : page.getByRole("textbox", { name: "Buscar postres" });
+  await search.fill("chocolate");
+  await expect(page).toHaveURL(
+    /\/catalogo\?categoria=Tortas&buscar=chocolate$/,
+  );
+  await expect(page.locator(".product-card")).toHaveCount(1);
+  await page.reload();
+  await expect(search).toHaveValue("chocolate");
+  await expect(page.locator(".product-card")).toHaveCount(1);
+  await search.fill("");
+  await expect(page).toHaveURL(/\/catalogo\?categoria=Tortas$/);
+  await expect(page.locator(".product-card")).toHaveCount(2);
+  await page.getByRole("button", { name: "Todos los antojos" }).click();
+  await expect(page).toHaveURL(/\/catalogo$/);
+  await expect(page.locator(".product-card")).toHaveCount(7);
+});
 test("front-page categories open a filtered carta and preserve the cart", async ({
   page,
 }, testInfo) => {

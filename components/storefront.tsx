@@ -119,6 +119,18 @@ export function Storefront({
     },
     [],
   );
+  useEffect(() => {
+    if (view !== "catalog") return;
+    const restoreFilters = () => {
+      const params = new URLSearchParams(window.location.search);
+      setCategory(
+        categories.find((item) => item === params.get("categoria")) ?? "Todos",
+      );
+      setQuery((params.get("buscar") ?? "").slice(0, 100));
+    };
+    window.addEventListener("popstate", restoreFilters);
+    return () => window.removeEventListener("popstate", restoreFilters);
+  }, [view]);
   const summary = cartSummary(cart, products);
   const featured =
     products.find((p) => p.id === "torta-chocolate") ?? products[0];
@@ -131,6 +143,24 @@ export function Storefront({
   const availableCategories = categories.filter((c) =>
     products.some((p) => p.category === c),
   );
+  function updateCatalogUrl(
+    nextCategory: string,
+    nextQuery: string,
+    historyMode: "push" | "replace",
+  ) {
+    const url = new URL(window.location.href);
+    if (nextCategory === "Todos") url.searchParams.delete("categoria");
+    else url.searchParams.set("categoria", nextCategory);
+    if (nextQuery.trim()) url.searchParams.set("buscar", nextQuery);
+    else url.searchParams.delete("buscar");
+    const path = `${url.pathname}${url.search}${url.hash}`;
+    if (historyMode === "push") router.push(path, { scroll: false });
+    else window.history.replaceState(null, "", path);
+  }
+  function changeQuery(value: string) {
+    setQuery(value);
+    if (view === "catalog") updateCatalogUrl(category, value, "replace");
+  }
   function scrollToCatalog() {
     if (view === "home") {
       router.push(
@@ -146,6 +176,7 @@ export function Storefront({
   }
   const choose = (value: string) => {
     setCategory(value);
+    if (view === "catalog") updateCatalogUrl(value, query, "push");
     scrollToCatalog();
   };
   function quantity(id: string, amount: number) {
@@ -192,9 +223,10 @@ export function Storefront({
               aria-label="Buscar postres"
               placeholder="¿Qué se te antoja hoy?"
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              maxLength={100}
+              onChange={(e) => changeQuery(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Escape") setQuery("");
+                if (e.key === "Escape") changeQuery("");
               }}
             />
             {query && (
@@ -202,7 +234,7 @@ export function Storefront({
                 type="button"
                 className="search-clear"
                 aria-label="Limpiar búsqueda"
-                onClick={() => setQuery("")}
+                onClick={() => changeQuery("")}
               >
                 <X size={17} />
               </button>
@@ -436,9 +468,10 @@ export function Storefront({
                   aria-label="Buscar en catálogo"
                   placeholder="Busca tu antojo favorito"
                   value={query}
-                  onChange={(e) => setQuery(e.target.value)}
+                  maxLength={100}
+                  onChange={(e) => changeQuery(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key === "Escape") setQuery("");
+                    if (e.key === "Escape") changeQuery("");
                   }}
                 />
                 {query && (
@@ -446,7 +479,7 @@ export function Storefront({
                     type="button"
                     className="search-clear"
                     aria-label="Limpiar búsqueda"
-                    onClick={() => setQuery("")}
+                    onClick={() => changeQuery("")}
                   >
                     <X size={17} />
                   </button>
@@ -539,6 +572,7 @@ export function Storefront({
                   onClick={() => {
                     setCategory("Todos");
                     setQuery("");
+                    updateCatalogUrl("Todos", "", "push");
                   }}
                 >
                   Ver toda la carta
