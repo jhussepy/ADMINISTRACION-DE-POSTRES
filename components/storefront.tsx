@@ -435,7 +435,7 @@ export function Storefront({
                       </div>
                       <div className="hero-dessert-closeup" aria-hidden="true">
                         <Image
-                          src={featured.image}
+                          src="/images/torta-chocolate.webp"
                           alt=""
                           fill
                           loading="eager"
