@@ -1,4 +1,34 @@
 import { test, expect } from "@playwright/test";
+test("home hero stays within the viewport and shows the complete cake", async ({
+  page,
+}, testInfo) => {
+  await page.goto("/");
+  const cake = page.locator(".hero-dessert-frame img");
+  await expect(cake).toHaveCount(1);
+  await expect(cake).toHaveAttribute("src", /torta-chocolate-hero\.webp/);
+  await expect
+    .poll(() =>
+      cake.evaluate((image) => (image as HTMLImageElement).naturalWidth),
+    )
+    .toBeGreaterThan(0);
+  for (const width of [390, 768, 1024, 1306, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    await expect
+      .poll(() =>
+        page.evaluate(
+          () =>
+            document.documentElement.scrollWidth -
+            document.documentElement.clientWidth,
+        ),
+      )
+      .toBeLessThanOrEqual(0);
+    if (width === 390 || width === 1306) {
+      await page.screenshot({
+        path: `test-results/yemape-hero-${width}-${testInfo.project.name}.png`,
+      });
+    }
+  }
+});
 test("shareable product page keeps the cart while browsing related desserts", async ({
   page,
 }, testInfo) => {
