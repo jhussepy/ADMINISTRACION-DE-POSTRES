@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { X, Minus, Plus, ShoppingBag, MessageCircle } from "lucide-react";
 import type { Product } from "@/lib/types";
 import { MAX_QUANTITY, money } from "@/lib/cart";
@@ -128,6 +129,12 @@ export function ProductDetails({
             <MessageCircle size={16} /> Coordina tu pedido sin necesidad de
             registrarte.
           </p>
+          <Link
+            className="text-link detail-permalink"
+            href={`/postres/${product.id}`}
+          >
+            Ver página de {product.name}
+          </Link>
         </div>
       </div>
     </dialog>

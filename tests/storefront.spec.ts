@@ -1,4 +1,87 @@
 import { test, expect } from "@playwright/test";
+test("shareable product page keeps the cart while browsing related desserts", async ({
+  page,
+}, testInfo) => {
+  await page.goto("/postres/torta-chocolate");
+  await expect(
+    page.getByRole("heading", { name: "Torta de chocolate", level: 1 }),
+  ).toBeVisible();
+  await expect(page).toHaveTitle(/Torta de chocolate/);
+  await expect(page.locator("body")).toHaveJSProperty(
+    "scrollWidth",
+    await page.locator("body").evaluate((el) => el.clientWidth),
+  );
+  await expect
+    .poll(() =>
+      page
+        .locator(".product-page-image img")
+        .evaluate((img) => (img as HTMLImageElement).naturalWidth),
+    )
+    .toBeGreaterThan(0);
+  await page.screenshot({
+    path: `test-results/yemape-product-${testInfo.project.name}.png`,
+    fullPage: true,
+  });
+  await page
+    .getByRole("button", { name: "Aumentar cantidad del producto" })
+    .click();
+  await page.getByRole("button", { name: "Agregar 2 al carrito" }).click();
+  await page.getByRole("link", { name: /Terremoto de lúcuma/ }).click();
+  await expect(page).toHaveURL(/\/postres\/terremoto-lucuma$/);
+  await expect(
+    page.getByRole("button", { name: "Abrir carrito, 2 productos" }),
+  ).toBeVisible();
+  const missing = await page.goto("/postres/no-existe");
+  expect(missing?.status()).toBe(404);
+  await expect(
+    page.getByRole("heading", { name: "Por aquí no hay postres." }),
+  ).toBeVisible();
+});
+
+test("custom cake page leads to guest WhatsApp order with customer details", async ({
+  page,
+}, testInfo) => {
+  await page.goto("/postres/torta-personalizada");
+  await expect(
+    page.getByRole("heading", { name: "Tu torta, tu celebración", level: 1 }),
+  ).toBeVisible();
+  await expect(page.getByText("Cuéntanos cómo la imaginas.")).toBeVisible();
+  await expect(page.locator("body")).toHaveJSProperty(
+    "scrollWidth",
+    await page.locator("body").evaluate((el) => el.clientWidth),
+  );
+  await page.screenshot({
+    path: `test-results/yemape-custom-${testInfo.project.name}.png`,
+    fullPage: true,
+  });
+  await page.getByRole("button", { name: "Agregar y preparar pedido" }).click();
+  const cart = page.getByRole("dialog");
+  await expect(cart).toBeVisible();
+  await cart.getByRole("button", { name: "Continuar como invitado" }).click();
+  await cart.getByLabel("Tu nombre", { exact: true }).fill("Cliente de prueba");
+  await cart.getByLabel("Fecha deseada").fill("2099-09-30");
+  await cart
+    .getByLabel("¿Algo que debamos saber?")
+    .fill("Temática flores, para 12 personas");
+  let whatsapp = "";
+  await page.route("https://wa.me/**", async (route) => {
+    whatsapp = route.request().url();
+    await route.fulfill({
+      status: 200,
+      contentType: "text/html",
+      body: "Prueba sin envío de mensajes.",
+    });
+  });
+  await cart
+    .getByRole("button", { name: "Finalizar pedido por WhatsApp" })
+    .click();
+  await page.waitForURL((url) => url.hostname === "wa.me", {
+    waitUntil: "load",
+  });
+  const message = new URL(whatsapp).searchParams.get("text")!;
+  expect(message).toContain("Tu torta, tu celebración");
+  expect(message).toContain("Temática flores, para 12 personas");
+});
 test("catalog filters, search, reload and browser history follow the URL", async ({
   page,
 }, testInfo) => {

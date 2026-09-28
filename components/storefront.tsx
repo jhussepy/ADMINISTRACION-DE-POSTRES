@@ -37,6 +37,7 @@ import { prepareCheckout } from "@/app/checkout-action";
 import type { CartItem, CheckoutDetails, Product, Profile } from "@/lib/types";
 import { categories } from "@/lib/types";
 import { ProductDetails } from "./product-details";
+import { ProductPage } from "./product-page";
 import { StoreFaq } from "./store-faq";
 type Account = {
   name: string;
@@ -71,12 +72,14 @@ export function Storefront({
   products,
   account,
   view = "home",
+  product,
   initialCategory = "Todos",
   initialQuery = "",
 }: {
   products: Product[];
   account: Account;
-  view?: "home" | "catalog";
+  view?: "home" | "catalog" | "product";
+  product?: Product;
   initialCategory?: string;
   initialQuery?: string;
 }) {
@@ -134,6 +137,9 @@ export function Storefront({
   const summary = cartSummary(cart, products);
   const featured =
     products.find((p) => p.id === "torta-chocolate") ?? products[0];
+  const customCakeAvailable = products.some(
+    (p) => p.id === "torta-personalizada",
+  );
   const visible = products.filter(
     (p) =>
       (category === "Todos" || p.category === category) &&
@@ -162,7 +168,7 @@ export function Storefront({
     if (view === "catalog") updateCatalogUrl(category, value, "replace");
   }
   function scrollToCatalog() {
-    if (view === "home") {
+    if (view !== "catalog") {
       router.push(
         `/catalogo${query.trim() ? `?buscar=${encodeURIComponent(query.trim())}` : ""}`,
       );
@@ -200,7 +206,13 @@ export function Storefront({
     <>
       <a
         className="skip-link"
-        href={view === "home" ? "#destacados" : "#catalogo"}
+        href={
+          view === "home"
+            ? "#destacados"
+            : view === "product"
+              ? "#ficha-postre"
+              : "#catalogo"
+        }
       >
         Ir al contenido
       </a>
@@ -286,6 +298,14 @@ export function Storefront({
           >
             Nuestra carta
           </Link>
+          {customCakeAvailable && (
+            <Link
+              href="/postres/torta-personalizada"
+              onClick={() => setMenu(false)}
+            >
+              Tortas a pedido
+            </Link>
+          )}
           <Link href="/#hecho-con-carino" onClick={() => setMenu(false)}>
             El toque Yemape
           </Link>
@@ -383,213 +403,231 @@ export function Storefront({
             </p>
           </div>
         )}
-        <div
-          className={
-            view === "home" ? "discovery-layout section-wrap" : "catalog-layout"
-          }
-        >
-          <section
-            className="category-section"
-            aria-label="Categorías de postres"
+        {view === "product" && product && (
+          <ProductPage
+            key={product.id}
+            product={product}
+            products={products}
+            inCart={cart.find((item) => item.id === product.id)?.quantity ?? 0}
+            ready={ready}
+            onAdd={(amount) => add(product, amount)}
+            onOrder={(amount) => {
+              add(product, amount);
+              setCartOpen(true);
+            }}
+            onViewCart={() => setCartOpen(true)}
+          />
+        )}
+        {view !== "product" && (
+          <div
+            className={
+              view === "home"
+                ? "discovery-layout section-wrap"
+                : "catalog-layout"
+            }
           >
-            <div className="category-list">
-              {(["Todos", ...availableCategories] as const).map((c) => {
-                const Icon = categoryIcons[c];
-                return view === "home" ? (
-                  <Link
-                    className="category"
-                    key={c}
-                    href={
-                      c === "Todos"
-                        ? "/catalogo"
-                        : `/catalogo?categoria=${encodeURIComponent(c)}`
-                    }
-                  >
-                    <span className="category-icon">
-                      <Icon size={27} strokeWidth={1.4} />
-                    </span>
-                    <span>{c === "Todos" ? "Toda la carta" : c}</span>
-                  </Link>
-                ) : (
-                  <button
-                    className={`category ${category === c ? "selected" : ""}`}
-                    key={c}
-                    onClick={() => choose(c)}
-                    aria-pressed={category === c}
-                  >
-                    <span className="category-icon">
-                      <Icon size={27} strokeWidth={1.4} />
-                    </span>
-                    <span>{c === "Todos" ? "Todos los antojos" : c}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </section>
-          <section
-            id={view === "home" ? "destacados" : "catalogo"}
-            className={`catalog section-wrap ${view === "home" ? "featured-catalog" : ""}`}
-          >
-            <div className="section-heading">
-              <div>
-                <span className="eyebrow">
-                  {view === "home" ? "PARA EMPEZAR" : "TODOS LOS ANTOJOS"}
-                </span>
-                <h2>
-                  {view === "home"
-                    ? "Los favoritos para compartir."
-                    : "¿Qué compartimos hoy?"}
-                </h2>
-                <p>
-                  {view === "home"
-                    ? "Una pequeña selección de nuestra carta."
-                    : "Encuentra ese antojo que hace especial tu día."}
-                </p>
-              </div>
-              {view === "home" ? (
-                <Link className="text-link" href="/catalogo">
-                  Ver toda la carta <ArrowRight size={18} />
-                </Link>
-              ) : (
-                <span
-                  className="catalog-count"
-                  role="status"
-                  aria-live="polite"
-                >
-                  {visible.length}{" "}
-                  {visible.length === 1 ? "opción" : "opciones"} para ti
-                </span>
-              )}
-            </div>
-            {view === "catalog" && (
-              <div className="mobile-search">
-                <Search size={19} />
-                <input
-                  aria-label="Buscar en catálogo"
-                  placeholder="Busca tu antojo favorito"
-                  value={query}
-                  maxLength={100}
-                  onChange={(e) => changeQuery(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Escape") changeQuery("");
-                  }}
-                />
-                {query && (
-                  <button
-                    type="button"
-                    className="search-clear"
-                    aria-label="Limpiar búsqueda"
-                    onClick={() => changeQuery("")}
-                  >
-                    <X size={17} />
-                  </button>
-                )}
-              </div>
-            )}
-            {displayed.length ? (
-              <div className="product-grid">
-                {displayed.map((p, i) => {
-                  const count = cart.find((x) => x.id === p.id)?.quantity ?? 0;
-                  return (
-                    <article
-                      className={`product-card card-${i % 4}`}
-                      key={p.id}
+            <section
+              className="category-section"
+              aria-label="Categorías de postres"
+            >
+              <div className="category-list">
+                {(["Todos", ...availableCategories] as const).map((c) => {
+                  const Icon = categoryIcons[c];
+                  return view === "home" ? (
+                    <Link
+                      className="category"
+                      key={c}
+                      href={
+                        c === "Todos"
+                          ? "/catalogo"
+                          : `/catalogo?categoria=${encodeURIComponent(c)}`
+                      }
                     >
-                      <button
-                        type="button"
-                        className="product-photo product-photo-button"
-                        onClick={(e) => {
-                          detailTrigger.current = e.currentTarget;
-                          setSelectedProduct(p);
-                        }}
-                        aria-label={`Ver detalles de ${p.name}`}
-                      >
-                        <Image
-                          src={p.image}
-                          alt={`Imagen referencial de ${p.name}`}
-                          fill
-                          sizes="(max-width: 359px) 100vw, (max-width: 1020px) 50vw, 25vw"
-                        />
-                        <span className="product-label">{p.category}</span>
-                        <span className="product-discover">
-                          Ver detalles <ArrowRight size={15} />
-                        </span>
-                      </button>
-                      <div className="product-info">
-                        <span className="product-presentation">
-                          {p.presentation}
-                        </span>
-                        <h3>
-                          <button
-                            className="product-title-button"
-                            onClick={(e) => {
-                              detailTrigger.current = e.currentTarget;
-                              setSelectedProduct(p);
-                            }}
-                          >
-                            {p.name}
-                          </button>
-                        </h3>
-                        <p>{p.description}</p>
-                        <div className="product-buy">
-                          <strong>
-                            {p.price_cents === null
-                              ? "Precio por consultar"
-                              : money(p.price_cents)}
-                          </strong>
-                          <button
-                            className={`add-button ${count ? "has-items" : ""}`}
-                            disabled={!ready || count >= MAX_QUANTITY}
-                            onClick={() => add(p)}
-                            aria-label={`Agregar ${p.name} al carrito`}
-                          >
-                            {count ? <Check size={18} /> : <Plus size={18} />}
-                            <span>
-                              {count ? `Agregar (${count})` : "Agregar"}
-                            </span>
-                          </button>
-                        </div>
-                      </div>
-                    </article>
+                      <span className="category-icon">
+                        <Icon size={27} strokeWidth={1.4} />
+                      </span>
+                      <span>{c === "Todos" ? "Toda la carta" : c}</span>
+                    </Link>
+                  ) : (
+                    <button
+                      className={`category ${category === c ? "selected" : ""}`}
+                      key={c}
+                      onClick={() => choose(c)}
+                      aria-pressed={category === c}
+                    >
+                      <span className="category-icon">
+                        <Icon size={27} strokeWidth={1.4} />
+                      </span>
+                      <span>{c === "Todos" ? "Todos los antojos" : c}</span>
+                    </button>
                   );
                 })}
               </div>
-            ) : (
-              <div className="empty-state">
-                <Cookie size={40} />
-                <h3>
-                  {query
-                    ? "No encontramos ese antojo"
-                    : "Estamos preparando esta categoría"}
-                </h3>
-                <p>
-                  {query
-                    ? "Prueba con otro nombre o explora todas las opciones."
-                    : "Puedes consultarnos por WhatsApp o descubrir el resto de la carta."}
-                </p>
-                <button
-                  className="button secondary"
-                  onClick={() => {
-                    setCategory("Todos");
-                    setQuery("");
-                    updateCatalogUrl("Todos", "", "push");
-                  }}
-                >
-                  Ver toda la carta
-                </button>
+            </section>
+            <section
+              id={view === "home" ? "destacados" : "catalogo"}
+              className={`catalog section-wrap ${view === "home" ? "featured-catalog" : ""}`}
+            >
+              <div className="section-heading">
+                <div>
+                  <span className="eyebrow">
+                    {view === "home" ? "PARA EMPEZAR" : "TODOS LOS ANTOJOS"}
+                  </span>
+                  <h2>
+                    {view === "home"
+                      ? "Los favoritos para compartir."
+                      : "¿Qué compartimos hoy?"}
+                  </h2>
+                  <p>
+                    {view === "home"
+                      ? "Una pequeña selección de nuestra carta."
+                      : "Encuentra ese antojo que hace especial tu día."}
+                  </p>
+                </div>
+                {view === "home" ? (
+                  <Link className="text-link" href="/catalogo">
+                    Ver toda la carta <ArrowRight size={18} />
+                  </Link>
+                ) : (
+                  <span
+                    className="catalog-count"
+                    role="status"
+                    aria-live="polite"
+                  >
+                    {visible.length}{" "}
+                    {visible.length === 1 ? "opción" : "opciones"} para ti
+                  </span>
+                )}
               </div>
-            )}
-            <p className="catalog-footnote">
-              Fotografías y diseños de referencia. Consulta tamaños y porciones.
-              Confirmaremos presentación, disponibilidad y precio por WhatsApp.
-            </p>
-            {view === "home" && (
-              <Link className="button featured-cta" href="/catalogo">
-                Explorar el catálogo completo <ArrowRight size={18} />
-              </Link>
-            )}
-          </section>
-        </div>
+              {view === "catalog" && (
+                <div className="mobile-search">
+                  <Search size={19} />
+                  <input
+                    aria-label="Buscar en catálogo"
+                    placeholder="Busca tu antojo favorito"
+                    value={query}
+                    maxLength={100}
+                    onChange={(e) => changeQuery(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Escape") changeQuery("");
+                    }}
+                  />
+                  {query && (
+                    <button
+                      type="button"
+                      className="search-clear"
+                      aria-label="Limpiar búsqueda"
+                      onClick={() => changeQuery("")}
+                    >
+                      <X size={17} />
+                    </button>
+                  )}
+                </div>
+              )}
+              {displayed.length ? (
+                <div className="product-grid">
+                  {displayed.map((p, i) => {
+                    const count =
+                      cart.find((x) => x.id === p.id)?.quantity ?? 0;
+                    return (
+                      <article
+                        className={`product-card card-${i % 4}`}
+                        key={p.id}
+                      >
+                        <button
+                          type="button"
+                          className="product-photo product-photo-button"
+                          onClick={(e) => {
+                            detailTrigger.current = e.currentTarget;
+                            setSelectedProduct(p);
+                          }}
+                          aria-label={`Ver detalles de ${p.name}`}
+                        >
+                          <Image
+                            src={p.image}
+                            alt={`Imagen referencial de ${p.name}`}
+                            fill
+                            sizes="(max-width: 359px) 100vw, (max-width: 1020px) 50vw, 25vw"
+                          />
+                          <span className="product-label">{p.category}</span>
+                          <span className="product-discover">
+                            Ver detalles <ArrowRight size={15} />
+                          </span>
+                        </button>
+                        <div className="product-info">
+                          <span className="product-presentation">
+                            {p.presentation}
+                          </span>
+                          <h3>
+                            <Link
+                              className="product-title-button"
+                              href={`/postres/${p.id}`}
+                            >
+                              {p.name}
+                            </Link>
+                          </h3>
+                          <p>{p.description}</p>
+                          <div className="product-buy">
+                            <strong>
+                              {p.price_cents === null
+                                ? "Precio por consultar"
+                                : money(p.price_cents)}
+                            </strong>
+                            <button
+                              className={`add-button ${count ? "has-items" : ""}`}
+                              disabled={!ready || count >= MAX_QUANTITY}
+                              onClick={() => add(p)}
+                              aria-label={`Agregar ${p.name} al carrito`}
+                            >
+                              {count ? <Check size={18} /> : <Plus size={18} />}
+                              <span>
+                                {count ? `Agregar (${count})` : "Agregar"}
+                              </span>
+                            </button>
+                          </div>
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="empty-state">
+                  <Cookie size={40} />
+                  <h3>
+                    {query
+                      ? "No encontramos ese antojo"
+                      : "Estamos preparando esta categoría"}
+                  </h3>
+                  <p>
+                    {query
+                      ? "Prueba con otro nombre o explora todas las opciones."
+                      : "Puedes consultarnos por WhatsApp o descubrir el resto de la carta."}
+                  </p>
+                  <button
+                    className="button secondary"
+                    onClick={() => {
+                      setCategory("Todos");
+                      setQuery("");
+                      updateCatalogUrl("Todos", "", "push");
+                    }}
+                  >
+                    Ver toda la carta
+                  </button>
+                </div>
+              )}
+              <p className="catalog-footnote">
+                Fotografías y diseños de referencia. Consulta tamaños y
+                porciones. Confirmaremos presentación, disponibilidad y precio
+                por WhatsApp.
+              </p>
+              {view === "home" && (
+                <Link className="button featured-cta" href="/catalogo">
+                  Explorar el catálogo completo <ArrowRight size={18} />
+                </Link>
+              )}
+            </section>
+          </div>
+        )}
         {view === "home" && (
           <>
             <section
@@ -616,14 +654,14 @@ export function Storefront({
                   detalle para alguien especial. Nos encanta ser parte de lo que
                   celebras.
                 </p>
-                <a
-                  className="text-link"
-                  href="https://wa.me/51934219749"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Cuéntanos qué tienes en mente <ArrowRight size={18} />
-                </a>
+                {customCakeAvailable && (
+                  <Link
+                    className="text-link"
+                    href="/postres/torta-personalizada"
+                  >
+                    Diseñemos tu torta <ArrowRight size={18} />
+                  </Link>
+                )}
               </div>
             </section>
             <section id="como-pedir" className="how-section section-wrap">
@@ -673,14 +711,20 @@ export function Storefront({
                   regalar.
                 </p>
               </div>
-              <a
-                href="https://wa.me/51934219749"
-                target="_blank"
-                rel="noreferrer"
-                className="button"
-              >
-                <MessageCircle size={19} /> Escríbenos
-              </a>
+              {customCakeAvailable ? (
+                <Link href="/postres/torta-personalizada" className="button">
+                  <CakeSlice size={19} /> Diseñar mi torta
+                </Link>
+              ) : (
+                <a
+                  href="https://wa.me/51934219749"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="button"
+                >
+                  <MessageCircle size={19} /> Escríbenos
+                </a>
+              )}
             </section>
           </>
         )}
