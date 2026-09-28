@@ -416,60 +416,22 @@ export function Storefront({
                         aria-hidden="true"
                       />
                       <div className="hero-dessert-frame">
-                        <div className="hero-dessert-turntable">
-                          <div className="hero-dessert-cake-object">
-                            {[-24, -12, 0, 12, 24].map((depth) => (
-                              <span
-                                key={depth}
-                                className="hero-dessert-volume hero-dessert-cake-volume"
-                                style={{ transform: `translateZ(${depth}px)` }}
-                                aria-hidden="true"
-                              />
-                            ))}
-                            <Image
-                              src="/images/torta-chocolate-cuerpo.webp"
-                              alt={featured.name}
-                              fill
-                              preload
-                              sizes="(max-width: 620px) 90vw, (max-width: 1440px) 52vw, 700px"
-                              className="hero-image hero-dessert-image hero-dessert-cake"
-                            />
-                            <Image
-                              src="/images/torta-chocolate-cuerpo.webp"
-                              alt=""
-                              fill
-                              loading="eager"
-                              sizes="(max-width: 620px) 90vw, (max-width: 1440px) 52vw, 700px"
-                              className="hero-dessert-image hero-dessert-cake-rear"
-                            />
-                          </div>
-                          <div className="hero-dessert-slice-object">
-                            {[-36, -18, 0, 18, 36].map((depth) => (
-                              <span
-                                key={depth}
-                                className="hero-dessert-volume hero-dessert-slice-volume"
-                                style={{ transform: `translateZ(${depth}px)` }}
-                                aria-hidden="true"
-                              />
-                            ))}
-                            <Image
-                              src="/images/torta-chocolate-porcion.webp"
-                              alt=""
-                              fill
-                              loading="eager"
-                              sizes="(max-width: 620px) 90vw, (max-width: 1440px) 52vw, 700px"
-                              className="hero-dessert-image hero-dessert-slice"
-                            />
-                            <Image
-                              src="/images/torta-chocolate-porcion.webp"
-                              alt=""
-                              fill
-                              loading="eager"
-                              sizes="(max-width: 620px) 90vw, (max-width: 1440px) 52vw, 700px"
-                              className="hero-dessert-image hero-dessert-slice-rear"
-                            />
-                          </div>
-                        </div>
+                        <Image
+                          src="/images/torta-chocolate-cuerpo.webp"
+                          alt={featured.name}
+                          fill
+                          preload
+                          sizes="(max-width: 620px) 90vw, (max-width: 1440px) 52vw, 700px"
+                          className="hero-image hero-dessert-image hero-dessert-cake"
+                        />
+                        <Image
+                          src="/images/torta-chocolate-porcion.webp"
+                          alt=""
+                          fill
+                          loading="eager"
+                          sizes="(max-width: 620px) 90vw, (max-width: 1440px) 52vw, 700px"
+                          className="hero-dessert-image hero-dessert-slice"
+                        />
                       </div>
                       <button
                         className="hero-motion-toggle"
