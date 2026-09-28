@@ -2549,10 +2549,6 @@ legend {
 .photo-hero .hero-dessert-scene {
   isolation: isolate;
   --hero-slice-rest-x: 18px;
-  --hero-slice-arc-x: 62px;
-  --hero-slice-arc-y: -10px;
-  --hero-slice-sweep-x: -46px;
-  --hero-slice-sweep-y: -52px;
   --hero-pointer-x: 0deg;
   --hero-pointer-y: 0deg;
   background: radial-gradient(
@@ -2577,7 +2573,7 @@ legend {
     #fff6e82b 68%,
     transparent 72%
   );
-  animation: hero-dessert-light 10.8s ease-in-out infinite;
+  animation: hero-dessert-light 12s ease-in-out infinite;
 }
 .hero-dessert-shadow {
   position: absolute;
@@ -2588,7 +2584,7 @@ legend {
   border-radius: 50%;
   background: #65352d38;
   filter: blur(20px);
-  animation: hero-dessert-shadow 10.8s ease-in-out infinite;
+  animation: hero-dessert-shadow 12s ease-in-out infinite;
 }
 .hero-dessert-slice-shadow {
   position: absolute;
@@ -2599,41 +2595,63 @@ legend {
   border-radius: 50%;
   background: #65352d2e;
   filter: blur(15px);
-  animation: hero-dessert-slice-shadow 10.8s ease-in-out infinite;
+  animation: hero-dessert-slice-shadow 12s ease-in-out infinite;
 }
 .hero-dessert-frame {
   position: absolute;
   inset: 12px 5% 96px;
-  perspective: 900px;
+  perspective: 1100px;
   transform: rotateX(var(--hero-pointer-x)) rotateY(var(--hero-pointer-y));
   transition: transform 0.35s ease-out;
 }
+.hero-dessert-turntable,
+.hero-dessert-cake-object,
+.hero-dessert-slice-object {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+}
+.hero-dessert-turntable {
+  animation: hero-dessert-turn 12s linear infinite;
+}
+.hero-dessert-slice-object {
+  animation: hero-dessert-slice-orbit 12s ease-in-out infinite;
+}
 .hero-dessert-image {
   object-fit: contain;
-  filter: drop-shadow(0 24px 22px #6c352b2a);
-  will-change: transform;
+  backface-visibility: hidden;
 }
 .hero-dessert-cake {
-  transform-origin: 50% 42%;
-  animation: hero-dessert-cake 10.8s cubic-bezier(0.42, 0, 0.2, 1) infinite;
+  transform: translateZ(34px);
+  filter: drop-shadow(0 20px 18px #6c352b21);
+}
+.hero-dessert-cake-rear {
+  transform: rotateY(180deg) translateZ(34px);
+  filter: brightness(0.83) drop-shadow(0 20px 18px #6c352b21);
 }
 .hero-dessert-slice {
-  transform-origin: 68% 64%;
-  animation: hero-dessert-slice 10.8s cubic-bezier(0.42, 0, 0.2, 1) infinite;
+  transform: translateZ(48px);
+  filter: drop-shadow(0 24px 18px #6c352b28);
 }
-.hero-dessert-closeup {
+.hero-dessert-slice-rear {
+  transform: rotateY(180deg) translateZ(48px);
+  filter: brightness(0.84) drop-shadow(0 24px 18px #6c352b28);
+}
+.hero-dessert-volume {
   position: absolute;
-  z-index: 1;
   inset: 0;
-  overflow: hidden;
   pointer-events: none;
-  opacity: 0;
-  animation: hero-dessert-cut 10.8s ease-in-out infinite;
+  background: linear-gradient(100deg, #32170f, #613321 45%, #2d1714);
 }
-.hero-dessert-closeup-image {
-  object-fit: cover;
-  object-position: center 40%;
-  animation: hero-dessert-dolly 10.8s ease-in-out infinite;
+.hero-dessert-cake-volume {
+  -webkit-mask: url("/images/torta-chocolate-cuerpo.webp") center / contain
+    no-repeat;
+  mask: url("/images/torta-chocolate-cuerpo.webp") center / contain no-repeat;
+}
+.hero-dessert-slice-volume {
+  -webkit-mask: url("/images/torta-chocolate-porcion.webp") center / contain
+    no-repeat;
+  mask: url("/images/torta-chocolate-porcion.webp") center / contain no-repeat;
 }
 .hero-motion-toggle {
   position: absolute;
@@ -2656,133 +2674,99 @@ legend {
 .hero-motion-toggle:hover {
   background: white;
 }
-.hero-dessert-scene.is-motion-paused .hero-dessert-cake,
-.hero-dessert-scene.is-motion-paused .hero-dessert-slice,
+.hero-dessert-scene.is-motion-paused .hero-dessert-turntable,
+.hero-dessert-scene.is-motion-paused .hero-dessert-slice-object,
 .hero-dessert-scene.is-motion-paused .hero-dessert-shadow,
 .hero-dessert-scene.is-motion-paused .hero-dessert-slice-shadow,
-.hero-dessert-scene.is-motion-paused .hero-dessert-halo,
-.hero-dessert-scene.is-motion-paused .hero-dessert-closeup,
-.hero-dessert-scene.is-motion-paused .hero-dessert-closeup-image {
+.hero-dessert-scene.is-motion-paused .hero-dessert-halo {
   animation-play-state: paused;
 }
-@keyframes hero-dessert-cut {
+@keyframes hero-dessert-turn {
   0%,
-  37%,
-  52%,
-  100% {
-    opacity: 0;
+  10% {
+    transform: rotateX(4deg) rotateY(-12deg);
   }
-  39%,
+  24% {
+    transform: rotateX(3deg) rotateY(78deg);
+  }
+  37% {
+    transform: rotateX(-2deg) rotateY(155deg);
+  }
+  48%,
+  53% {
+    transform: rotateX(-3deg) rotateY(180deg);
+  }
+  67% {
+    transform: rotateX(2deg) rotateY(255deg);
+  }
+  82% {
+    transform: rotateX(4deg) rotateY(320deg);
+  }
+  94%,
+  100% {
+    transform: rotateX(4deg) rotateY(348deg);
+  }
+}
+@keyframes hero-dessert-slice-orbit {
+  0%,
+  10%,
+  94%,
+  100% {
+    transform: translate3d(var(--hero-slice-rest-x), 0, 14px);
+  }
+  28% {
+    transform: translate3d(34px, -18px, 38px);
+  }
   50% {
-    opacity: 1;
+    transform: translate3d(14px, -12px, 16px);
   }
-}
-@keyframes hero-dessert-dolly {
-  0%,
-  34% {
-    transform: scale(1.08) translateY(0);
-  }
-  54%,
-  100% {
-    transform: scale(1.23) translateY(-10px);
-  }
-}
-@keyframes hero-dessert-cake {
-  0%,
-  8%,
-  94%,
-  100% {
-    transform: translate3d(-3px, 4px, 0) rotateY(-8deg) rotateZ(-2deg)
-      scale(0.98);
-  }
-  22%,
-  34% {
-    transform: translate3d(10px, -10px, 0) rotateY(11deg) rotateZ(5deg)
-      scale(1.02);
-  }
-  55%,
-  65% {
-    transform: translate3d(-22px, 10px, 0) rotateY(-12deg) rotateZ(-6deg)
-      scale(0.96);
-  }
-  80% {
-    transform: translate3d(4px, -7px, 0) rotateY(5deg) rotateZ(1deg) scale(1.01);
-  }
-}
-@keyframes hero-dessert-slice {
-  0%,
-  8%,
-  94%,
-  100% {
-    transform: translate3d(var(--hero-slice-rest-x), 0, 10px) rotateY(-6deg)
-      rotateZ(2deg) scale(0.94);
-  }
-  22%,
-  34% {
-    transform: translate3d(
-        var(--hero-slice-arc-x),
-        var(--hero-slice-arc-y),
-        35px
-      )
-      rotateY(12deg) rotateZ(12deg) scale(0.96);
-  }
-  55%,
-  65% {
-    transform: translate3d(
-        var(--hero-slice-sweep-x),
-        var(--hero-slice-sweep-y),
-        80px
-      )
-      rotateY(-13deg) rotateZ(-11deg) scale(1.06);
-  }
-  80% {
-    transform: translate3d(30px, -19px, 42px) rotateY(8deg) rotateZ(5deg)
-      scale(0.99);
+  75% {
+    transform: translate3d(-22px, -28px, 42px);
   }
 }
 @keyframes hero-dessert-shadow {
   0%,
-  8%,
   94%,
   100% {
-    transform: scale(1.02);
+    transform: scale(1);
     opacity: 0.65;
   }
-  55%,
-  65% {
-    transform: scale(0.82) translateX(-22px);
-    opacity: 0.46;
+  24%,
+  67% {
+    transform: scaleX(0.48);
+    opacity: 0.4;
+  }
+  50% {
+    transform: scale(0.92);
+    opacity: 0.52;
   }
 }
 @keyframes hero-dessert-slice-shadow {
   0%,
-  8%,
   94%,
   100% {
     transform: translate3d(0, 0, 0) scale(0.9);
     opacity: 0.45;
   }
-  22%,
-  34% {
-    transform: translate3d(22px, -8px, 0) scale(0.85);
-    opacity: 0.34;
+  24%,
+  67% {
+    transform: translate3d(-10px, -6px, 0) scaleX(0.42);
+    opacity: 0.26;
   }
-  55%,
-  65% {
-    transform: translate3d(-23px, -14px, 0) scale(0.78);
-    opacity: 0.28;
+  50% {
+    transform: translate3d(-16px, -10px, 0) scale(0.8);
+    opacity: 0.32;
   }
 }
 @keyframes hero-dessert-light {
   0%,
-  8%,
   94%,
   100% {
     transform: translateX(-50%) scale(1);
   }
-  55%,
-  65% {
-    transform: translateX(-55%) scale(1.07);
+  24%,
+  67% {
+    transform: translateX(-50%) scale(1.04);
   }
 }
 .photo-hero .hero-caption {
@@ -2914,10 +2898,6 @@ legend {
   }
   .photo-hero .hero-dessert-scene {
     --hero-slice-rest-x: 8px;
-    --hero-slice-arc-x: 20px;
-    --hero-slice-arc-y: -9px;
-    --hero-slice-sweep-x: -18px;
-    --hero-slice-sweep-y: -32px;
   }
   .hero-dessert-frame {
     inset: 4px 1% 84px;
@@ -2967,28 +2947,22 @@ legend {
   .hero-motion-toggle {
     display: none;
   }
-  .hero-dessert-cake,
-  .hero-dessert-slice,
+  .hero-dessert-turntable,
+  .hero-dessert-slice-object,
   .hero-dessert-shadow,
   .hero-dessert-slice-shadow,
-  .hero-dessert-halo,
-  .hero-dessert-closeup,
-  .hero-dessert-closeup-image {
+  .hero-dessert-halo {
     animation: none;
-  }
-  .hero-dessert-closeup {
-    display: none;
   }
   .hero-dessert-frame {
     transform: none;
     transition: none;
   }
-  .hero-dessert-cake {
-    transform: translate3d(-3px, 4px, 0) rotateZ(-2deg) scale(0.98);
+  .hero-dessert-turntable {
+    transform: rotateX(4deg) rotateY(-12deg);
   }
-  .hero-dessert-slice {
-    transform: translate3d(var(--hero-slice-rest-x), 0, 0) rotate(2deg)
-      scale(0.94);
+  .hero-dessert-slice-object {
+    transform: translate3d(var(--hero-slice-rest-x), 0, 14px);
   }
 }
 
