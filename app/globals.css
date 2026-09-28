@@ -2549,8 +2549,12 @@ legend {
 .photo-hero .hero-dessert-scene {
   isolation: isolate;
   --hero-slice-rest-x: 18px;
-  --hero-slice-focus-x: 28px;
-  --hero-slice-focus-z: 45px;
+  --hero-slice-arc-x: 62px;
+  --hero-slice-arc-y: -10px;
+  --hero-slice-sweep-x: -46px;
+  --hero-slice-sweep-y: -52px;
+  --hero-pointer-x: 0deg;
+  --hero-pointer-y: 0deg;
   background: radial-gradient(
     circle at 52% 43%,
     #fff9f0 0%,
@@ -2573,6 +2577,7 @@ legend {
     #fff6e82b 68%,
     transparent 72%
   );
+  animation: hero-dessert-light 10.8s ease-in-out infinite;
 }
 .hero-dessert-shadow {
   position: absolute;
@@ -2583,7 +2588,7 @@ legend {
   border-radius: 50%;
   background: #65352d38;
   filter: blur(20px);
-  animation: hero-dessert-shadow 9s ease-in-out infinite;
+  animation: hero-dessert-shadow 10.8s ease-in-out infinite;
 }
 .hero-dessert-slice-shadow {
   position: absolute;
@@ -2594,12 +2599,14 @@ legend {
   border-radius: 50%;
   background: #65352d2e;
   filter: blur(15px);
-  animation: hero-dessert-slice-shadow 9s ease-in-out infinite;
+  animation: hero-dessert-slice-shadow 10.8s ease-in-out infinite;
 }
 .hero-dessert-frame {
   position: absolute;
   inset: 12px 5% 96px;
   perspective: 900px;
+  transform: rotateX(var(--hero-pointer-x)) rotateY(var(--hero-pointer-y));
+  transition: transform 0.35s ease-out;
 }
 .hero-dessert-image {
   object-fit: contain;
@@ -2607,10 +2614,26 @@ legend {
   will-change: transform;
 }
 .hero-dessert-cake {
-  animation: hero-dessert-cake 9s cubic-bezier(0.42, 0, 0.2, 1) infinite;
+  transform-origin: 50% 42%;
+  animation: hero-dessert-cake 10.8s cubic-bezier(0.42, 0, 0.2, 1) infinite;
 }
 .hero-dessert-slice {
-  animation: hero-dessert-slice 9s cubic-bezier(0.42, 0, 0.2, 1) infinite;
+  transform-origin: 68% 64%;
+  animation: hero-dessert-slice 10.8s cubic-bezier(0.42, 0, 0.2, 1) infinite;
+}
+.hero-dessert-closeup {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0;
+  animation: hero-dessert-cut 10.8s ease-in-out infinite;
+}
+.hero-dessert-closeup-image {
+  object-fit: cover;
+  object-position: center 40%;
+  animation: hero-dessert-dolly 10.8s ease-in-out infinite;
 }
 .hero-motion-toggle {
   position: absolute;
@@ -2636,74 +2659,134 @@ legend {
 .hero-dessert-scene.is-motion-paused .hero-dessert-cake,
 .hero-dessert-scene.is-motion-paused .hero-dessert-slice,
 .hero-dessert-scene.is-motion-paused .hero-dessert-shadow,
-.hero-dessert-scene.is-motion-paused .hero-dessert-slice-shadow {
+.hero-dessert-scene.is-motion-paused .hero-dessert-slice-shadow,
+.hero-dessert-scene.is-motion-paused .hero-dessert-halo,
+.hero-dessert-scene.is-motion-paused .hero-dessert-closeup,
+.hero-dessert-scene.is-motion-paused .hero-dessert-closeup-image {
   animation-play-state: paused;
+}
+@keyframes hero-dessert-cut {
+  0%,
+  37%,
+  52%,
+  100% {
+    opacity: 0;
+  }
+  39%,
+  50% {
+    opacity: 1;
+  }
+}
+@keyframes hero-dessert-dolly {
+  0%,
+  34% {
+    transform: scale(1.08) translateY(0);
+  }
+  54%,
+  100% {
+    transform: scale(1.23) translateY(-10px);
+  }
 }
 @keyframes hero-dessert-cake {
   0%,
-  15%,
-  85%,
+  8%,
+  94%,
   100% {
-    transform: translate3d(-3px, 4px, 0) rotate(-2deg) scale(0.98);
+    transform: translate3d(-3px, 4px, 0) rotateY(-8deg) rotateZ(-2deg)
+      scale(0.98);
   }
-  35% {
-    transform: translate3d(2px, -8px, 0) rotate(1deg) scale(1.03);
+  22%,
+  34% {
+    transform: translate3d(10px, -10px, 0) rotateY(11deg) rotateZ(5deg)
+      scale(1.02);
   }
   55%,
-  68% {
-    transform: translate3d(-18px, 0, 0) rotate(-3deg) scale(0.97);
+  65% {
+    transform: translate3d(-22px, 10px, 0) rotateY(-12deg) rotateZ(-6deg)
+      scale(0.96);
+  }
+  80% {
+    transform: translate3d(4px, -7px, 0) rotateY(5deg) rotateZ(1deg) scale(1.01);
   }
 }
 @keyframes hero-dessert-slice {
   0%,
-  15%,
-  85%,
+  8%,
+  94%,
   100% {
-    transform: translate3d(var(--hero-slice-rest-x), 0, 10px) rotate(2deg)
-      scale(0.94);
+    transform: translate3d(var(--hero-slice-rest-x), 0, 10px) rotateY(-6deg)
+      rotateZ(2deg) scale(0.94);
   }
-  35% {
-    transform: translate3d(20px, -5px, 25px) rotate(-1deg) scale(1);
+  22%,
+  34% {
+    transform: translate3d(
+        var(--hero-slice-arc-x),
+        var(--hero-slice-arc-y),
+        35px
+      )
+      rotateY(12deg) rotateZ(12deg) scale(0.96);
   }
   55%,
-  68% {
+  65% {
     transform: translate3d(
-        var(--hero-slice-focus-x),
-        -24px,
-        var(--hero-slice-focus-z)
+        var(--hero-slice-sweep-x),
+        var(--hero-slice-sweep-y),
+        80px
       )
-      rotate(-3deg) scale(1.06);
+      rotateY(-13deg) rotateZ(-11deg) scale(1.06);
+  }
+  80% {
+    transform: translate3d(30px, -19px, 42px) rotateY(8deg) rotateZ(5deg)
+      scale(0.99);
   }
 }
 @keyframes hero-dessert-shadow {
   0%,
-  15%,
-  85%,
+  8%,
+  94%,
   100% {
     transform: scale(1.02);
     opacity: 0.65;
   }
   55%,
-  68% {
-    transform: scale(0.86) translateX(-12px);
+  65% {
+    transform: scale(0.82) translateX(-22px);
     opacity: 0.46;
   }
 }
 @keyframes hero-dessert-slice-shadow {
   0%,
-  15%,
-  85%,
+  8%,
+  94%,
   100% {
     transform: translate3d(0, 0, 0) scale(0.9);
     opacity: 0.45;
   }
+  22%,
+  34% {
+    transform: translate3d(22px, -8px, 0) scale(0.85);
+    opacity: 0.34;
+  }
   55%,
-  68% {
-    transform: translate3d(14px, -9px, 0) scale(1.1);
+  65% {
+    transform: translate3d(-23px, -14px, 0) scale(0.78);
     opacity: 0.28;
   }
 }
+@keyframes hero-dessert-light {
+  0%,
+  8%,
+  94%,
+  100% {
+    transform: translateX(-50%) scale(1);
+  }
+  55%,
+  65% {
+    transform: translateX(-55%) scale(1.07);
+  }
+}
 .photo-hero .hero-caption {
+  z-index: 2;
   left: 24px;
   right: 24px;
   bottom: 24px;
@@ -2831,8 +2914,10 @@ legend {
   }
   .photo-hero .hero-dessert-scene {
     --hero-slice-rest-x: 8px;
-    --hero-slice-focus-x: 18px;
-    --hero-slice-focus-z: 30px;
+    --hero-slice-arc-x: 20px;
+    --hero-slice-arc-y: -9px;
+    --hero-slice-sweep-x: -18px;
+    --hero-slice-sweep-y: -32px;
   }
   .hero-dessert-frame {
     inset: 4px 1% 84px;
@@ -2885,11 +2970,21 @@ legend {
   .hero-dessert-cake,
   .hero-dessert-slice,
   .hero-dessert-shadow,
-  .hero-dessert-slice-shadow {
+  .hero-dessert-slice-shadow,
+  .hero-dessert-halo,
+  .hero-dessert-closeup,
+  .hero-dessert-closeup-image {
     animation: none;
   }
+  .hero-dessert-closeup {
+    display: none;
+  }
+  .hero-dessert-frame {
+    transform: none;
+    transition: none;
+  }
   .hero-dessert-cake {
-    transform: translate3d(-3px, 4px, 0) rotate(-2deg) scale(0.98);
+    transform: translate3d(-3px, 4px, 0) rotateZ(-2deg) scale(0.98);
   }
   .hero-dessert-slice {
     transform: translate3d(var(--hero-slice-rest-x), 0, 0) rotate(2deg)

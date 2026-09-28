@@ -375,6 +375,37 @@ export function Storefront({
               {featured && (
                 <div
                   className={`hero-visual ${featured.id === "torta-chocolate" ? "hero-dessert-scene" : ""} ${heroMotionPaused ? "is-motion-paused" : ""}`}
+                  onPointerMove={(event) => {
+                    if (
+                      featured.id !== "torta-chocolate" ||
+                      event.pointerType !== "mouse" ||
+                      heroMotionPaused ||
+                      window.matchMedia("(prefers-reduced-motion: reduce)")
+                        .matches
+                    )
+                      return;
+                    const rect = event.currentTarget.getBoundingClientRect();
+                    const x = (event.clientX - rect.left) / rect.width - 0.5;
+                    const y = (event.clientY - rect.top) / rect.height - 0.5;
+                    event.currentTarget.style.setProperty(
+                      "--hero-pointer-y",
+                      `${x * 9}deg`,
+                    );
+                    event.currentTarget.style.setProperty(
+                      "--hero-pointer-x",
+                      `${-y * 6}deg`,
+                    );
+                  }}
+                  onPointerLeave={(event) => {
+                    event.currentTarget.style.setProperty(
+                      "--hero-pointer-y",
+                      "0deg",
+                    );
+                    event.currentTarget.style.setProperty(
+                      "--hero-pointer-x",
+                      "0deg",
+                    );
+                  }}
                 >
                   {featured.id === "torta-chocolate" ? (
                     <>
@@ -402,10 +433,30 @@ export function Storefront({
                           className="hero-dessert-image hero-dessert-slice"
                         />
                       </div>
+                      <div className="hero-dessert-closeup" aria-hidden="true">
+                        <Image
+                          src={featured.image}
+                          alt=""
+                          fill
+                          loading="eager"
+                          sizes="(max-width: 620px) 100vw, (max-width: 1440px) 55vw, 790px"
+                          className="hero-dessert-closeup-image"
+                        />
+                      </div>
                       <button
                         className="hero-motion-toggle"
                         type="button"
-                        onClick={() => setHeroMotionPaused((paused) => !paused)}
+                        onClick={(event) => {
+                          event.currentTarget.parentElement?.style.setProperty(
+                            "--hero-pointer-y",
+                            "0deg",
+                          );
+                          event.currentTarget.parentElement?.style.setProperty(
+                            "--hero-pointer-x",
+                            "0deg",
+                          );
+                          setHeroMotionPaused((paused) => !paused);
+                        }}
                         aria-label={
                           heroMotionPaused
                             ? "Reanudar animación del postre"
