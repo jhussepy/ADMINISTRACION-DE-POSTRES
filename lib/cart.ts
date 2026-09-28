@@ -58,7 +58,11 @@ export function validDate(value: string) {
   const d = new Date(`${value}T12:00:00Z`);
   return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === value;
 }
-export function checkoutError(d: CheckoutDetails, today = limaToday()) {
+export function checkoutError(
+  d: CheckoutDetails,
+  today = limaToday(),
+  hasCustomCake = false,
+) {
   if (d.name.trim().length < 2 || d.name.trim().length > 100)
     return "Escribe tu nombre (entre 2 y 100 caracteres).";
   if (!["recojo", "delivery"].includes(d.delivery))
@@ -72,6 +76,15 @@ export function checkoutError(d: CheckoutDetails, today = limaToday()) {
     return "Indica tu distrito y dirección de entrega (8 a 250 caracteres).";
   if (d.notes.length > 500)
     return "Las observaciones no pueden superar 500 caracteres.";
+  if (hasCustomCake) {
+    const guests = d.cakeGuests?.trim() ?? "";
+    if (!/^[1-9]\d{0,2}$/.test(guests) || Number(guests) > 500)
+      return "Indica para cuántas personas será la torta (entre 1 y 500).";
+    if ((d.cakeFlavor?.length ?? 0) > 80)
+      return "El sabor de la torta no puede superar 80 caracteres.";
+    if ((d.cakeDesign?.length ?? 0) > 300)
+      return "La idea de la torta no puede superar 300 caracteres.";
+  }
   return null;
 }
 export function whatsappUrl(
@@ -79,7 +92,8 @@ export function whatsappUrl(
   products: Product[],
   details: CheckoutDetails,
 ) {
-  const error = checkoutError(details);
+  const hasCustomCake = cart.some((item) => item.id === "torta-personalizada");
+  const error = checkoutError(details, limaToday(), hasCustomCake);
   if (error) throw new Error(error);
   const { lines, subtotal, unpriced } = cartSummary(cart, products);
   if (!lines.length) throw new Error("Agrega un producto antes de continuar.");
@@ -103,6 +117,14 @@ export function whatsappUrl(
       ? `Dirección: ${details.address.trim()}`
       : "Punto de recojo: por coordinar.",
     `Fecha solicitada: ${date}`,
+    hasCustomCake ? "Torta personalizada:" : "",
+    hasCustomCake ? `Personas: ${details.cakeGuests!.trim()}` : "",
+    hasCustomCake && details.cakeFlavor?.trim()
+      ? `Sabor deseado: ${details.cakeFlavor.trim()}`
+      : "",
+    hasCustomCake && details.cakeDesign?.trim()
+      ? `Diseño o temática: ${details.cakeDesign.trim()}`
+      : "",
     details.notes.trim() ? `Observaciones: ${details.notes.trim()}` : "",
     "",
     "Por favor, confirmar disponibilidad, presentación, importe final y forma de pago.",

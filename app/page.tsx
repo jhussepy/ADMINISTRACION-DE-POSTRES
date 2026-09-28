@@ -1,5 +1,8 @@
 import { Storefront } from "@/components/storefront";
 import { getAccount, getProducts } from "@/lib/data";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = { alternates: { canonical: "/" } };
 export const dynamic = "force-dynamic";
 export default async function Home() {
   const [products, account] = await Promise.all([getProducts(), getAccount()]);

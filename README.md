@@ -5,12 +5,12 @@ Primera versión de la tienda de **Repostería Yemape**, desarrollada con Next.j
 ## Qué está implementado
 
 - Página principal responsive, con identidad propia, portada fotográfica y fotografías de Yemape optimizadas en WebP.
-- Catálogo inicial de siete productos, buscador con limpieza rápida y categorías.
+- Catálogo inicial de once productos, incluidos pies de limón, maracuyá y manzana, y brownie de chocolate, con buscador y categorías.
 - Ficha ampliada de cada postre con imagen completa, presentación y selector de cantidad.
 - Catálogo de dos columnas en celulares desde 360 px y acceso fijo al carrito cuando contiene productos.
 - Carrito persistente en el navegador: agregar, quitar, cambiar cantidades y recuperar la selección al volver.
 - Compra como invitado, sin registro obligatorio.
-- Formulario de pedido: nombre, recojo/delivery, dirección condicional, fecha y observaciones.
+- Formulario de pedido: nombre, recojo/delivery, dirección condicional, fecha y observaciones. Si incluye una torta personalizada, solicita número de personas y permite indicar sabor y temática.
 - Resumen editable antes de abrir WhatsApp; conserva los datos al volver a revisar el carrito.
 - Preguntas frecuentes sobre cuentas, confirmación, entrega y pedidos personalizados.
 - Revalidación del catálogo en el servidor antes de preparar el enlace a **WhatsApp +51 934 219 749**.
@@ -69,7 +69,7 @@ La prueba de navegador está en `tests/storefront.spec.ts` y se ejecuta con `npm
 - El carrito no se borra al abrir WhatsApp. Se conserva en ese navegador; no se sincroniza entre dispositivos.
 - Los mensajes de WhatsApp no se importan automáticamente: los pedidos se registran en el panel después de coordinarlos.
 - Cuentas y administración requieren un proyecto Supabase configurado, migración SQL y un usuario administrador verificado.
-- Se incluyen tres fotografías de postres y cuatro diseños existentes; la carga de nuevas imágenes desde el panel no forma parte de esta versión.
+- Se incluyen fotografías y diseños de once productos; la carga de nuevas imágenes desde el panel no forma parte de esta versión.
 - Inventario de ingredientes, costos de recetas, egresos y reportes completos corresponden a una siguiente etapa; el saldo por cobrar no equivale a ganancia.
 - Antes de abrir ventas, el propietario debe confirmar precios, presentaciones, catálogo, horarios, recojo y condiciones de delivery.
 

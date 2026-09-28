@@ -2,6 +2,7 @@ export const categories = [
   "Cheesecakes",
   "Tortas",
   "Kekes",
+  "Pies",
   "Postres",
   "Salados",
 ] as const;
@@ -24,6 +25,9 @@ export type CheckoutDetails = {
   address: string;
   date: string;
   notes: string;
+  cakeGuests?: string;
+  cakeFlavor?: string;
+  cakeDesign?: string;
 };
 export type Profile = { full_name: string; address: string; phone: string };
 export type ActionState = { error?: string; success?: string };

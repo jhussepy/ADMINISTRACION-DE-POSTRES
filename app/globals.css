@@ -1005,6 +1005,24 @@ legend {
   font-size: 11px;
   color: var(--muted);
 }
+.cake-request {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--cream);
+}
+.cake-request legend {
+  padding: 0 6px;
+  font-weight: 700;
+  color: var(--wine);
+}
+.cake-request p {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--muted);
+}
 .order-notice {
   display: flex;
   gap: 12px;

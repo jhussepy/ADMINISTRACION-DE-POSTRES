@@ -39,9 +39,9 @@ create table if not exists public.products (
 );
 -- Ampliar las opciones también si se ejecuta sobre una instalación anterior.
 alter table public.products drop constraint if exists products_category_check;
-alter table public.products add constraint products_category_check check(category in ('Cheesecakes','Tortas','Kekes','Postres','Salados'));
+alter table public.products add constraint products_category_check check(category in ('Cheesecakes','Tortas','Kekes','Pies','Postres','Salados'));
 alter table public.products drop constraint if exists products_image_check;
-alter table public.products add constraint products_image_check check(image in ('/images/fresa.webp','/images/maracumango.webp','/images/tortas.webp','/images/triples.webp','/images/torta-chocolate.webp','/images/terremoto-lucuma.webp','/images/keke-arandanos.webp'));
+alter table public.products add constraint products_image_check check(image in ('/images/fresa.webp','/images/maracumango.webp','/images/tortas.webp','/images/triples.webp','/images/torta-chocolate.webp','/images/terremoto-lucuma.webp','/images/keke-arandanos.webp','/images/pie-limon.webp','/images/pie-maracuya.webp','/images/brownie-chocolate.webp','/images/pie-manzana.webp'));
 alter table public.products enable row level security;
 revoke all on public.products from anon, authenticated;
 grant select on public.products to anon, authenticated;
@@ -96,7 +96,11 @@ insert into public.products(id,name,description,category,presentation,price_cent
 ('cheesecake-fresa','Cheesecake de fresa','Una pausa dulce con el encanto de las fresas. Consulta tamaños y porciones disponibles.','Cheesecakes','Presentación por coordinar',null,'/images/fresa.webp',true,4),
 ('cheesecake-maracumango','Cheesecake de maracumango','El encuentro de dos sabores tropicales para compartir un momento especial.','Cheesecakes','Presentación por coordinar',null,'/images/maracumango.webp',true,5),
 ('torta-personalizada','Tu torta, tu celebración','Cuéntanos tu idea, la temática y para cuántas personas. Coordinamos contigo cada detalle.','Tortas','Diseño personalizado',null,'/images/tortas.webp',true,6),
-('triples','Triples de jamón, queso y tocino','También hay lugar para un antojo salado. Consulta las presentaciones para tu reunión.','Salados','Cantidad por coordinar',null,'/images/triples.webp',true,7)
+('triples','Triples de jamón, queso y tocino','También hay lugar para un antojo salado. Consulta las presentaciones para tu reunión.','Salados','Cantidad por coordinar',null,'/images/triples.webp',true,7),
+('pie-limon','Pie de limón','Un clásico de limón con una presentación irresistible para compartir. Consulta las opciones disponibles.','Pies','Presentación por coordinar',null,'/images/pie-limon.webp',true,8),
+('pie-maracuya','Pie de maracuyá','El sabor del maracuyá en un pie para disfrutar en cualquier ocasión. Consulta las presentaciones.','Pies','Presentación por coordinar',null,'/images/pie-maracuya.webp',true,9),
+('brownie-chocolate','Brownie de chocolate','Un antojo de chocolate para acompañar una pausa o compartir. Consulta la cantidad disponible.','Postres','Cantidad por coordinar',null,'/images/brownie-chocolate.webp',true,10),
+('pie-manzana','Pie de manzana','Un pie de manzana para compartir en la mesa. Consulta las presentaciones disponibles.','Pies','Presentación por coordinar',null,'/images/pie-manzana.webp',true,11)
 -- Reubicar solo las posiciones originales de los cuatro productos anteriores.
 -- Conservar precios, textos, visibilidad y cualquier otra posición personalizada.
 on conflict(id) do update set sort_order=excluded.sort_order

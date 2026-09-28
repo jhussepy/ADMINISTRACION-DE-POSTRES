@@ -60,9 +60,14 @@ test("custom cake page leads to guest WhatsApp order with customer details", asy
   await cart.getByRole("button", { name: "Continuar como invitado" }).click();
   await cart.getByLabel("Tu nombre", { exact: true }).fill("Cliente de prueba");
   await cart.getByLabel("Fecha deseada").fill("2099-09-30");
+  await cart.getByLabel("¿Para cuántas personas?").fill("12");
+  await cart.getByLabel("Sabor que te gustaría").fill("Chocolate");
+  await cart
+    .getByLabel("Temática, colores o idea")
+    .fill("Flores en tonos pastel");
   await cart
     .getByLabel("¿Algo que debamos saber?")
-    .fill("Temática flores, para 12 personas");
+    .fill("Dedicatoria para María");
   let whatsapp = "";
   await page.route("https://wa.me/**", async (route) => {
     whatsapp = route.request().url();
@@ -80,7 +85,10 @@ test("custom cake page leads to guest WhatsApp order with customer details", asy
   });
   const message = new URL(whatsapp).searchParams.get("text")!;
   expect(message).toContain("Tu torta, tu celebración");
-  expect(message).toContain("Temática flores, para 12 personas");
+  expect(message).toContain("Personas: 12");
+  expect(message).toContain("Sabor deseado: Chocolate");
+  expect(message).toContain("Diseño o temática: Flores en tonos pastel");
+  expect(message).toContain("Dedicatoria para María");
 });
 test("catalog filters, search, reload and browser history follow the URL", async ({
   page,
@@ -113,7 +121,41 @@ test("catalog filters, search, reload and browser history follow the URL", async
   await expect(page.locator(".product-card")).toHaveCount(2);
   await page.getByRole("button", { name: "Todos los antojos" }).click();
   await expect(page).toHaveURL(/\/catalogo$/);
-  await expect(page.locator(".product-card")).toHaveCount(7);
+  await expect(page.locator(".product-card")).toHaveCount(11);
+});
+test("new pies and brownie have shareable product pages and valid photos", async ({
+  page,
+}) => {
+  await page.goto("/catalogo?categoria=Pies");
+  await expect(page.locator(".product-card")).toHaveCount(3);
+  for (const id of [
+    "pie-limon",
+    "pie-maracuya",
+    "pie-manzana",
+    "brownie-chocolate",
+  ]) {
+    await page.goto(`/postres/${id}`);
+    await expect(page.locator(".product-page-image img")).toBeVisible();
+    await expect
+      .poll(() =>
+        page
+          .locator(".product-page-image img")
+          .evaluate((img) => (img as HTMLImageElement).naturalWidth),
+      )
+      .toBeGreaterThan(0);
+    await expect(page.locator('meta[property="og:image"]')).toHaveAttribute(
+      "content",
+      new RegExp(`${id}\\.webp$`),
+    );
+  }
+  const sitemap = await (await page.request.get("/sitemap.xml")).text();
+  for (const id of [
+    "pie-limon",
+    "pie-maracuya",
+    "pie-manzana",
+    "brownie-chocolate",
+  ])
+    expect(sitemap).toContain(`/postres/${id}`);
 });
 test("front-page categories open a filtered carta and preserve the cart", async ({
   page,
@@ -154,7 +196,7 @@ test("public catalogue, cart persistence, guest checkout and WhatsApp handoff", 
     .getByRole("link", { name: "Ver toda la carta", exact: true })
     .click();
   await expect(page).toHaveURL(/\/catalogo$/);
-  await expect(page.locator(".product-card")).toHaveCount(7);
+  await expect(page.locator(".product-card")).toHaveCount(11);
   await expect
     .poll(() =>
       page
@@ -253,7 +295,7 @@ test("filters, empty states, protected administration and responsive layout", as
   await search.fill("inexistente");
   await expect(page.getByText("No encontramos ese antojo")).toBeVisible();
   await page.getByRole("button", { name: "Ver toda la carta" }).click();
-  await expect(page.locator(".product-card")).toHaveCount(7);
+  await expect(page.locator(".product-card")).toHaveCount(11);
   await expect(page.locator("body")).toHaveJSProperty(
     "scrollWidth",
     await page.locator("body").evaluate((el) => el.clientWidth),
@@ -423,7 +465,7 @@ test("photographic catalogue filters and new products reach the WhatsApp handoff
     })
     .click();
   await page.getByRole("button", { name: "Postres", exact: true }).click();
-  await expect(page.locator(".product-card")).toHaveCount(1);
+  await expect(page.locator(".product-card")).toHaveCount(2);
   await page
     .getByRole("button", {
       name: "Agregar Terremoto de lúcuma al carrito",
