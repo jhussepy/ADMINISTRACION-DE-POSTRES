@@ -16,6 +16,8 @@ Aplicamos el método de Refero a la captura de tienda de repostería compartida 
 
 El recorrido sigue siendo: categoría o búsqueda → ficha o carrito → revisión → WhatsApp. La cuenta es opcional, y los precios de ejemplo se señalan como tales hasta sustituirlos por datos confirmados.
 
+[Vista del catálogo en escritorio](preview-catalog-desktop.webp) · [Vista del catálogo en celular](preview-catalog-mobile.webp)
+
 La captura de referencia aporta la jerarquía: encabezado con buscador, cuenta y carrito, fotografía principal, categorías y catálogo. Yemape conserva su propia marca.
 
 - Fondo crema, acento vino, rosa suave y bloques secundarios en tonos variados.
