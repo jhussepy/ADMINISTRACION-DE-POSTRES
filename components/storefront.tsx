@@ -15,6 +15,8 @@ import {
   MessageCircle,
   Minus,
   Plus,
+  Play,
+  Pause,
   Search,
   ShoppingBag,
   Truck,
@@ -102,6 +104,7 @@ export function Storefront({
     [cartOpen, setCartOpen] = useState(false),
     [notice, setNotice] = useState("");
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [heroMotionPaused, setHeroMotionPaused] = useState(false);
   const detailTrigger = useRef<HTMLElement | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
@@ -370,15 +373,52 @@ export function Storefront({
                 </div>
               </div>
               {featured && (
-                <div className="hero-visual">
-                  <Image
-                    src={featured.image}
-                    alt={featured.name}
-                    fill
-                    preload
-                    sizes="(max-width: 620px) 100vw, (max-width: 1440px) 55vw, 790px"
-                    className="hero-image"
-                  />
+                <div
+                  className={`hero-visual ${featured.id === "torta-chocolate" ? "hero-dessert-scene" : ""} ${heroMotionPaused ? "is-motion-paused" : ""}`}
+                >
+                  {featured.id === "torta-chocolate" ? (
+                    <>
+                      <div className="hero-dessert-halo" aria-hidden="true" />
+                      <div className="hero-dessert-shadow" aria-hidden="true" />
+                      <div className="hero-dessert-frame">
+                        <Image
+                          src="/images/torta-chocolate-hero.webp"
+                          alt={featured.name}
+                          fill
+                          preload
+                          sizes="(max-width: 620px) 90vw, (max-width: 1440px) 52vw, 700px"
+                          className="hero-dessert-image"
+                        />
+                      </div>
+                      <button
+                        className="hero-motion-toggle"
+                        type="button"
+                        onClick={() => setHeroMotionPaused((paused) => !paused)}
+                        aria-label={
+                          heroMotionPaused
+                            ? "Reanudar animación del postre"
+                            : "Pausar animación del postre"
+                        }
+                        aria-pressed={heroMotionPaused}
+                      >
+                        {heroMotionPaused ? (
+                          <Play size={15} />
+                        ) : (
+                          <Pause size={15} />
+                        )}
+                        <span>{heroMotionPaused ? "Reanudar" : "Pausar"}</span>
+                      </button>
+                    </>
+                  ) : (
+                    <Image
+                      src={featured.image}
+                      alt={featured.name}
+                      fill
+                      preload
+                      sizes="(max-width: 620px) 100vw, (max-width: 1440px) 55vw, 790px"
+                      className="hero-image"
+                    />
+                  )}
                   <div className="hero-caption">
                     <span>UN MOMENTO PARA DISFRUTAR</span>
                     <strong>{featured.name}</strong>

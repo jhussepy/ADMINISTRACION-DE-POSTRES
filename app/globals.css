@@ -2546,6 +2546,95 @@ legend {
   object-position: center 54%;
   transform: none;
 }
+.photo-hero .hero-dessert-scene {
+  isolation: isolate;
+  background: radial-gradient(
+    circle at 52% 43%,
+    #fff9f0 0%,
+    #f8e9dd 55%,
+    #efd7cc 100%
+  );
+}
+.hero-dessert-halo {
+  position: absolute;
+  width: min(82%, 560px);
+  aspect-ratio: 1;
+  top: 4%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 1px solid #fff9f2b8;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    #fffcf7a8,
+    #fff6e82b 68%,
+    transparent 72%
+  );
+}
+.hero-dessert-shadow {
+  position: absolute;
+  width: 56%;
+  height: 36px;
+  left: 22%;
+  bottom: 108px;
+  border-radius: 50%;
+  background: #65352d38;
+  filter: blur(20px);
+  animation: hero-dessert-shadow 7s ease-in-out infinite alternate;
+}
+.hero-dessert-frame {
+  position: absolute;
+  inset: 12px 5% 63px;
+  animation: hero-dessert-float 7s ease-in-out infinite alternate;
+  will-change: transform;
+}
+.hero-dessert-image {
+  object-fit: contain;
+  filter: drop-shadow(0 24px 22px #6c352b2a);
+}
+.hero-motion-toggle {
+  position: absolute;
+  z-index: 2;
+  top: 20px;
+  right: 20px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 13px;
+  border: 1px solid #fff9f0;
+  border-radius: 999px;
+  background: #fffdf8e8;
+  color: var(--wine-dark);
+  font-size: 12px;
+  font-weight: 700;
+  box-shadow: 0 4px 16px #44221616;
+}
+.hero-motion-toggle:hover {
+  background: white;
+}
+.hero-dessert-scene.is-motion-paused .hero-dessert-frame,
+.hero-dessert-scene.is-motion-paused .hero-dessert-shadow {
+  animation-play-state: paused;
+}
+@keyframes hero-dessert-float {
+  from {
+    transform: translate3d(0, 12px, 0) rotate(-2deg) scale(0.98);
+  }
+  to {
+    transform: translate3d(0, -12px, 0) rotate(1.5deg) scale(1.02);
+  }
+}
+@keyframes hero-dessert-shadow {
+  from {
+    transform: scale(1.06);
+    opacity: 0.7;
+  }
+  to {
+    transform: scale(0.84);
+    opacity: 0.45;
+  }
+}
 .photo-hero .hero-caption {
   left: 24px;
   right: 24px;
@@ -2672,6 +2761,16 @@ legend {
     min-height: 0;
     aspect-ratio: 1 / 1.06;
   }
+  .hero-dessert-frame {
+    inset: 4px 1% 68px;
+  }
+  .hero-dessert-shadow {
+    bottom: 100px;
+  }
+  .hero-motion-toggle {
+    top: 12px;
+    right: 12px;
+  }
   .photo-hero .hero-caption {
     left: 14px;
     right: 14px;
@@ -2701,6 +2800,15 @@ legend {
   }
   .product-discover {
     font-size: 12px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-motion-toggle {
+    display: none;
+  }
+  .hero-dessert-frame,
+  .hero-dessert-shadow {
+    animation: none;
   }
 }
 
