@@ -2927,6 +2927,7 @@ legend {
   .catalog-layout .category-list {
     flex-direction: row;
     align-items: center;
+    justify-content: flex-start;
     flex-wrap: nowrap;
     overflow-x: auto;
     gap: 8px;
