@@ -6,11 +6,12 @@ Primera versión de la tienda de **Repostería Yemape**, desarrollada con Next.j
 
 - Página principal responsive, con identidad propia, portada fotográfica y fotografías de Yemape optimizadas en WebP.
 - Catálogo inicial de once productos, incluidos pies de limón, maracuyá y manzana, y brownie de chocolate, con buscador y categorías.
-- Ficha ampliada de cada postre con imagen completa, presentación y selector de cantidad.
+- Ficha ampliada de cada postre con imagen completa, presentaciones seleccionables y selector de cantidad.
 - Catálogo de dos columnas en celulares desde 360 px y acceso fijo al carrito cuando contiene productos.
-- Carrito persistente en el navegador: agregar, quitar, cambiar cantidades y recuperar la selección al volver.
+- Carrito persistente en el navegador: agregar, quitar, cambiar presentaciones y cantidades, y recuperar la selección al volver.
 - Compra como invitado, sin registro obligatorio.
-- Formulario de pedido: nombre, recojo/delivery, dirección condicional, fecha y observaciones. Si incluye una torta personalizada, solicita número de personas y permite indicar sabor y temática.
+- Formulario de pedido: nombre, recojo/delivery, dirección condicional, fecha, ocasión, dedicatoria y observaciones. Si incluye una torta personalizada, solicita número de personas y permite indicar sabor y temática.
+- Colecciones por ocasión y condiciones de recojo y delivery con ejemplos marcados como tales.
 - Resumen editable antes de abrir WhatsApp; conserva los datos al volver a revisar el carrito.
 - Preguntas frecuentes sobre cuentas, confirmación, entrega y pedidos personalizados.
 - Revalidación del catálogo en el servidor antes de preparar el enlace a **WhatsApp +51 934 219 749**.
@@ -19,7 +20,9 @@ Primera versión de la tienda de **Repostería Yemape**, desarrollada con Next.j
 - Productos: alta, edición, presentación, precio, categoría, orden y visibilidad.
 - Pedidos: registro manual, fecha de entrega, total, importe abonado y estados. Resumen de productos visibles, pedidos por atender y saldo por cobrar.
 
-**Los productos iniciales tienen precio por consultar.** No se han inventado precios ni medidas comerciales. Cada presentación puede registrarse como una entrada independiente en el catálogo.
+**Modo demostrativo:** `lib/demo-catalog.ts` concentra los tamaños, precios y condiciones de entrega ficticios. La web y el mensaje de WhatsApp indican expresamente que son ejemplos, no un precio confirmado. La torta personalizada se cotiza aparte. No se generan datos estructurados de ofertas con esos valores. Las fotografías siguen siendo las aportadas por el negocio.
+
+Cuando el negocio confirme los datos, sustituir los ejemplos en ese archivo, comprobar presentaciones y precios y desactivar `DEMO_MODE`. Si un producto ya tiene `price_cents` real en Supabase, ese precio tiene prioridad y la ficha muestra su presentación registrada. La base de datos no se modifica en esta etapa.
 
 ## Qué funciona sin configurar servicios
 
@@ -59,6 +62,7 @@ La prueba de navegador está en `tests/storefront.spec.ts` y se ejecuta con `npm
 - `components/`: tienda, formularios de cuenta y administración.
 - `lib/cart.ts`: cantidades, totales, fechas y mensaje de WhatsApp.
 - `lib/products.ts`: catálogo inicial y diseños disponibles.
+- `lib/demo-catalog.ts`: valores de muestra reemplazables por los reales.
 - `lib/supabase/`: cliente de servidor con cookies.
 - `supabase/schema.sql`: tablas, restricciones, permisos y datos iniciales.
 - `docs/`: configuración, alcance y notas de verificación.
@@ -72,6 +76,7 @@ La prueba de navegador está en `tests/storefront.spec.ts` y se ejecuta con `npm
 - Se incluyen fotografías y diseños de once productos; la carga de nuevas imágenes desde el panel no forma parte de esta versión.
 - Inventario de ingredientes, costos de recetas, egresos y reportes completos corresponden a una siguiente etapa; el saldo por cobrar no equivale a ganancia.
 - Antes de abrir ventas, el propietario debe confirmar precios, presentaciones, catálogo, horarios, recojo y condiciones de delivery.
+- Cada postre cuenta actualmente con una foto; las galerías con distintos ángulos requieren fotos adicionales.
 
 Referencia de estructura aportada por el propietario: María Almenara. No se han reutilizado sus imágenes, textos ni logotipos.
 

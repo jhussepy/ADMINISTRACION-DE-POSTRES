@@ -17,6 +17,8 @@ import {
 } from "lucide-react";
 import { MAX_QUANTITY, money } from "@/lib/cart";
 import { productImages } from "@/lib/products";
+import { presentation, presentations } from "@/lib/demo-catalog";
+import { PresentationPicker } from "./presentation-picker";
 import type { Product } from "@/lib/types";
 
 export function ProductPage({
@@ -32,11 +34,13 @@ export function ProductPage({
   products: Product[];
   inCart: number;
   ready: boolean;
-  onAdd: (amount: number) => void;
-  onOrder: (amount: number) => void;
+  onAdd: (amount: number, variant: string) => void;
+  onOrder: (amount: number, variant: string) => void;
   onViewCart: () => void;
 }) {
   const [quantity, setQuantity] = useState(1);
+  const [variant, setVariant] = useState(() => presentations(product)[0].id);
+  const offer = presentation(product, variant)!;
   const remaining = Math.max(0, MAX_QUANTITY - inCart);
   const selected = Math.min(quantity, remaining);
   const custom = product.id === "torta-personalizada";
@@ -85,13 +89,19 @@ export function ProductPage({
           <h1>{product.name}</h1>
           <p className="product-page-lead">{product.description}</p>
           <div className="product-page-price">
-            <span>{product.presentation}</span>
+            <span>{offer.label}</span>
             <strong>
-              {product.price_cents === null
+              {offer.priceCents === null
                 ? "Precio por consultar"
-                : money(product.price_cents)}
+                : `${money(offer.priceCents)}${offer.example ? " · ejemplo" : ""}`}
             </strong>
           </div>
+          <PresentationPicker
+            product={product}
+            selected={variant}
+            onSelect={setVariant}
+            name={`presentation-${product.id}`}
+          />
           {custom && (
             <div className="custom-invitation">
               <Palette size={24} aria-hidden="true" />
@@ -135,7 +145,9 @@ export function ProductPage({
               type="button"
               className="button product-page-add"
               disabled={!ready || remaining === 0}
-              onClick={() => (custom ? onOrder(selected) : onAdd(selected))}
+              onClick={() =>
+                custom ? onOrder(selected, variant) : onAdd(selected, variant)
+              }
             >
               <ShoppingBag size={19} />
               {remaining === 0
@@ -238,9 +250,9 @@ export function ProductPage({
                   <small>{item.category}</small>
                   <strong>{item.name}</strong>
                   <span>
-                    {item.price_cents === null
+                    {presentations(item)[0].priceCents === null
                       ? "Precio por consultar"
-                      : money(item.price_cents)}
+                      : `${presentations(item)[0].example ? "Ejemplo desde " : "Desde "}${money(presentations(item)[0].priceCents!)}`}
                   </span>
                 </span>
                 <ArrowRight size={18} aria-hidden="true" />

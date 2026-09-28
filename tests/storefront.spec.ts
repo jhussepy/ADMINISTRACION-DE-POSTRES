@@ -157,6 +157,57 @@ test("new pies and brownie have shareable product pages and valid photos", async
   ])
     expect(sitemap).toContain(`/postres/${id}`);
 });
+test("two presentations stay separate in the cart and WhatsApp describes the example", async ({
+  page,
+}) => {
+  await page.goto("/postres/pie-limon");
+  await page.getByRole("radio", { name: /Entero/ }).check();
+  await page.getByRole("button", { name: "Agregar 1 al carrito" }).click();
+  await page.goto("/catalogo?categoria=Pies");
+  await page
+    .getByRole("button", { name: "Agregar Pie de limón al carrito" })
+    .click();
+  await page
+    .getByRole("button", { name: "Abrir carrito, 2 productos" })
+    .click();
+  const cart = page.getByRole("dialog", { name: "Tu carrito" });
+  await expect(cart.getByLabel("Presentación de Pie de limón")).toHaveCount(2);
+  await expect(cart.getByText("Estimado de muestra")).toBeVisible();
+  await page.reload();
+  await page
+    .getByRole("button", { name: "Abrir carrito, 2 productos" })
+    .click();
+  const restored = page.getByRole("dialog");
+  await expect(restored.getByLabel("Presentación de Pie de limón")).toHaveCount(
+    2,
+  );
+  await restored
+    .getByRole("button", { name: "Continuar como invitado" })
+    .click();
+  await restored
+    .getByLabel("Tu nombre", { exact: true })
+    .fill("Cliente de prueba");
+  await restored.getByLabel("Fecha deseada").fill("2099-09-30");
+  let whatsapp = "";
+  await page.route("https://wa.me/**", async (route) => {
+    whatsapp = route.request().url();
+    await route.fulfill({
+      status: 200,
+      contentType: "text/html",
+      body: "Prueba sin envío",
+    });
+  });
+  await restored
+    .getByRole("button", { name: "Finalizar pedido por WhatsApp" })
+    .click();
+  await page.waitForURL((url) => url.hostname === "wa.me", {
+    waitUntil: "load",
+  });
+  const message = new URL(whatsapp).searchParams.get("text")!;
+  expect(message).toContain("Pie de limón — Porción");
+  expect(message).toContain("Pie de limón — Entero");
+  expect(message).toContain("no son precios finales");
+});
 test("front-page categories open a filtered carta and preserve the cart", async ({
   page,
 }, testInfo) => {
@@ -230,7 +281,7 @@ test("public catalogue, cart persistence, guest checkout and WhatsApp handoff", 
   const dialog = page.getByRole("dialog");
   await expect(dialog).toBeVisible();
   await expect(
-    dialog.getByText("Por cotizar", { exact: true }).first(),
+    dialog.getByText(/Importes de ejemplo para probar el carrito/),
   ).toBeVisible();
   await dialog
     .getByRole("button", {
@@ -248,6 +299,9 @@ test("public catalogue, cart persistence, guest checkout and WhatsApp handoff", 
   await dialog
     .getByLabel("¿Algo que debamos saber?")
     .fill("Celebración + fresas");
+  await dialog.getByText("¿Es para regalo o celebración?").click();
+  await dialog.getByLabel("Ocasión").fill("Cumpleaños");
+  await dialog.getByLabel("Dedicatoria solicitada").fill("Feliz día, María");
   let whatsapp = "";
   await page.route("https://wa.me/**", async (route) => {
     whatsapp = route.request().url();
@@ -272,6 +326,9 @@ test("public catalogue, cart persistence, guest checkout and WhatsApp handoff", 
   expect(message).toContain("2 × Cheesecake de fresa");
   expect(message).toContain("María & José");
   expect(message).toContain("Celebración + fresas");
+  expect(message).toContain("Ocasión: Cumpleaños");
+  expect(message).toContain("Dedicatoria solicitada: Feliz día, María");
+  expect(message).toContain("importes y presentaciones de ejemplo");
   expect(message).toContain("aún no está confirmado");
   await page.goto("/catalogo");
   await expect(
@@ -349,9 +406,7 @@ test("product details support quantities, keyboard closing and mobile cart acces
   await detail
     .getByRole("button", { name: "Aumentar cantidad del producto" })
     .click();
-  await detail
-    .getByRole("button", { name: "Agregar 3 al carrito", exact: true })
-    .click();
+  await detail.getByRole("button", { name: /^Agregar 3 al carrito/ }).click();
   await expect(detail).not.toBeVisible();
   await expect(
     page.getByRole("button", {
@@ -368,9 +423,7 @@ test("product details support quantities, keyboard closing and mobile cart acces
   await expect(
     detail.getByRole("button", { name: "Aumentar cantidad del producto" }),
   ).toBeDisabled();
-  await detail
-    .getByRole("button", { name: "Agregar 17 al carrito", exact: true })
-    .click();
+  await detail.getByRole("button", { name: /^Agregar 17 al carrito/ }).click();
   await open.click();
   await expect(
     detail.getByRole("button", { name: "Límite de unidades alcanzado" }),
@@ -523,6 +576,6 @@ test("photographic catalogue filters and new products reach the WhatsApp handoff
     "Terremoto de lúcuma",
   ])
     expect(message).toContain(`1 × ${name}`);
-  expect(message).toContain("por cotizar");
+  expect(message).toContain("Estimado de muestra");
   expect(errors).toEqual([]);
 });
