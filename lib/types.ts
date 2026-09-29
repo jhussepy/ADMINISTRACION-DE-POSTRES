@@ -7,6 +7,16 @@ export const categories = [
   "Salados",
 ] as const;
 export type Category = (typeof categories)[number];
+export type ProductVariant = {
+  id: string;
+  product_id: string;
+  slug: string;
+  label: string;
+  price_cents: number | null;
+  active: boolean;
+  sort_order: number;
+};
+
 export type Product = {
   id: string;
   name: string;
@@ -17,6 +27,7 @@ export type Product = {
   image: string;
   active: boolean;
   sort_order: number;
+  variants?: ProductVariant[];
 };
 export type CartItem = { id: string; quantity: number; variant?: string };
 export type CheckoutDetails = {
