@@ -17,12 +17,13 @@ Primera versión de la tienda de **Repostería Yemape**, desarrollada con Next.j
 - Revalidación del catálogo en el servidor antes de preparar el enlace a **WhatsApp +51 934 219 749**.
 - Autenticación opcional con Supabase: registro, confirmación de correo, inicio/cierre de sesión, recuperación/cambio de contraseña y perfil con nombre, teléfono y dirección.
 - Administración protegida por comprobación de identidad en el servidor y políticas RLS en la base de datos.
-- Productos: alta, edición, presentación, precio, categoría, orden y visibilidad.
+- Productos: alta, edición, categoría, orden y visibilidad.
+- **Commerce V2:** múltiples presentaciones reales por producto, cada una con precio propio, disponibilidad y orden, administradas desde `/admin/productos`.
 - Pedidos: registro manual, fecha de entrega, total, importe abonado y estados. Resumen de productos visibles, pedidos por atender y saldo por cobrar.
 
-**Modo demostrativo:** `lib/demo-catalog.ts` concentra los tamaños, precios y condiciones de entrega ficticios. La web y el mensaje de WhatsApp indican expresamente que son ejemplos, no un precio confirmado. La torta personalizada se cotiza aparte. No se generan datos estructurados de ofertas con esos valores. Las fotografías siguen siendo las aportadas por el negocio.
+**Modo demostrativo:** `lib/demo-catalog.ts` sigue proporcionando tamaños y precios de ejemplo mientras un producto no tenga variantes reales. La web y el mensaje de WhatsApp los marcan expresamente como ejemplos.
 
-Cuando el negocio confirme los datos, sustituir los ejemplos en ese archivo, comprobar presentaciones y precios y desactivar `DEMO_MODE`. Si un producto ya tiene `price_cents` real en Supabase, ese precio tiene prioridad y la ficha muestra su presentación registrada. La base de datos no se modifica en esta etapa.
+Con **Commerce V2**, las variantes creadas en Supabase tienen prioridad automática sobre esos ejemplos. Puedes migrar un producto a la vez: cuando añades su primera variante real desde Administración, ficha, carrito y WhatsApp empiezan a usar únicamente esas presentaciones reales. Para activar la tabla en una instalación existente ejecuta `supabase/variants-v2.sql` en Supabase SQL Editor.
 
 ## Qué funciona sin configurar servicios
 
@@ -64,7 +65,8 @@ La prueba de navegador está en `tests/storefront.spec.ts` y se ejecuta con `npm
 - `lib/products.ts`: catálogo inicial y diseños disponibles.
 - `lib/demo-catalog.ts`: valores de muestra reemplazables por los reales.
 - `lib/supabase/`: cliente de servidor con cookies.
-- `supabase/schema.sql`: tablas, restricciones, permisos y datos iniciales.
+- `supabase/schema.sql`: esquema completo para instalaciones nuevas.
+- `supabase/variants-v2.sql`: migración incremental para activar presentaciones y precios reales sin reinstalar la base.
 - `docs/`: configuración, alcance y notas de verificación.
 
 ## Límites de esta primera versión

@@ -5,6 +5,16 @@ import { categories, orderStatuses, type ActionState } from "@/lib/types";
 import { productImages } from "@/lib/products";
 import { parsePrice, validDate } from "@/lib/cart";
 const val = (d: FormData, k: string) => String(d.get(k) ?? "").trim();
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const VARIANT_SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+function revalidateProduct(productId: string) {
+  revalidatePath("/");
+  revalidatePath("/catalogo");
+  revalidatePath("/admin/productos");
+  revalidatePath(`/postres/${productId}`);
+}
 export async function saveProduct(
   _: ActionState,
   d: FormData,
@@ -53,10 +63,111 @@ export async function saveProduct(
       sort_order,
     });
   if (error) return { error: "No pudimos guardar el producto." };
-  revalidatePath("/");
-  revalidatePath("/admin/productos");
+  revalidateProduct(id);
   return { success: "Producto guardado. Ya se actualizó el catálogo." };
 }
+
+export async function saveVariant(
+  _: ActionState,
+  d: FormData,
+): Promise<ActionState> {
+  const db = await requireAdmin();
+  const existingId = val(d, "variant_id");
+  const id = existingId || crypto.randomUUID();
+  const product_id = val(d, "product_id");
+  const slug = val(d, "slug").toLowerCase();
+  const label = val(d, "label");
+  const sort_order = Number(val(d, "sort_order"));
+
+  if (
+    (existingId && !UUID_RE.test(existingId)) ||
+    product_id.length < 1 ||
+    product_id.length > 80 ||
+    slug.length < 1 ||
+    slug.length > 50 ||
+    !VARIANT_SLUG_RE.test(slug) ||
+    label.length < 2 ||
+    label.length > 120 ||
+    !Number.isInteger(sort_order) ||
+    sort_order < 0 ||
+    sort_order > 999
+  )
+    return {
+      error:
+        "Revisa la presentación: usa un identificador como mediana, caja-6 o entero, una etiqueta válida y un orden entre 0 y 999.",
+    };
+
+  let price_cents;
+  try {
+    price_cents = parsePrice(val(d, "price"), true);
+  } catch {
+    return {
+      error:
+        "El precio debe ser válido con hasta dos decimales. Déjalo vacío para cotizar.",
+    };
+  }
+
+  const { error } = await db.from("product_variants").upsert({
+    id,
+    product_id,
+    slug,
+    label,
+    price_cents,
+    active: d.get("active") === "on",
+    sort_order,
+  });
+
+  if (error) {
+    if (["42P01", "PGRST205"].includes(error.code))
+      return {
+        error:
+          "Variantes V2 aún no está activado en Supabase. Ejecuta supabase/variants-v2.sql y vuelve a intentarlo.",
+      };
+    if (error.code === "23505")
+      return {
+        error:
+          "Ese identificador ya existe para este producto. Usa otro, por ejemplo grande, entero o caja-6.",
+      };
+    return { error: "No pudimos guardar la presentación." };
+  }
+
+  revalidateProduct(product_id);
+  return {
+    success: existingId
+      ? "Presentación actualizada."
+      : "Presentación creada y conectada al catálogo.",
+  };
+}
+
+export async function deleteVariant(
+  _: ActionState,
+  d: FormData,
+): Promise<ActionState> {
+  const db = await requireAdmin();
+  const id = val(d, "variant_id");
+  const product_id = val(d, "product_id");
+  if (!UUID_RE.test(id) || !product_id || product_id.length > 80)
+    return { error: "No pudimos identificar la presentación." };
+
+  const { error } = await db
+    .from("product_variants")
+    .delete()
+    .eq("id", id)
+    .eq("product_id", product_id);
+
+  if (error) {
+    if (["42P01", "PGRST205"].includes(error.code))
+      return {
+        error:
+          "Variantes V2 aún no está activado en Supabase. Ejecuta supabase/variants-v2.sql.",
+      };
+    return { error: "No pudimos eliminar la presentación." };
+  }
+
+  revalidateProduct(product_id);
+  return { success: "Presentación eliminada." };
+}
+
 export async function saveOrder(
   _: ActionState,
   d: FormData,

@@ -6,7 +6,7 @@ La tienda pública y el carrito ya funcionan sin esta configuración. Supabase a
 
 1. En tu cuenta de Supabase, crea un proyecto para Yemape.
 2. Abre **SQL Editor**, copia el contenido de `supabase/schema.sql` y ejecútalo.
-3. El script crea `products`, `profiles`, `orders` y `admins`, activa RLS, restringe los permisos y añade los once productos iniciales sin precios. Si ya ejecutaste una versión anterior, vuelve a ejecutar el script para permitir la categoría Pies y añadir los cuatro productos nuevos; conserva los cambios comerciales existentes.
+3. El script crea `products`, `product_variants`, `profiles`, `orders` y `admins`, activa RLS, restringe los permisos y añade los once productos iniciales sin precios. Si ya tienes una instalación existente, no necesitas reinstalarla: ejecuta además `supabase/variants-v2.sql` para añadir Commerce V2 de forma incremental.
 4. Guarda la contraseña de la base de datos en tu gestor de contraseñas. No la necesitas en el frontend ni en el repositorio.
 
 ## 2. Configurar Vercel
@@ -48,7 +48,7 @@ on conflict do nothing;
 ```
 
 3. Comprueba que se insertó exactamente la cuenta deseada. Un cliente no puede asignarse este permiso desde el sitio.
-4. Inicia sesión y abre `/admin`. Desde **Productos**, cambia precios, presentaciones y disponibilidad. Desde **Pedidos**, registra lo coordinado por WhatsApp.
+4. Inicia sesión y abre `/admin`. Desde **Productos**, edita el producto y añade sus presentaciones reales (por ejemplo Porción, Entero, Mediana o Grande), con precio, orden y disponibilidad independientes. Desde **Pedidos**, registra lo coordinado por WhatsApp.
 
 Para retirar acceso administrativo:
 
@@ -68,7 +68,8 @@ Antes de abrir registros reales:
 - Comprobar que `/admin` redirige a invitados y devuelve página no encontrada a clientes no administradores.
 - Con la clave pública y sin sesión, comprobar que las consultas a `orders`, `profiles` y `admins` no exponen datos y que las escrituras no están permitidas.
 - Con una sesión de cliente, comprobar que solo puede leer/editar su propio perfil; no puede acceder a pedidos ni mutar productos ni darse rol de administrador.
-- Con la cuenta administradora, editar un precio y comprobar que se refleja en el catálogo y en el mensaje preparado por WhatsApp.
+- Con la cuenta administradora, crear al menos dos variantes reales de un producto y comprobar que aparecen en su ficha, que pueden elegirse en el carrito y que el mensaje preparado por WhatsApp conserva la presentación y el precio correctos.
+- Desactivar una variante y comprobar que deja de estar disponible para clientes sin eliminar las demás.
 
 No se ha conectado un proyecto Supabase real durante la creación inicial del código. Estas comprobaciones requieren tus variables y correos de prueba. No pegues claves privadas en el chat ni en GitHub.
 

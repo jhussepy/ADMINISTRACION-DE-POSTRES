@@ -2,7 +2,7 @@ import "server-only";
 import { cache } from "react";
 import { supabase } from "./supabase/server";
 import { initialProducts } from "./products";
-import type { Product, Profile } from "./types";
+import type { Product, ProductVariant, Profile } from "./types";
 import { notFound, redirect } from "next/navigation";
 export const getProducts = cache(async (): Promise<Product[]> => {
   const db = await supabase();
@@ -14,7 +14,35 @@ export const getProducts = cache(async (): Promise<Product[]> => {
     .order("sort_order");
   if (error)
     throw new Error("No se pudo cargar el catálogo. Inténtalo de nuevo.");
-  return data as Product[];
+
+  const products = data as Product[];
+  const { data: variants, error: variantsError } = await db
+    .from("product_variants")
+    .select("id,product_id,slug,label,price_cents,active,sort_order")
+    .eq("active", true)
+    .order("sort_order");
+
+  // Compatibilidad de despliegue: si todavía no se ejecutó la migración V2,
+  // la tienda sigue funcionando con las presentaciones actuales. Otros errores
+  // sí se hacen visibles para no ocultar una mala configuración de permisos.
+  if (variantsError) {
+    if (["42P01", "PGRST205"].includes(variantsError.code)) return products;
+    throw new Error(
+      "No se pudieron cargar las presentaciones del catálogo. Inténtalo de nuevo.",
+    );
+  }
+
+  const byProduct = new Map<string, ProductVariant[]>();
+  for (const variant of (variants ?? []) as ProductVariant[]) {
+    const list = byProduct.get(variant.product_id) ?? [];
+    list.push(variant);
+    byProduct.set(variant.product_id, list);
+  }
+
+  return products.map((product) => ({
+    ...product,
+    variants: byProduct.get(product.id) ?? [],
+  }));
 });
 export const getAccount = cache(async () => {
   const db = await supabase();
