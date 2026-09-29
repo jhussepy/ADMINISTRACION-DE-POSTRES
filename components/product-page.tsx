@@ -46,7 +46,29 @@ export function ProductPage({
   const remaining = Math.max(0, MAX_QUANTITY - inCart);
   const selected = Math.min(quantity, remaining);
   const custom = product.id === "torta-personalizada";
-  const imageSize = productImages.find((image) => image.path === product.image);
+  const gallery =
+    product.gallery && product.gallery.length > 0
+      ? product.gallery
+      : [
+          {
+            id: "legacy",
+            product_id: product.id,
+            storage_path: product.image,
+            alt_text: `Presentación referencial de ${product.name}`,
+            is_cover: true,
+            active: true,
+            sort_order: 0,
+            url: product.image,
+          },
+        ];
+  const initialImage =
+    gallery.find((image) => image.is_cover) ?? gallery[0];
+  const [activeImageId, setActiveImageId] = useState(initialImage.id);
+  const activeImage =
+    gallery.find((image) => image.id === activeImageId) ?? initialImage;
+  const imageSize = productImages.find(
+    (image) => image.path === activeImage.url,
+  );
   async function shareProduct() {
     const url = window.location.href;
     try {
@@ -93,16 +115,45 @@ export function ProductPage({
         <span aria-current="page">{product.name}</span>
       </div>
       <article id="ficha-postre" className="product-page section-wrap">
-        <div className="product-page-image">
-          <Image
-            src={product.image}
-            alt={`Presentación referencial de ${product.name}`}
-            width={imageSize?.width ?? 800}
-            height={imageSize?.height ?? 1000}
-            sizes="(max-width: 760px) 100vw, (max-width: 1440px) 50vw, 620px"
-            preload
-          />
-          <span>Fotografía referencial</span>
+        <div className="product-page-media">
+          <div className="product-page-image">
+            <Image
+              src={activeImage.url}
+              alt={
+                activeImage.alt_text ||
+                `Presentación referencial de ${product.name}`
+              }
+              width={imageSize?.width ?? 800}
+              height={imageSize?.height ?? 1000}
+              sizes="(max-width: 760px) 100vw, (max-width: 1440px) 50vw, 620px"
+              preload
+            />
+            <span>Fotografía referencial</span>
+          </div>
+          {gallery.length > 1 && (
+            <div
+              className="product-gallery-thumbs"
+              aria-label={`Galería de ${product.name}`}
+            >
+              {gallery.map((image, index) => (
+                <button
+                  type="button"
+                  key={image.id}
+                  className={image.id === activeImage.id ? "is-active" : ""}
+                  aria-label={`Ver foto ${index + 1} de ${gallery.length} de ${product.name}`}
+                  aria-pressed={image.id === activeImage.id}
+                  onClick={() => setActiveImageId(image.id)}
+                >
+                  <Image
+                    src={image.url}
+                    alt=""
+                    fill
+                    sizes="84px"
+                  />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
         <div className="product-page-copy">
           <div className="product-page-heading-row">
