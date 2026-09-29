@@ -1,79 +1,90 @@
-# Activar cuentas y administración en Vercel
+# Activar Clerk + Google y Supabase en Vercel
 
-La tienda pública y el carrito ya funcionan sin esta configuración. Supabase aporta la autenticación y los datos persistentes.
+La tienda pública y el carrito funcionan sin iniciar sesión. **Clerk** gestiona la identidad con Google y **Supabase** conserva catálogo, perfiles, pedidos, variantes y autorización RLS.
 
-## 1. Crear la base de datos
+## 1. Base de datos
 
-1. En tu cuenta de Supabase, crea un proyecto para Yemape.
-2. Abre **SQL Editor**.
-3. Ejecuta primero `supabase/schema.sql`. Crea `products`, `profiles`, `orders` y `admins`, activa RLS, restringe los permisos y añade los once productos iniciales sin precios.
-4. Después ejecuta `supabase/variants-v2.sql`. Este segundo script crea `product_variants` y activa Commerce V2. Este orden sirve tanto para un proyecto nuevo como para una instalación existente que aún no tenga variantes.
-5. Guarda la contraseña de la base de datos en tu gestor de contraseñas. No la necesitas en el frontend ni en el repositorio.
+1. En Supabase crea el proyecto de Yemape.
+2. En **SQL Editor**, ejecuta `supabase/schema.sql`.
+3. Ejecuta `supabase/variants-v2.sql` para activar Commerce V2.
+4. No uses `service_role`, secret keys ni la contraseña de la base de datos en el frontend.
 
-## 2. Configurar Vercel
+## 2. Clerk con Google
 
-En el proyecto de Vercel, **Settings → Environment Variables**, añade:
+1. Crea la aplicación de Yemape en Clerk.
+2. En **Configure → SSO connections**, activa **Google OAuth** para sign-up y sign-in.
+3. En desarrollo puedes usar las credenciales compartidas de Clerk. Para producción configura las credenciales de Google que Clerk solicite.
+4. En Clerk activa la integración con Supabase.
+5. En Supabase abre **Authentication → Sign In / Providers → Third-Party Auth**, añade **Clerk** y usa el dominio de tu instancia Clerk.
 
-| Variable                        | Valor                                                                                     |
-| ------------------------------- | ----------------------------------------------------------------------------------------- |
-| `NEXT_PUBLIC_SUPABASE_URL`      | URL de tu proyecto Supabase                                                               |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Clave pública publishable o anon del mismo proyecto                                       |
-| `NEXT_PUBLIC_SITE_URL`          | URL definitiva de tu tienda, por ejemplo `https://tu-dominio.vercel.app`, sin barra final |
+No hace falta configurar Email/Password en Supabase Auth ni crear JWT Templates antiguos.
 
-Usa solo la clave pública. **Nunca uses `service_role`, secret key ni la contraseña de la base de datos como variables `NEXT_PUBLIC_*`.**
+## 3. Variables de Vercel
 
-Aplica las variables a Production. Para probar en Preview, usa un proyecto Supabase de pruebas y una URL de preview permitida. Tras guardar las variables, realiza un nuevo despliegue en Vercel.
+En **Vercel → Settings → Environment Variables**, configura en Production:
 
-## 3. Activar correo y enlaces
+| Variable | Uso |
+| --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | URL pública del proyecto Supabase |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Publishable/anon key de Supabase |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Publishable key de Clerk |
+| `CLERK_SECRET_KEY` | Secret key de Clerk; debe permanecer privada |
+| `NEXT_PUBLIC_SITE_URL` | URL pública de Yemape, sin barra final |
 
-En Supabase, **Authentication**:
+Después de guardar cambios haz un nuevo despliegue.
 
-- Activa Email/Password y la confirmación del correo.
-- En **URL Configuration**, establece Site URL con la URL pública de Vercel.
-- Añade como Redirect URLs `https://TU_DOMINIO/auth/callback` y `https://TU_DOMINIO/auth/callback?next=/cuenta/clave`.
-- Configura un proveedor SMTP propio antes de abrir registros a clientes; el servicio de correo de desarrollo de Supabase puede tener restricciones.
-- Las plantillas predeterminadas con `{{ .ConfirmationURL }}` funcionan con el callback PKCE. El registro y recuperación deben iniciarse y completarse en el mismo navegador.
-- Para confirmación de registro entre navegadores, se incluye `/auth/confirm`: la plantilla de confirmación puede usar `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email`; la de recuperación, `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery`.
+## 4. Migrar RLS de Supabase Auth a Clerk
 
-## 4. Darte acceso como administrador
+Como la base original se creó para IDs UUID de Supabase Auth, ejecuta **una sola vez** en Supabase SQL Editor:
 
-1. Crea tu cuenta en `/cuenta` y confirma el correo.
-2. En Supabase SQL Editor, ejecuta este bloque reemplazando el correo por el tuyo:
+`supabase/clerk-auth.sql`
+
+La migración:
+
+- convierte `profiles.id` y `admins.user_id` a texto para aceptar IDs de Clerk `user_...`;
+- elimina las antiguas referencias a `auth.users`;
+- actualiza RLS para comparar contra `auth.jwt()->>'sub'`;
+- conserva `is_admin()` para proteger productos, variantes y pedidos.
+
+No vuelvas a ejecutar `schema.sql` después de esta migración sobre una base ya configurada.
+
+## 5. Primer acceso y administrador
+
+1. Después del despliegue abre `/cuenta`.
+2. Pulsa **Continuar con Google** y entra con la cuenta Google que será administradora.
+3. En **Clerk Dashboard → Users**, abre ese usuario y copia su **User ID**. Tiene formato `user_...`.
+4. En Supabase SQL Editor ejecuta:
 
 ```sql
 insert into public.admins(user_id)
-select id from auth.users
-where lower(email)=lower('TU_CORREO_VERIFICADO')
-  and email_confirmed_at is not null
+values ('user_REEMPLAZAR')
 on conflict do nothing;
 ```
 
-3. Comprueba que se insertó exactamente la cuenta deseada. Un cliente no puede asignarse este permiso desde el sitio.
-4. Inicia sesión y abre `/admin`. Desde **Productos**, edita el producto y añade sus presentaciones reales (por ejemplo Porción, Entero, Mediana o Grande), con precio, orden y disponibilidad independientes. Desde **Pedidos**, registra lo coordinado por WhatsApp.
+5. Recarga `/cuenta`. Debe aparecer **Ir a la administración →**.
+6. Abre `/admin`.
 
-Para retirar acceso administrativo:
+El correo no se usa como permiso en la base de datos. El permiso administrativo queda asociado al User ID verificado de Clerk.
+
+Para retirar el acceso:
 
 ```sql
 delete from public.admins
-where user_id in (select id from auth.users where lower(email)=lower('CORREO_A_RETIRAR'));
+where user_id='user_REEMPLAZAR';
 ```
 
-## 5. Verificación de la integración
+## 6. Verificación
 
-Antes de abrir registros reales:
+Antes de abrirlo a clientes:
 
-- Crear una cuenta, recibir y usar el correo de confirmación.
-- Iniciar sesión, guardar perfil, volver al carrito y confirmar que se precargan nombre/dirección.
-- Cerrar sesión y comprobar que el carrito se conserva, pero los datos de perfil ya no se muestran.
-- Probar recuperación y cambio de contraseña.
-- Comprobar que `/admin` redirige a invitados y devuelve página no encontrada a clientes no administradores.
-- Con la clave pública y sin sesión, comprobar que las consultas a `orders`, `profiles` y `admins` no exponen datos y que las escrituras no están permitidas.
-- Con una sesión de cliente, comprobar que solo puede leer/editar su propio perfil; no puede acceder a pedidos ni mutar productos ni darse rol de administrador.
-- Con la cuenta administradora, crear al menos dos variantes reales de un producto y comprobar que aparecen en su ficha, que pueden elegirse en el carrito y que el mensaje preparado por WhatsApp conserva la presentación y el precio correctos.
-- Desactivar una variante y comprobar que deja de estar disponible para clientes sin eliminar las demás.
-
-No se ha conectado un proyecto Supabase real durante la creación inicial del código. Estas comprobaciones requieren tus variables y correos de prueba. No pegues claves privadas en el chat ni en GitHub.
+- comprueba acceso y cierre de sesión con Google;
+- guarda nombre, teléfono y dirección y recarga `/cuenta`;
+- confirma que un usuario normal no puede abrir `/admin`;
+- confirma que el administrador sí puede editar productos, variantes y pedidos;
+- crea dos variantes reales y comprueba ficha, carrito y WhatsApp;
+- desactiva una variante y verifica que deja de estar disponible;
+- sin sesión, confirma que `profiles`, `admins` y `orders` no exponen datos.
 
 ## Cambiar o añadir imágenes
 
-Los diseños actuales están en `public/images/`. Para incorporar otra fotografía, añade el archivo optimizado, su ruta a `productImages` en `lib/products.ts` y actualiza la restricción `products_image_check` de Supabase para permitirla. Esto evita que el panel acepte enlaces arbitrarios. La carga directa de fotos desde el panel es una mejora futura.
+Los diseños actuales están en `public/images/`. Para incorporar otra fotografía, añade el archivo optimizado, su ruta a `productImages` en `lib/products.ts` y actualiza la restricción `products_image_check` de Supabase. La carga directa de fotografías desde Administración es una mejora futura.
