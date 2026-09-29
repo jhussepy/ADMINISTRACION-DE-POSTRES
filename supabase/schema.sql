@@ -54,7 +54,9 @@ create policy "Admin products" on public.products for all to authenticated using
 create table if not exists public.product_variants (
   id uuid primary key default gen_random_uuid(),
   product_id text not null references public.products(id) on delete cascade,
-  slug text not null check(char_length(slug) between 1 and 50 and slug ~ '^[a-z0-9]+(-[a-z0-9]+)*
+  slug text not null check(
+    char_length(slug) between 1 and 50
+    and slug ~ '^[a-z0-9]+(-[a-z0-9]+)*
   id uuid primary key default gen_random_uuid(),
   customer_name text not null check(char_length(customer_name) between 2 and 100),
   customer_phone text not null check(char_length(customer_phone) between 7 and 20),
@@ -116,7 +118,8 @@ commit;
 -- insert into public.admins(user_id)
 -- select id from auth.users where lower(email)=lower('TU_CORREO_VERIFICADO') and email_confirmed_at is not null
 -- on conflict do nothing;
-),
+
+  ),
   label text not null check(char_length(label) between 2 and 120),
   price_cents integer check(price_cents between 0 and 99999999),
   active boolean not null default true,
@@ -130,11 +133,22 @@ grant insert,update,delete on public.product_variants to authenticated;
 drop policy if exists "Read active product variants" on public.product_variants;
 create policy "Read active product variants" on public.product_variants
 for select to anon, authenticated
-using(active and exists(select 1 from public.products p where p.id=product_variants.product_id and p.active));
+using (
+  active
+  and exists (
+    select 1
+    from public.products p
+    where p.id=product_variants.product_id
+      and p.active
+  )
+);
 drop policy if exists "Admin product variants" on public.product_variants;
 create policy "Admin product variants" on public.product_variants
-for all to authenticated using((select public.is_admin())) with check((select public.is_admin()));
-create index if not exists product_variants_product_order_idx on public.product_variants(product_id,sort_order);
+for all to authenticated
+using((select public.is_admin()))
+with check((select public.is_admin()));
+create index if not exists product_variants_product_order_idx
+on public.product_variants(product_id,sort_order);
 
 create table if not exists public.orders (
   id uuid primary key default gen_random_uuid(),
