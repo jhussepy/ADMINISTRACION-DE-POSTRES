@@ -2,9 +2,10 @@ import Link from "next/link";
 import { requireAdmin } from "@/lib/data";
 import {
   ProductForm,
+  ProductImagesPanel,
   ProductVariantsPanel,
 } from "@/components/admin-forms";
-import type { Product, ProductVariant } from "@/lib/types";
+import type { Product, ProductImage, ProductVariant } from "@/lib/types";
 import { money } from "@/lib/cart";
 
 export default async function ProductsPage({
@@ -13,15 +14,23 @@ export default async function ProductsPage({
   searchParams: Promise<{ editar?: string }>;
 }) {
   const db = await requireAdmin();
-  const [{ data, error }, variantsResult, params] = await Promise.all([
-    db.from("products").select("*").order("sort_order"),
-    db
-      .from("product_variants")
-      .select("id,product_id,slug,label,price_cents,active,sort_order")
-      .order("product_id")
-      .order("sort_order"),
-    searchParams,
-  ]);
+  const [{ data, error }, variantsResult, imagesResult, params] =
+    await Promise.all([
+      db.from("products").select("*").order("sort_order"),
+      db
+        .from("product_variants")
+        .select("id,product_id,slug,label,price_cents,active,sort_order")
+        .order("product_id")
+        .order("sort_order"),
+      db
+        .from("product_images")
+        .select(
+          "id,product_id,storage_path,alt_text,is_cover,active,sort_order",
+        )
+        .order("product_id")
+        .order("sort_order"),
+      searchParams,
+    ]);
 
   if (error) throw new Error("No se pudieron cargar los productos.");
 
@@ -37,8 +46,31 @@ export default async function ProductsPage({
     ? ((variantsResult.data ?? []) as ProductVariant[])
     : [];
 
+  const imagesMissing =
+    imagesResult.error &&
+    ["42P01", "PGRST205"].includes(imagesResult.error.code);
+  if (imagesResult.error && !imagesMissing)
+    throw new Error("No se pudieron cargar las fotografías del catálogo.");
+  const imagesEnabled = !imagesResult.error;
+  const images = imagesEnabled
+    ? (imagesResult.data ?? []).map((row) => ({
+        ...row,
+        url: db.storage
+          .from("product-images")
+          .getPublicUrl(row.storage_path).data.publicUrl,
+      })) as ProductImage[]
+    : [];
+
   const variantsFor = (productId: string) =>
     variants.filter((variant) => variant.product_id === productId);
+  const imagesFor = (productId: string) =>
+    images
+      .filter((image) => image.product_id === productId)
+      .sort(
+        (a, b) =>
+          Number(b.is_cover) - Number(a.is_cover) ||
+          a.sort_order - b.sort_order,
+      );
 
   return (
     <div className="admin-grid admin-products-grid">
@@ -54,6 +86,11 @@ export default async function ProductsPage({
               product={editing}
               variants={variantsFor(editing.id)}
               enabled={variantsEnabled}
+            />
+            <ProductImagesPanel
+              product={editing}
+              images={imagesFor(editing.id)}
+              enabled={imagesEnabled}
             />
             <Link className="text-link" href="/admin/productos">
               Crear otro producto
@@ -74,9 +111,14 @@ export default async function ProductsPage({
             <span className="eyebrow">TU CARTA</span>
             <h2>{products.length} productos</h2>
           </div>
-          <span className={`badge ${variantsEnabled ? "" : "inactive"}`}>
-            {variantsEnabled ? "Variantes V2 activas" : "Migración pendiente"}
-          </span>
+          <div className="admin-feature-badges">
+            <span className={`badge ${variantsEnabled ? "" : "inactive"}`}>
+              {variantsEnabled ? "Commerce V2" : "Variantes pendientes"}
+            </span>
+            <span className={`badge ${imagesEnabled ? "" : "inactive"}`}>
+              {imagesEnabled ? "Galería V3" : "Galería pendiente"}
+            </span>
+          </div>
         </div>
 
         {!variantsEnabled && (
@@ -89,6 +131,15 @@ export default async function ProductsPage({
             </p>
           </div>
         )}
+        {!imagesEnabled && (
+          <div className="admin-migration-notice">
+            <strong>Activa Galería V3</strong>
+            <p>
+              Ejecuta <code>supabase/product-images-v3.sql</code> para subir
+              fotografías directamente desde Administración.
+            </p>
+          </div>
+        )}
 
         {products.length ? (
           products.map((product) => {
@@ -96,6 +147,7 @@ export default async function ProductsPage({
             const activeVariants = productVariants.filter(
               (variant) => variant.active,
             );
+            const productImages = imagesFor(product.id);
             return (
               <article className="admin-row product-admin-card" key={product.id}>
                 <div className="admin-row-head">
@@ -139,10 +191,20 @@ export default async function ProductsPage({
                   </p>
                 )}
 
+                <div className="product-admin-media-summary">
+                  <span>
+                    {productImages.length
+                      ? `${productImages.length} ${productImages.length === 1 ? "foto" : "fotos"} en galería`
+                      : "Usando foto actual del repositorio"}
+                  </span>
+                  {productImages.some((image) => image.is_cover) && (
+                    <span>Portada configurada</span>
+                  )}
+                </div>
                 <Link
                   href={`/admin/productos?editar=${encodeURIComponent(product.id)}`}
                 >
-                  Editar producto y presentaciones
+                  Editar producto, precios y fotos
                 </Link>
               </article>
             );
