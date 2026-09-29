@@ -55,6 +55,15 @@ type Account = {
   profile: Profile | null;
   isAdmin: boolean;
 } | null;
+
+type CatalogSort = "recommended" | "price-asc" | "price-desc" | "name";
+const FAVORITES_KEY = "yemape-favorites-v1";
+const catalogSorts: CatalogSort[] = [
+  "recommended",
+  "price-asc",
+  "price-desc",
+  "name",
+];
 const normalize = (s: string) =>
   s
     .normalize("NFD")
@@ -86,6 +95,7 @@ export function Storefront({
   product,
   initialCategory = "Todos",
   initialQuery = "",
+  initialSort = "recommended",
 }: {
   products: Product[];
   account: Account;
@@ -93,6 +103,7 @@ export function Storefront({
   product?: Product;
   initialCategory?: string;
   initialQuery?: string;
+  initialSort?: CatalogSort;
 }) {
   const router = useRouter();
   const [cart, setCart] = useState<CartItem[]>([]),
@@ -105,6 +116,10 @@ export function Storefront({
     [notice, setNotice] = useState("");
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [heroMotionPaused, setHeroMotionPaused] = useState(false);
+  const [favorites, setFavorites] = useState<string[]>([]);
+  const [favoritesReady, setFavoritesReady] = useState(false);
+  const [favoriteOnly, setFavoriteOnly] = useState(false);
+  const [sort, setSort] = useState<CatalogSort>(initialSort);
   const detailTrigger = useRef<HTMLElement | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
@@ -120,6 +135,31 @@ export function Storefront({
     }
     setReady(true);
   }, [products]);
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(FAVORITES_KEY) ?? "[]");
+      if (Array.isArray(saved)) {
+        setFavorites(
+          saved.filter(
+            (id): id is string =>
+              typeof id === "string" && products.some((product) => product.id === id),
+          ),
+        );
+      }
+    } catch {
+      setFavorites([]);
+    } finally {
+      setFavoritesReady(true);
+    }
+  }, [products]);
+  useEffect(() => {
+    if (!favoritesReady) return;
+    try {
+      localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
+    } catch {
+      setStorageError(true);
+    }
+  }, [favorites, favoritesReady]);
   useEffect(() => {
     if (ready)
       try {
@@ -142,6 +182,12 @@ export function Storefront({
         categories.find((item) => item === params.get("categoria")) ?? "Todos",
       );
       setQuery((params.get("buscar") ?? "").slice(0, 100));
+      const nextSort = params.get("orden");
+      setSort(
+        catalogSorts.includes(nextSort as CatalogSort)
+          ? (nextSort as CatalogSort)
+          : "recommended",
+      );
     };
     window.addEventListener("popstate", restoreFilters);
     return () => window.removeEventListener("popstate", restoreFilters);
@@ -155,9 +201,22 @@ export function Storefront({
   const visible = products.filter(
     (p) =>
       (category === "Todos" || p.category === category) &&
-      normalize(`${p.name} ${p.description}`).includes(normalize(query.trim())),
+      normalize(`${p.name} ${p.description}`).includes(normalize(query.trim())) &&
+      (!favoriteOnly || favorites.includes(p.id)),
   );
-  const displayed = view === "home" ? products.slice(0, 3) : visible;
+  const sortedVisible = [...visible].sort((a, b) => {
+    if (sort === "name") return a.name.localeCompare(b.name, "es");
+    if (sort === "price-asc" || sort === "price-desc") {
+      const aPrice = presentations(a)[0].priceCents;
+      const bPrice = presentations(b)[0].priceCents;
+      if (aPrice === null && bPrice === null) return 0;
+      if (aPrice === null) return 1;
+      if (bPrice === null) return -1;
+      return sort === "price-asc" ? aPrice - bPrice : bPrice - aPrice;
+    }
+    return 0;
+  });
+  const displayed = view === "home" ? products.slice(0, 3) : sortedVisible;
   const availableCategories = categories.filter((c) =>
     products.some((p) => p.category === c),
   );
@@ -165,12 +224,15 @@ export function Storefront({
     nextCategory: string,
     nextQuery: string,
     historyMode: "push" | "replace",
+    nextSort: CatalogSort = sort,
   ) {
     const url = new URL(window.location.href);
     if (nextCategory === "Todos") url.searchParams.delete("categoria");
     else url.searchParams.set("categoria", nextCategory);
     if (nextQuery.trim()) url.searchParams.set("buscar", nextQuery);
     else url.searchParams.delete("buscar");
+    if (nextSort === "recommended") url.searchParams.delete("orden");
+    else url.searchParams.set("orden", nextSort);
     const path = `${url.pathname}${url.search}${url.hash}`;
     if (historyMode === "push") router.push(path, { scroll: false });
     else window.history.replaceState(null, "", path);
@@ -194,9 +256,28 @@ export function Storefront({
   }
   const choose = (value: string) => {
     setCategory(value);
-    if (view === "catalog") updateCatalogUrl(value, query, "push");
+    if (view === "catalog") updateCatalogUrl(value, query, "push", sort);
     scrollToCatalog();
   };
+  function changeSort(value: CatalogSort) {
+    setSort(value);
+    if (view === "catalog") updateCatalogUrl(category, query, "push", value);
+  }
+  function toggleFavorite(product: Product) {
+    const saved = favorites.includes(product.id);
+    setFavorites((current) =>
+      saved
+        ? current.filter((id) => id !== product.id)
+        : [...current, product.id],
+    );
+    setNotice(
+      saved
+        ? `${product.name} eliminado de favoritos`
+        : `${product.name} guardado en favoritos`,
+    );
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => setNotice(""), 3000);
+  }
   function quantity(id: string, amount: number, variant: string) {
     setCart((prev) => {
       const current =
@@ -592,18 +673,28 @@ export function Storefront({
                   </span>
                 )}
               </div>
-              {view === "catalog" && (category !== "Todos" || query) && (
+              {view === "catalog" &&
+                (category !== "Todos" ||
+                  query ||
+                  favoriteOnly ||
+                  sort !== "recommended") && (
                 <div className="active-filters">
                   <span>
                     {category !== "Todos" ? category : "Toda la carta"}
                     {query ? ` · “${query}”` : ""}
+                    {favoriteOnly ? " · Favoritos" : ""}
+                    {sort !== "recommended"
+                      ? ` · ${sort === "name" ? "A–Z" : sort === "price-asc" ? "Menor precio" : "Mayor precio"}`
+                      : ""}
                   </span>
                   <button
                     type="button"
                     onClick={() => {
                       setCategory("Todos");
                       setQuery("");
-                      updateCatalogUrl("Todos", "", "push");
+                      setFavoriteOnly(false);
+                      setSort("recommended");
+                      updateCatalogUrl("Todos", "", "push", "recommended");
                     }}
                   >
                     Limpiar filtros <X size={15} aria-hidden="true" />
@@ -635,6 +726,40 @@ export function Storefront({
                   )}
                 </div>
               )}
+              {view === "catalog" && (
+                <div className="catalog-tools">
+                  <button
+                    type="button"
+                    className={`favorites-filter ${favoriteOnly ? "is-active" : ""}`}
+                    aria-pressed={favoriteOnly}
+                    onClick={() => setFavoriteOnly((value) => !value)}
+                    disabled={!favoritesReady}
+                  >
+                    <Heart
+                      size={17}
+                      fill={favoriteOnly ? "currentColor" : "none"}
+                      aria-hidden="true"
+                    />
+                    Mis favoritos
+                    {favoritesReady && favorites.length > 0
+                      ? ` (${favorites.length})`
+                      : ""}
+                  </button>
+                  <label className="catalog-sort">
+                    <span>Ordenar</span>
+                    <select
+                      aria-label="Ordenar catálogo"
+                      value={sort}
+                      onChange={(e) => changeSort(e.target.value as CatalogSort)}
+                    >
+                      <option value="recommended">Recomendados</option>
+                      <option value="price-asc">Precio: menor a mayor</option>
+                      <option value="price-desc">Precio: mayor a menor</option>
+                      <option value="name">Nombre: A–Z</option>
+                    </select>
+                  </label>
+                </div>
+              )}
               {displayed.length ? (
                 <div className="product-grid">
                   {displayed.map((p, i) => {
@@ -647,6 +772,23 @@ export function Storefront({
                         className={`product-card card-${i % 4}`}
                         key={p.id}
                       >
+                        <button
+                          type="button"
+                          className={`favorite-button ${favorites.includes(p.id) ? "is-favorite" : ""}`}
+                          aria-label={
+                            favorites.includes(p.id)
+                              ? `Quitar ${p.name} de favoritos`
+                              : `Guardar ${p.name} en favoritos`
+                          }
+                          aria-pressed={favorites.includes(p.id)}
+                          onClick={() => toggleFavorite(p)}
+                        >
+                          <Heart
+                            size={18}
+                            fill={favorites.includes(p.id) ? "currentColor" : "none"}
+                            aria-hidden="true"
+                          />
+                        </button>
                         <button
                           type="button"
                           className="product-photo product-photo-button"
@@ -707,14 +849,18 @@ export function Storefront({
                 <div className="empty-state">
                   <Cookie size={40} />
                   <h3>
-                    {query
-                      ? "No encontramos ese antojo"
-                      : "Estamos preparando esta categoría"}
+                    {favoriteOnly
+                      ? "Aún no tienes favoritos aquí"
+                      : query
+                        ? "No encontramos ese antojo"
+                        : "Estamos preparando esta categoría"}
                   </h3>
                   <p>
-                    {query
-                      ? "Prueba con otro nombre o explora todas las opciones."
-                      : "Puedes consultarnos por WhatsApp o descubrir el resto de la carta."}
+                    {favoriteOnly
+                      ? "Guarda tus postres con el corazón y aparecerán en esta vista."
+                      : query
+                        ? "Prueba con otro nombre o explora todas las opciones."
+                        : "Puedes consultarnos por WhatsApp o descubrir el resto de la carta."}
                   </p>
                   <button
                     className="button secondary"
