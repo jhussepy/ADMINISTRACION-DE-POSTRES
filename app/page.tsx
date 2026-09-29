@@ -12,8 +12,8 @@ export default async function Home() {
       account={
         account
           ? {
-              name: account.profile?.full_name ?? "",
-              email: account.user.email ?? "",
+              name: account.profile?.full_name ?? account.name ?? "",
+              email: account.email,
               profile: account.profile,
               isAdmin: account.isAdmin,
             }

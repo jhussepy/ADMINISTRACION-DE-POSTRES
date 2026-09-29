@@ -1,20 +1,26 @@
 import Link from "next/link";
-import { Heart, ShoppingBag, MapPin } from "lucide-react";
+import { SignOutButton } from "@clerk/nextjs";
+import { Heart, ShoppingBag, MapPin, ShieldCheck } from "lucide-react";
 import { getAccount } from "@/lib/data";
-import { authConfigured } from "@/lib/supabase/server";
+import { clerkConfigured } from "@/lib/clerk-auth";
 import { PageHeader } from "@/components/page-header";
-import { AuthForm, ProfileForm } from "@/components/account-forms";
-import { signOut } from "./actions";
+import { ProfileForm } from "@/components/account-forms";
+import { GoogleAuthButton } from "@/components/google-auth-button";
+
+export const dynamic = "force-dynamic";
 export const metadata = {
   title: "Mi cuenta",
   robots: { index: false, follow: false },
 };
+
 export default async function AccountPage({
   searchParams,
 }: {
   searchParams: Promise<{ error?: string }>;
 }) {
   const [account, params] = await Promise.all([getAccount(), searchParams]);
+  const googleError = params.error === "google";
+
   return (
     <>
       <PageHeader />
@@ -33,8 +39,8 @@ export default async function AccountPage({
             )}
           </h1>
           <p>
-            Con una cuenta puedes guardar tus datos para coordinar más rápido
-            tus próximos pedidos.
+            Entra con Google para guardar tus datos y coordinar más rápido tus
+            próximos pedidos.
           </p>
           <ul>
             <li>
@@ -61,18 +67,20 @@ export default async function AccountPage({
             </p>
           )}
         </section>
+
         <section className="account-card">
-          {params.error && (
+          {googleError && (
             <p className="form-error" role="alert">
-              El enlace no es válido o ha caducado. Solicita uno nuevo.
+              No pudimos completar el acceso con Google. Inténtalo de nuevo.
             </p>
           )}
-          {!authConfigured() ? (
+
+          {!clerkConfigured() ? (
             <>
-              <h2>Compra a tu ritmo</h2>
+              <h2>Entra con Google</h2>
               <p>
-                El acceso a cuentas estará disponible pronto. Mientras tanto,
-                puedes armar tu carrito y coordinar tu pedido sin registrarte.
+                El acceso con Google está temporalmente deshabilitado. Puedes
+                seguir comprando como invitado.
               </p>
               <Link className="button" href="/">
                 Explorar el catálogo
@@ -80,18 +88,41 @@ export default async function AccountPage({
             </>
           ) : account ? (
             <>
+              <div className="account-identity">
+                <span className="account-identity-icon">
+                  <ShieldCheck size={19} />
+                </span>
+                <div>
+                  <span>Sesión protegida por Clerk</span>
+                  <strong>{account.email}</strong>
+                </div>
+              </div>
               <h2>Mis datos</h2>
-              <p>{account.user.email}</p>
-              <ProfileForm profile={account.profile} />
-              <Link className="text-link" href="/cuenta/clave">
-                Cambiar contraseña
-              </Link>
-              <form action={signOut}>
+              <ProfileForm
+                profile={account.profile}
+                defaultName={account.name}
+              />
+              <SignOutButton redirectUrl="/">
                 <button className="text-button">Cerrar sesión</button>
-              </form>
+              </SignOutButton>
             </>
           ) : (
-            <AuthForm />
+            <>
+              <span className="eyebrow">ACCESO SEGURO</span>
+              <h2>Entra con Google</h2>
+              <p>
+                No necesitas crear otra contraseña. Usa tu cuenta de Google para
+                identificarte de forma segura.
+              </p>
+              <GoogleAuthButton />
+              <p className="account-prompt">
+                Al continuar aceptas nuestro{" "}
+                <Link href="/privacidad" className="text-link">
+                  aviso de privacidad
+                </Link>
+                . También puedes <Link href="/">seguir como invitado</Link>.
+              </p>
+            </>
           )}
         </section>
       </main>

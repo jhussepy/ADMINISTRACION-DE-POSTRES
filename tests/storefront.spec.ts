@@ -366,7 +366,7 @@ test("filters, empty states, protected administration and responsive layout", as
   await page.goto("/admin");
   await expect(page).toHaveURL(/\/cuenta$/);
   await expect(
-    page.getByRole("heading", { name: "Compra a tu ritmo" }),
+    page.getByRole("heading", { name: "Entra con Google" }),
   ).toBeVisible();
   await page.goto("/cuenta/clave");
   await expect(page).toHaveURL(/\/cuenta$/);
@@ -629,4 +629,16 @@ test("product page can copy its share link when native sharing is unavailable", 
   await page.goto("/postres/pie-limon");
   await page.getByRole("button", { name: "Compartir Pie de limón" }).click();
   await expect(page.getByText("Enlace copiado")).toBeVisible();
+});
+
+
+test("account page advertises Google access when Clerk is not configured", async ({ page }) => {
+  await page.goto("/cuenta");
+  await expect(
+    page.getByRole("heading", { name: "Entra con Google", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("El acceso con Google está temporalmente deshabilitado."),
+  ).toBeVisible();
+  await expect(page.getByText(/contraseña/i)).toHaveCount(0);
 });

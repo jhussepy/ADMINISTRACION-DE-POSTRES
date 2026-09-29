@@ -15,7 +15,7 @@ Primera versión de la tienda de **Repostería Yemape**, desarrollada con Next.j
 - Resumen editable antes de abrir WhatsApp; conserva los datos al volver a revisar el carrito.
 - Preguntas frecuentes sobre cuentas, confirmación, entrega y pedidos personalizados.
 - Revalidación del catálogo en el servidor antes de preparar el enlace a **WhatsApp +51 934 219 749**.
-- Autenticación opcional con Supabase: registro, confirmación de correo, inicio/cierre de sesión, recuperación/cambio de contraseña y perfil con nombre, teléfono y dirección.
+- Autenticación con **Clerk + Google**: acceso sin contraseña propia de Yemape, cierre de sesión y perfil persistente en Supabase con nombre, teléfono y dirección.
 - Administración protegida por comprobación de identidad en el servidor y políticas RLS en la base de datos.
 - Productos: alta, edición, categoría, orden y visibilidad.
 - **Commerce V2:** múltiples presentaciones reales por producto, cada una con precio propio, disponibilidad y orden, administradas desde `/admin/productos`.
@@ -27,7 +27,7 @@ Con **Commerce V2**, las variantes creadas en Supabase tienen prioridad automát
 
 ## Qué funciona sin configurar servicios
 
-El catálogo, el carrito y la solicitud por WhatsApp funcionan sin cuenta y sin base de datos, usando `lib/products.ts`. Al no existir configuración de Supabase, `/cuenta` informa que las cuentas aún no están habilitadas. No simula una sesión ni permite entrar a la administración.
+El catálogo, el carrito y la solicitud por WhatsApp funcionan sin cuenta y sin base de datos, usando `lib/products.ts`. El acceso a `/cuenta` usa Clerk cuando sus variables están configuradas; la administración nunca se habilita sin una identidad y permiso reales.
 
 Al configurar Supabase, el catálogo pasa a leerse de la base de datos. Ante un fallo de la base de datos se muestra un error; no se sustituye silenciosamente por un catálogo antiguo.
 
@@ -64,7 +64,7 @@ La prueba de navegador está en `tests/storefront.spec.ts` y se ejecuta con `npm
 - `lib/cart.ts`: cantidades, totales, fechas y mensaje de WhatsApp.
 - `lib/products.ts`: catálogo inicial y diseños disponibles.
 - `lib/demo-catalog.ts`: valores de muestra reemplazables por los reales.
-- `lib/supabase/`: cliente de servidor con cookies.
+- `lib/supabase/`: cliente Supabase de servidor que inyecta el token de sesión de Clerk.
 - `supabase/schema.sql`: esquema base de productos, perfiles, pedidos, administración y datos iniciales.
 - `supabase/variants-v2.sql`: activa Commerce V2 con presentaciones y precios reales. En una instalación nueva, ejecútalo inmediatamente después de `schema.sql`.
 - `docs/`: configuración, alcance y notas de verificación.
@@ -74,7 +74,7 @@ La prueba de navegador está en `tests/storefront.spec.ts` y se ejecuta con `npm
 - Abrir WhatsApp no envía el mensaje por sí solo, no cobra y no confirma una compra. El cliente debe enviarlo; el negocio debe acordar disponibilidad, precio y entrega.
 - El carrito no se borra al abrir WhatsApp. Se conserva en ese navegador; no se sincroniza entre dispositivos.
 - Los mensajes de WhatsApp no se importan automáticamente: los pedidos se registran en el panel después de coordinarlos.
-- Cuentas y administración requieren un proyecto Supabase configurado, migración SQL y un usuario administrador verificado.
+- Cuentas y administración requieren Clerk, Supabase, la migración `supabase/clerk-auth.sql` y un Clerk User ID autorizado como administrador.
 - Se incluyen fotografías y diseños de once productos; la carga de nuevas imágenes desde el panel no forma parte de esta versión.
 - Inventario de ingredientes, costos de recetas, egresos y reportes completos corresponden a una siguiente etapa; el saldo por cobrar no equivale a ganancia.
 - Antes de abrir ventas, el propietario debe confirmar precios, presentaciones, catálogo, horarios, recojo y condiciones de delivery.

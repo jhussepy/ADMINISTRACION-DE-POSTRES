@@ -1,21 +1,21 @@
 -- Ejecutar en Supabase SQL Editor antes de habilitar las variables en Vercel.
 begin;
 create table if not exists public.admins (
-  user_id uuid primary key references auth.users(id) on delete cascade
+  user_id text primary key check(char_length(user_id) between 5 and 128)
 );
 alter table public.admins enable row level security;
 revoke all on public.admins from anon, authenticated;
 grant select on public.admins to authenticated;
 drop policy if exists "Read own admin membership" on public.admins;
-create policy "Read own admin membership" on public.admins for select to authenticated using(user_id=(select auth.uid()));
+create policy "Read own admin membership" on public.admins for select to authenticated using(user_id=(select auth.jwt()->>'sub'));
 create or replace function public.is_admin() returns boolean language sql stable security definer set search_path='' as $$
-  select exists(select 1 from public.admins where user_id=(select auth.uid()));
+  select exists(select 1 from public.admins where user_id=(select auth.jwt()->>'sub'));
 $$;
 revoke all on function public.is_admin() from public;
 grant execute on function public.is_admin() to authenticated;
 
 create table if not exists public.profiles (
-  id uuid primary key references auth.users(id) on delete cascade,
+  id text primary key check(char_length(id) between 5 and 128),
   full_name text not null default '' check(char_length(full_name)<=100),
   address text not null default '' check(char_length(address)<=250),
   phone text not null default '' check(char_length(phone)<=20)
@@ -24,7 +24,7 @@ alter table public.profiles enable row level security;
 revoke all on public.profiles from anon, authenticated;
 grant select,insert,update,delete on public.profiles to authenticated;
 drop policy if exists "Own profile only" on public.profiles;
-create policy "Own profile only" on public.profiles for all to authenticated using(id=(select auth.uid())) with check(id=(select auth.uid()));
+create policy "Own profile only" on public.profiles for all to authenticated using(id=(select auth.jwt()->>'sub')) with check(id=(select auth.jwt()->>'sub'));
 
 create table if not exists public.products (
   id text primary key check(char_length(id) between 1 and 80),
@@ -108,8 +108,6 @@ where products.id in ('cheesecake-fresa','cheesecake-maracumango','torta-persona
   and products.sort_order=excluded.sort_order-3;
 commit;
 
--- Conceder administración SOLO desde SQL Editor, después de crear y verificar la cuenta.
--- Reemplazar el correo antes de ejecutar estas líneas por separado:
--- insert into public.admins(user_id)
--- select id from auth.users where lower(email)=lower('TU_CORREO_VERIFICADO') and email_confirmed_at is not null
--- on conflict do nothing;
+-- Conceder administración SOLO desde SQL Editor, después del primer acceso con Google.
+-- Copia el Clerk User ID (formato user_...) desde Clerk Dashboard > Users:
+-- insert into public.admins(user_id) values ('user_REEMPLAZAR') on conflict do nothing;
