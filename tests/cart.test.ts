@@ -181,3 +181,58 @@ test("personalized cake requires guests and carries its details to WhatsApp", ()
     }),
   );
 });
+
+
+test("real Supabase variants override demo presentations and checkout validation", () => {
+  const products = initialProducts.map((product) =>
+    product.id === "torta-chocolate"
+      ? {
+          ...product,
+          variants: [
+            {
+              id: "11111111-1111-4111-8111-111111111111",
+              product_id: product.id,
+              slug: "familiar",
+              label: "Familiar · 20 porciones",
+              price_cents: 15000,
+              active: true,
+              sort_order: 1,
+            },
+            {
+              id: "22222222-2222-4222-8222-222222222222",
+              product_id: product.id,
+              slug: "oculta",
+              label: "Presentación interna",
+              price_cents: 1,
+              active: false,
+              sort_order: 2,
+            },
+          ],
+        }
+      : product,
+  );
+
+  const cart = normalizeCart(
+    [
+      { id: "torta-chocolate", variant: "familiar", quantity: 2 },
+      { id: "torta-chocolate", variant: "mediana", quantity: 1 },
+      { id: "torta-chocolate", variant: "oculta", quantity: 1 },
+    ],
+    products,
+  );
+
+  assert.deepEqual(cart, [
+    { id: "torta-chocolate", variant: "familiar", quantity: 2 },
+  ]);
+
+  const summary = cartSummary(cart, products);
+  assert.equal(summary.subtotal, 30000);
+  assert.equal(summary.examples, false);
+
+  const message = new URL(
+    whatsappUrl(cart, products, details),
+  ).searchParams.get("text")!;
+  assert.match(message, /2 × Torta de chocolate — Familiar · 20 porciones/);
+  assert.doesNotMatch(message, /ejemplo/i);
+  assert.doesNotMatch(message, /Presentación interna/);
+});
