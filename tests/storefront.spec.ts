@@ -1,4 +1,18 @@
 import { test, expect } from "@playwright/test";
+
+test("home uses one complete hero image and direct WhatsApp CTA", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.locator(".hero-dessert-frame img")).toHaveCount(1);
+  await expect(page.locator(".hero-dessert-frame img")).toHaveAttribute(
+    "src",
+    /torta-chocolate-hero\.webp/,
+  );
+  await expect(page.locator(".hero-motion-toggle")).toHaveCount(0);
+  await expect(
+    page.getByRole("link", { name: "Pedir por WhatsApp", exact: true }),
+  ).toHaveAttribute("href", "https://wa.me/51934219749");
+});
+
 test("shareable product page keeps the cart while browsing related desserts", async ({
   page,
 }, testInfo) => {
