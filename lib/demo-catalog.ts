@@ -69,7 +69,21 @@ const demoPresentations: Record<string, Presentation[]> = {
 };
 
 export function presentations(product: Product): Presentation[] {
-  // Un precio cargado por el negocio tiene prioridad sobre los ejemplos.
+  const realVariants = (product.variants ?? [])
+    .filter((variant) => variant.active)
+    .sort((a, b) => a.sort_order - b.sort_order)
+    .map((variant) => ({
+      id: variant.slug,
+      label: variant.label,
+      priceCents: variant.price_cents,
+      example: false,
+    }));
+
+  // Las variantes reales administradas en Supabase tienen máxima prioridad.
+  if (realVariants.length) return realVariants;
+
+  // Un precio real cargado directamente en el producto tiene prioridad sobre
+  // los ejemplos mientras el negocio migra gradualmente a variantes.
   if (product.price_cents !== null || !demoPresentations[product.id])
     return [
       {
@@ -79,6 +93,7 @@ export function presentations(product: Product): Presentation[] {
         example: false,
       },
     ];
+
   return demoPresentations[product.id];
 }
 
