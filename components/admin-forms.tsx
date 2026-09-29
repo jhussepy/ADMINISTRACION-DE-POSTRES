@@ -1,10 +1,17 @@
 "use client";
 import { useActionState } from "react";
-import { saveProduct, saveOrder, updateOrder } from "@/app/admin/actions";
+import {
+  deleteVariant,
+  saveOrder,
+  saveProduct,
+  saveVariant,
+  updateOrder,
+} from "@/app/admin/actions";
 import {
   categories,
   orderStatuses,
   type Product,
+  type ProductVariant,
   type Order,
   type ActionState,
 } from "@/lib/types";
@@ -128,6 +135,181 @@ export function ProductForm({ product }: { product?: Product }) {
     </form>
   );
 }
+export function ProductVariantsPanel({
+  product,
+  variants,
+  enabled,
+}: {
+  product: Product;
+  variants: ProductVariant[];
+  enabled: boolean;
+}) {
+  if (!enabled)
+    return (
+      <section className="variant-panel variant-panel-disabled">
+        <div className="variant-panel-heading">
+          <div>
+            <span className="eyebrow">COMMERCE V2</span>
+            <h3>Presentaciones reales</h3>
+          </div>
+          <span className="badge inactive">Pendiente</span>
+        </div>
+        <p>
+          Ejecuta <code>supabase/variants-v2.sql</code> en Supabase SQL Editor
+          para activar precios y presentaciones administrables. La tienda
+          seguirá usando los datos actuales hasta entonces.
+        </p>
+      </section>
+    );
+
+  return (
+    <section className="variant-panel">
+      <div className="variant-panel-heading">
+        <div>
+          <span className="eyebrow">COMMERCE V2</span>
+          <h3>Presentaciones y precios</h3>
+        </div>
+        <span className="badge">
+          {variants.length} {variants.length === 1 ? "variante" : "variantes"}
+        </span>
+      </div>
+      <p className="subtle">
+        Estas opciones tienen prioridad sobre los precios de muestra. Puedes
+        activarlas o desactivarlas sin eliminar el producto.
+      </p>
+      <VariantForm productId={product.id} />
+      {variants.length > 0 && (
+        <div className="variant-list">
+          {variants.map((variant) => (
+            <VariantForm
+              key={variant.id}
+              productId={product.id}
+              variant={variant}
+            />
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function VariantForm({
+  productId,
+  variant,
+}: {
+  productId: string;
+  variant?: ProductVariant;
+}) {
+  const [state, action, pending] = useActionState(saveVariant, {});
+  const [deleteState, deleteAction, deleting] = useActionState(
+    deleteVariant,
+    {},
+  );
+  const existing = Boolean(variant);
+
+  return (
+    <article className={`variant-editor ${existing ? "is-existing" : "is-new"}`}>
+      <div className="variant-editor-title">
+        <strong>{existing ? variant!.label : "Nueva presentación"}</strong>
+        {existing && (
+          <span className={`badge ${variant!.active ? "" : "inactive"}`}>
+            {variant!.active ? "Activa" : "Oculta"}
+          </span>
+        )}
+      </div>
+      <form action={action} className="stack-form compact-form">
+        <input type="hidden" name="product_id" value={productId} />
+        <input type="hidden" name="variant_id" value={variant?.id ?? ""} />
+        <div className="two-cols">
+          <label>
+            Nombre visible
+            <input
+              name="label"
+              defaultValue={variant?.label ?? ""}
+              placeholder="Ej.: Mediana · 10 porciones"
+              required
+              minLength={2}
+              maxLength={120}
+            />
+          </label>
+          <label>
+            Identificador
+            <input
+              name="slug"
+              defaultValue={variant?.slug ?? ""}
+              placeholder="Ej.: mediana"
+              required
+              minLength={1}
+              maxLength={50}
+              pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
+            />
+            <small>Solo minúsculas, números y guiones.</small>
+          </label>
+        </div>
+        <div className="two-cols">
+          <label>
+            Precio en soles
+            <input
+              name="price"
+              type="number"
+              min="0"
+              max="999999.99"
+              step="0.01"
+              defaultValue={
+                variant?.price_cents == null
+                  ? ""
+                  : (variant.price_cents / 100).toFixed(2)
+              }
+              placeholder="Vacío = por cotizar"
+            />
+          </label>
+          <label>
+            Orden
+            <input
+              name="sort_order"
+              type="number"
+              min={0}
+              max={999}
+              defaultValue={variant?.sort_order ?? variantsDefaultOrder(variant)}
+              required
+            />
+          </label>
+        </div>
+        <label className="checkbox-label">
+          <input
+            name="active"
+            type="checkbox"
+            defaultChecked={variant?.active ?? true}
+          />
+          Disponible para clientes
+        </label>
+        <Feedback state={state} />
+        <button className="button" disabled={pending}>
+          {pending
+            ? "Guardando…"
+            : existing
+              ? "Guardar presentación"
+              : "Añadir presentación"}
+        </button>
+      </form>
+      {existing && (
+        <form action={deleteAction} className="variant-delete-form">
+          <input type="hidden" name="product_id" value={productId} />
+          <input type="hidden" name="variant_id" value={variant!.id} />
+          <Feedback state={deleteState} />
+          <button className="text-button danger-button" disabled={deleting}>
+            {deleting ? "Eliminando…" : "Eliminar presentación"}
+          </button>
+        </form>
+      )}
+    </article>
+  );
+}
+
+function variantsDefaultOrder(variant?: ProductVariant) {
+  return variant?.sort_order ?? 10;
+}
+
 export function OrderForm() {
   const [state, action, pending] = useActionState(saveOrder, {});
   return (
