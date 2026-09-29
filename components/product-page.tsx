@@ -13,6 +13,7 @@ import {
   Palette,
   Plus,
   ShoppingBag,
+  Share2,
   UsersRound,
 } from "lucide-react";
 import { MAX_QUANTITY, money } from "@/lib/cart";
@@ -40,11 +41,32 @@ export function ProductPage({
 }) {
   const [quantity, setQuantity] = useState(1);
   const [variant, setVariant] = useState(() => presentations(product)[0].id);
+  const [shareStatus, setShareStatus] = useState("");
   const offer = presentation(product, variant)!;
   const remaining = Math.max(0, MAX_QUANTITY - inCart);
   const selected = Math.min(quantity, remaining);
   const custom = product.id === "torta-personalizada";
   const imageSize = productImages.find((image) => image.path === product.image);
+  async function shareProduct() {
+    const url = window.location.href;
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: `${product.name} | Yemape`,
+          text: `Mira ${product.name} en Repostería Yemape`,
+          url,
+        });
+        setShareStatus("Compartido");
+      } else {
+        await navigator.clipboard.writeText(url);
+        setShareStatus("Enlace copiado");
+      }
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") return;
+      setShareStatus("Copia el enlace desde tu navegador");
+    }
+  }
+
   const related = products
     .filter((item) => item.id !== product.id)
     .sort(
@@ -83,9 +105,20 @@ export function ProductPage({
           <span>Fotografía referencial</span>
         </div>
         <div className="product-page-copy">
-          <span className="eyebrow">
-            YEMAPE · {product.category.toUpperCase()}
-          </span>
+          <div className="product-page-heading-row">
+            <span className="eyebrow">
+              YEMAPE · {product.category.toUpperCase()}
+            </span>
+            <button
+              type="button"
+              className="product-share-button"
+              onClick={shareProduct}
+              aria-label={`Compartir ${product.name}`}
+            >
+              <Share2 size={16} aria-hidden="true" />
+              {shareStatus || "Compartir"}
+            </button>
+          </div>
           <h1>{product.name}</h1>
           <p className="product-page-lead">{product.description}</p>
           <div className="product-page-price">
