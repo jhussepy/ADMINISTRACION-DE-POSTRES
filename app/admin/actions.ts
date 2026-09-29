@@ -118,7 +118,7 @@ export async function saveVariant(
   });
 
   if (error) {
-    if (error.code === "42P01")
+    if (["42P01", "PGRST205"].includes(error.code))
       return {
         error:
           "Variantes V2 aún no está activado en Supabase. Ejecuta supabase/variants-v2.sql y vuelve a intentarlo.",
@@ -156,7 +156,7 @@ export async function deleteVariant(
     .eq("product_id", product_id);
 
   if (error) {
-    if (error.code === "42P01")
+    if (["42P01", "PGRST205"].includes(error.code))
       return {
         error:
           "Variantes V2 aún no está activado en Supabase. Ejecuta supabase/variants-v2.sql.",
