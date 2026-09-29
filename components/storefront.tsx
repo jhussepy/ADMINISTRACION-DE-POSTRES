@@ -47,6 +47,7 @@ import {
 import { ProductDetails } from "./product-details";
 import { ProductPage } from "./product-page";
 import { StoreFaq } from "./store-faq";
+import { HeroMedia } from "./hero-media";
 type Account = {
   name: string;
   email: string;
@@ -378,14 +379,7 @@ export function Storefront({
                       <div className="hero-dessert-halo" aria-hidden="true" />
                       <div className="hero-dessert-shadow" aria-hidden="true" />
                       <div className="hero-dessert-frame">
-                        <Image
-                          src="/images/torta-chocolate-hero.webp"
-                          alt={featured.name}
-                          fill
-                          preload
-                          sizes="(max-width: 620px) 90vw, (max-width: 1440px) 52vw, 700px"
-                          className="hero-image hero-dessert-image"
-                        />
+                        <HeroMedia productName={featured.name} />
                       </div>
                     </>
                   ) : (
