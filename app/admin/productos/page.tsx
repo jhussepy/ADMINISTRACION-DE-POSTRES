@@ -27,6 +27,11 @@ export default async function ProductsPage({
 
   const products = data as Product[];
   const editing = products.find((product) => product.id === params.editar);
+  const variantsMissing =
+    variantsResult.error &&
+    ["42P01", "PGRST205"].includes(variantsResult.error.code);
+  if (variantsResult.error && !variantsMissing)
+    throw new Error("No se pudieron cargar las presentaciones del catálogo.");
   const variantsEnabled = !variantsResult.error;
   const variants = variantsEnabled
     ? ((variantsResult.data ?? []) as ProductVariant[])
