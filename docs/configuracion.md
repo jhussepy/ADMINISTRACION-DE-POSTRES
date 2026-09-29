@@ -7,7 +7,9 @@ La tienda pública y el carrito funcionan sin iniciar sesión. **Clerk** gestion
 1. En Supabase crea el proyecto de Yemape.
 2. En **SQL Editor**, ejecuta `supabase/schema.sql`.
 3. Ejecuta `supabase/variants-v2.sql` para activar Commerce V2.
-4. No uses `service_role`, secret keys ni la contraseña de la base de datos en el frontend.
+4. Si ya migraste la autenticación a Clerk, ejecuta `supabase/clerk-auth.sql`.
+5. Para activar fotografías administrables, ejecuta `supabase/product-images-v3.sql` una sola vez. Crea un bucket público solo para lectura de imágenes de catálogo; las escrituras siguen limitadas al administrador mediante RLS.
+6. No uses `service_role`, secret keys ni la contraseña de la base de datos en el frontend.
 
 ## 2. Clerk con Google
 
@@ -83,8 +85,11 @@ Antes de abrirlo a clientes:
 - confirma que el administrador sí puede editar productos, variantes y pedidos;
 - crea dos variantes reales y comprueba ficha, carrito y WhatsApp;
 - desactiva una variante y verifica que deja de estar disponible;
+- sube una fotografía desde `/admin/productos`, conviértela en portada y verifica que sustituye la imagen anterior en catálogo y ficha;
+- sube una segunda fotografía y comprueba que aparece como miniatura navegable en la ficha;
+- oculta una fotografía y comprueba que desaparece para clientes sin eliminarla del panel;
 - sin sesión, confirma que `profiles`, `admins` y `orders` no exponen datos.
 
 ## Cambiar o añadir imágenes
 
-Los diseños actuales están en `public/images/`. Para incorporar otra fotografía, añade el archivo optimizado, su ruta a `productImages` en `lib/products.ts` y actualiza la restricción `products_image_check` de Supabase. La carga directa de fotografías desde Administración es una mejora futura.
+Las fotografías iniciales permanecen en `public/images/` como respaldo. Con Galería V3 activa, abre `/admin/productos`, edita un producto y usa **Galería de fotografías** para subir JPG, PNG o WebP de hasta 5 MB, elegir portada, ordenar, ocultar o eliminar.
