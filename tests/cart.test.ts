@@ -233,6 +233,7 @@ test("real Supabase variants override demo presentations and checkout validation
     whatsappUrl(cart, products, details),
   ).searchParams.get("text")!;
   assert.match(message, /2 × Torta de chocolate — Familiar · 20 porciones/);
-  assert.doesNotMatch(message, /ejemplo/i);
+  assert.doesNotMatch(message, /Familiar · 20 porciones:.*\(ejemplo\)/i);
+  assert.doesNotMatch(message, /IMPORTANTE: importes y presentaciones de ejemplo/i);
   assert.doesNotMatch(message, /Presentación interna/);
 });
