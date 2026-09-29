@@ -3641,3 +3641,192 @@ legend {
     width: 78px;
   }
 }
+
+
+/* Commerce V2 admin variants */
+.admin-products-grid {
+  grid-template-columns: minmax(340px, 0.95fr) minmax(0, 1.35fr);
+}
+.admin-product-editor {
+  position: sticky;
+  top: 24px;
+}
+.admin-section-kicker h2,
+.admin-list-heading h2 {
+  margin-top: 8px;
+}
+.admin-list-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 2px 2px 10px;
+}
+.admin-list-heading h2 {
+  font-size: 27px;
+}
+.admin-edit-hint {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+.admin-migration-notice {
+  border: 1px solid #e3c6a7;
+  border-radius: 12px;
+  background: #fff8ed;
+  padding: 16px;
+  display: grid;
+  gap: 7px;
+}
+.admin-migration-notice strong {
+  color: #6a4529;
+}
+.admin-migration-notice p {
+  color: #775c49;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.admin-migration-notice code,
+.variant-panel code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  background: #fff;
+  border: 1px solid #eadaca;
+  border-radius: 5px;
+  padding: 2px 5px;
+}
+.product-admin-card {
+  gap: 13px;
+}
+.product-admin-card .admin-row-head > div {
+  display: grid;
+  gap: 3px;
+}
+.product-admin-card .admin-row-head p {
+  margin: 0;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.variant-summary {
+  display: grid;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #faf6f2;
+}
+.variant-summary > strong {
+  font-size: 12px;
+  color: var(--wine);
+}
+.variant-summary > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+}
+.variant-summary span {
+  font-size: 11px;
+  color: var(--muted);
+}
+.variant-panel {
+  margin-top: 30px;
+  padding-top: 26px;
+  border-top: 1px solid var(--border);
+  display: grid;
+  gap: 18px;
+}
+.variant-panel-disabled {
+  padding: 18px;
+  border: 1px dashed #d7bcae;
+  border-radius: 12px;
+  background: #fffaf6;
+}
+.variant-panel-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+.variant-panel-heading h3 {
+  margin-top: 7px;
+  font-family: var(--font-serif);
+  font-size: 24px;
+  font-weight: 500;
+}
+.variant-panel > p {
+  line-height: 1.65;
+}
+.variant-list {
+  display: grid;
+  gap: 14px;
+}
+.variant-editor {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  background: #fffdf9;
+}
+.variant-editor.is-new {
+  border-style: dashed;
+  background: #faf5f1;
+}
+.variant-editor-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+.variant-editor-title strong {
+  font-size: 14px;
+}
+.compact-form {
+  gap: 13px;
+}
+.compact-form label {
+  font-size: 12px;
+}
+.compact-form small {
+  display: block;
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.4;
+}
+.compact-form .button {
+  min-height: 42px;
+  padding: 10px 14px;
+  font-size: 12px;
+}
+.variant-delete-form {
+  margin-top: 6px;
+}
+.danger-button {
+  color: #9d3d35;
+  margin-left: 0;
+  padding-left: 0;
+  font-size: 11px;
+}
+.danger-button:hover {
+  color: #762820;
+}
+@media (max-width: 1000px) {
+  .admin-products-grid {
+    grid-template-columns: 1fr;
+  }
+  .admin-product-editor {
+    position: static;
+  }
+}
+@media (max-width: 620px) {
+  .admin-list-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .variant-panel-heading {
+    align-items: flex-start;
+  }
+  .variant-editor {
+    padding: 14px;
+  }
+}
