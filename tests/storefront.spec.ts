@@ -579,3 +579,54 @@ test("photographic catalogue filters and new products reach the WhatsApp handoff
   expect(message).toContain("Estimado de muestra");
   expect(errors).toEqual([]);
 });
+
+
+test("favorites persist, sorting works and hero motion remains available", async ({ page }) => {
+  await page.goto("/catalogo");
+  const favorite = page.getByRole("button", {
+    name: "Guardar Torta de chocolate en favoritos",
+  });
+  await favorite.click();
+  await expect(
+    page.getByRole("button", { name: "Quitar Torta de chocolate de favoritos" }),
+  ).toHaveAttribute("aria-pressed", "true");
+
+  await page.reload();
+  await expect(
+    page.getByRole("button", { name: "Quitar Torta de chocolate de favoritos" }),
+  ).toHaveAttribute("aria-pressed", "true");
+
+  await page.getByRole("button", { name: /Mis favoritos/ }).click();
+  await expect(page.locator(".product-card")).toHaveCount(1);
+  await expect(
+    page.getByRole("link", { name: "Torta de chocolate", exact: true }),
+  ).toBeVisible();
+
+  await page.getByRole("button", { name: /Mis favoritos/ }).click();
+  await page.getByLabel("Ordenar catálogo").selectOption("price-asc");
+  await expect(page).toHaveURL(/orden=price-asc/);
+  await expect(page.locator(".product-card").first()).toContainText(
+    "Brownie de chocolate",
+  );
+
+  await page.goto("/");
+  await expect(
+    page.getByRole("button", { name: "Pausar animación del postre" }),
+  ).toBeVisible();
+});
+
+test("product page can copy its share link when native sharing is unavailable", async ({ page }) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, "share", {
+      configurable: true,
+      value: undefined,
+    });
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText: async () => undefined },
+    });
+  });
+  await page.goto("/postres/pie-limon");
+  await page.getByRole("button", { name: "Compartir Pie de limón" }).click();
+  await expect(page.getByText("Enlace copiado")).toBeVisible();
+});
