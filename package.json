@@ -12,6 +12,7 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
+    "@clerk/nextjs": "^7.9.7",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.57.0",
     "lucide-react": "^0.468.0",
