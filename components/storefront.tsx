@@ -15,8 +15,6 @@ import {
   MessageCircle,
   Minus,
   Plus,
-  Play,
-  Pause,
   Search,
   ShoppingBag,
   Truck,
@@ -49,6 +47,7 @@ import {
 import { ProductDetails } from "./product-details";
 import { ProductPage } from "./product-page";
 import { StoreFaq } from "./store-faq";
+import { HeroMedia } from "./hero-media";
 type Account = {
   name: string;
   email: string;
@@ -104,7 +103,6 @@ export function Storefront({
     [cartOpen, setCartOpen] = useState(false),
     [notice, setNotice] = useState("");
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [heroMotionPaused, setHeroMotionPaused] = useState(false);
   const detailTrigger = useRef<HTMLElement | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
@@ -374,52 +372,15 @@ export function Storefront({
               </div>
               {featured && (
                 <div
-                  className={`hero-visual ${featured.id === "torta-chocolate" ? "hero-dessert-scene" : ""} ${heroMotionPaused ? "is-motion-paused" : ""}`}
+                  className={`hero-visual ${featured.id === "torta-chocolate" ? "hero-dessert-scene" : ""}`}
                 >
                   {featured.id === "torta-chocolate" ? (
                     <>
                       <div className="hero-dessert-halo" aria-hidden="true" />
                       <div className="hero-dessert-shadow" aria-hidden="true" />
-                      <div
-                        className="hero-dessert-slice-shadow"
-                        aria-hidden="true"
-                      />
                       <div className="hero-dessert-frame">
-                        <Image
-                          src="/images/torta-chocolate-cuerpo.webp"
-                          alt={featured.name}
-                          fill
-                          preload
-                          sizes="(max-width: 620px) 90vw, (max-width: 1440px) 52vw, 700px"
-                          className="hero-image hero-dessert-image hero-dessert-cake"
-                        />
-                        <Image
-                          src="/images/torta-chocolate-porcion.webp"
-                          alt=""
-                          fill
-                          loading="eager"
-                          sizes="(max-width: 620px) 90vw, (max-width: 1440px) 52vw, 700px"
-                          className="hero-dessert-image hero-dessert-slice"
-                        />
+                        <HeroMedia productName={featured.name} />
                       </div>
-                      <button
-                        className="hero-motion-toggle"
-                        type="button"
-                        onClick={() => setHeroMotionPaused((paused) => !paused)}
-                        aria-label={
-                          heroMotionPaused
-                            ? "Reanudar animación del postre"
-                            : "Pausar animación del postre"
-                        }
-                        aria-pressed={heroMotionPaused}
-                      >
-                        {heroMotionPaused ? (
-                          <Play size={15} />
-                        ) : (
-                          <Pause size={15} />
-                        )}
-                        <span>{heroMotionPaused ? "Reanudar" : "Pausar"}</span>
-                      </button>
                     </>
                   ) : (
                     <Image

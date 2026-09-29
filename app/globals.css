@@ -2548,9 +2548,6 @@ legend {
 }
 .photo-hero .hero-dessert-scene {
   isolation: isolate;
-  --hero-slice-rest-x: 18px;
-  --hero-slice-focus-x: 28px;
-  --hero-slice-focus-z: 45px;
   background: radial-gradient(
     circle at 52% 43%,
     #fff9f0 0%,
@@ -2583,127 +2580,24 @@ legend {
   border-radius: 50%;
   background: #65352d38;
   filter: blur(20px);
-  animation: hero-dessert-shadow 9s ease-in-out infinite;
-}
-.hero-dessert-slice-shadow {
-  position: absolute;
-  width: 31%;
-  height: 24px;
-  left: 58%;
-  bottom: 96px;
-  border-radius: 50%;
-  background: #65352d2e;
-  filter: blur(15px);
-  animation: hero-dessert-slice-shadow 9s ease-in-out infinite;
 }
 .hero-dessert-frame {
   position: absolute;
-  inset: 12px 5% 96px;
-  perspective: 900px;
+  inset: 8px 3% 90px;
 }
-.hero-dessert-image {
+.hero-dessert-image,
+.hero-dessert-video {
   object-fit: contain;
-  filter: drop-shadow(0 24px 22px #6c352b2a);
-  will-change: transform;
+  filter: drop-shadow(0 20px 22px #6c352b29);
 }
-.hero-dessert-cake {
-  animation: hero-dessert-cake 9s cubic-bezier(0.42, 0, 0.2, 1) infinite;
-}
-.hero-dessert-slice {
-  animation: hero-dessert-slice 9s cubic-bezier(0.42, 0, 0.2, 1) infinite;
-}
-.hero-motion-toggle {
-  position: absolute;
-  z-index: 2;
-  top: 20px;
-  right: 20px;
-  min-height: 44px;
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 9px 13px;
-  border: 1px solid #fff9f0;
-  border-radius: 999px;
-  background: #fffdf8e8;
-  color: var(--wine-dark);
-  font-size: 12px;
-  font-weight: 700;
-  box-shadow: 0 4px 16px #44221616;
-}
-.hero-motion-toggle:hover {
-  background: white;
-}
-.hero-dessert-scene.is-motion-paused .hero-dessert-cake,
-.hero-dessert-scene.is-motion-paused .hero-dessert-slice,
-.hero-dessert-scene.is-motion-paused .hero-dessert-shadow,
-.hero-dessert-scene.is-motion-paused .hero-dessert-slice-shadow {
-  animation-play-state: paused;
-}
-@keyframes hero-dessert-cake {
-  0%,
-  15%,
-  85%,
-  100% {
-    transform: translate3d(-3px, 4px, 0) rotate(-2deg) scale(0.98);
-  }
-  35% {
-    transform: translate3d(2px, -8px, 0) rotate(1deg) scale(1.03);
-  }
-  55%,
-  68% {
-    transform: translate3d(-18px, 0, 0) rotate(-3deg) scale(0.97);
-  }
-}
-@keyframes hero-dessert-slice {
-  0%,
-  15%,
-  85%,
-  100% {
-    transform: translate3d(var(--hero-slice-rest-x), 0, 10px) rotate(2deg)
-      scale(0.94);
-  }
-  35% {
-    transform: translate3d(20px, -5px, 25px) rotate(-1deg) scale(1);
-  }
-  55%,
-  68% {
-    transform: translate3d(
-        var(--hero-slice-focus-x),
-        -24px,
-        var(--hero-slice-focus-z)
-      )
-      rotate(-3deg) scale(1.06);
-  }
-}
-@keyframes hero-dessert-shadow {
-  0%,
-  15%,
-  85%,
-  100% {
-    transform: scale(1.02);
-    opacity: 0.65;
-  }
-  55%,
-  68% {
-    transform: scale(0.86) translateX(-12px);
-    opacity: 0.46;
-  }
-}
-@keyframes hero-dessert-slice-shadow {
-  0%,
-  15%,
-  85%,
-  100% {
-    transform: translate3d(0, 0, 0) scale(0.9);
-    opacity: 0.45;
-  }
-  55%,
-  68% {
-    transform: translate3d(14px, -9px, 0) scale(1.1);
-    opacity: 0.28;
-  }
+.hero-dessert-video {
+  width: 100%;
+  height: 100%;
+  display: block;
+  background: transparent;
 }
 .photo-hero .hero-caption {
+  z-index: 2;
   left: 24px;
   right: 24px;
   bottom: 24px;
@@ -2829,23 +2723,11 @@ legend {
     min-height: 0;
     aspect-ratio: 1 / 1.06;
   }
-  .photo-hero .hero-dessert-scene {
-    --hero-slice-rest-x: 8px;
-    --hero-slice-focus-x: 18px;
-    --hero-slice-focus-z: 30px;
-  }
   .hero-dessert-frame {
-    inset: 4px 1% 84px;
+    inset: 4px 1% 78px;
   }
   .hero-dessert-shadow {
     bottom: 100px;
-  }
-  .hero-dessert-slice-shadow {
-    bottom: 82px;
-  }
-  .hero-motion-toggle {
-    top: 12px;
-    right: 12px;
   }
   .photo-hero .hero-caption {
     left: 14px;
@@ -2878,25 +2760,6 @@ legend {
     font-size: 12px;
   }
 }
-@media (prefers-reduced-motion: reduce) {
-  .hero-motion-toggle {
-    display: none;
-  }
-  .hero-dessert-cake,
-  .hero-dessert-slice,
-  .hero-dessert-shadow,
-  .hero-dessert-slice-shadow {
-    animation: none;
-  }
-  .hero-dessert-cake {
-    transform: translate3d(-3px, 4px, 0) rotate(-2deg) scale(0.98);
-  }
-  .hero-dessert-slice {
-    transform: translate3d(var(--hero-slice-rest-x), 0, 0) rotate(2deg)
-      scale(0.94);
-  }
-}
-
 /* A short front page introduces the range; the full carta lives at /catalogo. */
 .catalog-intro {
   padding-bottom: 24px;
