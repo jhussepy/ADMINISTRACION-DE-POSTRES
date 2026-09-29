@@ -23,8 +23,14 @@ export const getProducts = cache(async (): Promise<Product[]> => {
     .order("sort_order");
 
   // Compatibilidad de despliegue: si todavía no se ejecutó la migración V2,
-  // la tienda sigue funcionando con las presentaciones actuales.
-  if (variantsError) return products;
+  // la tienda sigue funcionando con las presentaciones actuales. Otros errores
+  // sí se hacen visibles para no ocultar una mala configuración de permisos.
+  if (variantsError) {
+    if (["42P01", "PGRST205"].includes(variantsError.code)) return products;
+    throw new Error(
+      "No se pudieron cargar las presentaciones del catálogo. Inténtalo de nuevo.",
+    );
+  }
 
   const byProduct = new Map<string, ProductVariant[]>();
   for (const variant of (variants ?? []) as ProductVariant[]) {
