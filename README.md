@@ -19,6 +19,7 @@ Primera versión de la tienda de **Repostería Yemape**, desarrollada con Next.j
 - Administración protegida por comprobación de identidad en el servidor y políticas RLS en la base de datos.
 - Productos: alta, edición, categoría, orden y visibilidad.
 - **Commerce V2:** múltiples presentaciones reales por producto, cada una con precio propio, disponibilidad y orden, administradas desde `/admin/productos`.
+- **Galería V3:** carga de fotografías directamente desde Administración mediante Supabase Storage, hasta 8 por producto, con portada, orden, visibilidad y galería pública.
 - Pedidos: registro manual, fecha de entrega, total, importe abonado y estados. Resumen de productos visibles, pedidos por atender y saldo por cobrar.
 
 **Modo demostrativo:** `lib/demo-catalog.ts` sigue proporcionando tamaños y precios de ejemplo mientras un producto no tenga variantes reales. La web y el mensaje de WhatsApp los marcan expresamente como ejemplos.
@@ -66,7 +67,9 @@ La prueba de navegador está en `tests/storefront.spec.ts` y se ejecuta con `npm
 - `lib/demo-catalog.ts`: valores de muestra reemplazables por los reales.
 - `lib/supabase/`: cliente Supabase de servidor que inyecta el token de sesión de Clerk.
 - `supabase/schema.sql`: esquema base de productos, perfiles, pedidos, administración y datos iniciales.
-- `supabase/variants-v2.sql`: activa Commerce V2 con presentaciones y precios reales. En una instalación nueva, ejecútalo inmediatamente después de `schema.sql`.
+- `supabase/variants-v2.sql`: activa Commerce V2 con presentaciones y precios reales.
+- `supabase/clerk-auth.sql`: migra perfiles y autorización a Clerk.
+- `supabase/product-images-v3.sql`: crea el bucket y la galería segura de imágenes administrables.
 - `docs/`: configuración, alcance y notas de verificación.
 
 ## Límites de esta primera versión
@@ -75,7 +78,7 @@ La prueba de navegador está en `tests/storefront.spec.ts` y se ejecuta con `npm
 - El carrito no se borra al abrir WhatsApp. Se conserva en ese navegador; no se sincroniza entre dispositivos.
 - Los mensajes de WhatsApp no se importan automáticamente: los pedidos se registran en el panel después de coordinarlos.
 - Cuentas y administración requieren Clerk, Supabase, la migración `supabase/clerk-auth.sql` y un Clerk User ID autorizado como administrador.
-- Se incluyen fotografías y diseños de once productos; la carga de nuevas imágenes desde el panel no forma parte de esta versión.
+- Las fotografías iniciales siguen sirviendo como respaldo. Tras activar Galería V3, las nuevas imágenes pueden administrarse desde el panel sin modificar GitHub.
 - Inventario de ingredientes, costos de recetas, egresos y reportes completos corresponden a una siguiente etapa; el saldo por cobrar no equivale a ganancia.
 - Antes de abrir ventas, el propietario debe confirmar precios, presentaciones, catálogo, horarios, recojo y condiciones de delivery.
 - Cada postre cuenta actualmente con una foto; las galerías con distintos ángulos requieren fotos adicionales.

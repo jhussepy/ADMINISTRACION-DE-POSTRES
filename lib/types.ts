@@ -17,6 +17,17 @@ export type ProductVariant = {
   sort_order: number;
 };
 
+export type ProductImage = {
+  id: string;
+  product_id: string;
+  storage_path: string;
+  alt_text: string;
+  is_cover: boolean;
+  active: boolean;
+  sort_order: number;
+  url: string;
+};
+
 export type Product = {
   id: string;
   name: string;
@@ -28,6 +39,7 @@ export type Product = {
   active: boolean;
   sort_order: number;
   variants?: ProductVariant[];
+  gallery?: ProductImage[];
 };
 export type CartItem = { id: string; quantity: number; variant?: string };
 export type CheckoutDetails = {

@@ -8,6 +8,18 @@ const val = (d: FormData, k: string) => String(d.get(k) ?? "").trim();
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const VARIANT_SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const PRODUCT_ID_RE = /^[a-zA-Z0-9_-]{1,80}$/;
+const PRODUCT_IMAGE_BUCKET = "product-images";
+const MAX_PRODUCT_IMAGES = 8;
+const MAX_PRODUCT_IMAGE_BYTES = 5 * 1024 * 1024;
+const PRODUCT_IMAGE_TYPES = new Map([
+  ["image/jpeg", "jpg"],
+  ["image/png", "png"],
+  ["image/webp", "webp"],
+]);
+
+const migrationMissing = (code?: string) =>
+  Boolean(code && ["42P01", "PGRST205", "404"].includes(code));
 
 function revalidateProduct(productId: string) {
   revalidatePath("/");
@@ -166,6 +178,216 @@ export async function deleteVariant(
 
   revalidateProduct(product_id);
   return { success: "Presentación eliminada." };
+}
+
+export async function uploadProductImage(
+  _: ActionState,
+  d: FormData,
+): Promise<ActionState> {
+  const db = await requireAdmin();
+  const product_id = val(d, "product_id");
+  const alt_text = val(d, "alt_text");
+  const file = d.get("file");
+
+  if (!PRODUCT_ID_RE.test(product_id))
+    return { error: "No pudimos identificar el producto." };
+  if (alt_text.length > 160)
+    return { error: "El texto alternativo admite hasta 160 caracteres." };
+  if (!(file instanceof File) || file.size === 0)
+    return { error: "Selecciona una fotografía." };
+  if (file.size > MAX_PRODUCT_IMAGE_BYTES)
+    return { error: "La fotografía no puede superar 5 MB." };
+
+  const extension = PRODUCT_IMAGE_TYPES.get(file.type);
+  if (!extension)
+    return { error: "Usa una imagen JPG, PNG o WebP." };
+
+  const [{ data: product, error: productError }, countResult] =
+    await Promise.all([
+      db.from("products").select("id,name").eq("id", product_id).maybeSingle(),
+      db
+        .from("product_images")
+        .select("id", { count: "exact", head: true })
+        .eq("product_id", product_id),
+    ]);
+
+  if (productError || !product)
+    return { error: "No encontramos el producto." };
+  if (countResult.error) {
+    if (migrationMissing(countResult.error.code))
+      return {
+        error:
+          "Galería V3 aún no está activada. Ejecuta supabase/product-images-v3.sql en Supabase.",
+      };
+    return { error: "No pudimos preparar la galería." };
+  }
+
+  const count = countResult.count ?? 0;
+  if (count >= MAX_PRODUCT_IMAGES)
+    return {
+      error: `Este producto ya tiene el máximo de ${MAX_PRODUCT_IMAGES} fotografías.`,
+    };
+
+  const path = `${product_id}/${crypto.randomUUID()}.${extension}`;
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  const { error: uploadError } = await db.storage
+    .from(PRODUCT_IMAGE_BUCKET)
+    .upload(path, bytes, {
+      contentType: file.type,
+      cacheControl: "31536000",
+      upsert: false,
+    });
+
+  if (uploadError)
+    return {
+      error:
+        "No pudimos subir la fotografía. Comprueba que Storage V3 esté activado.",
+    };
+
+  const { error: insertError } = await db.from("product_images").insert({
+    product_id,
+    storage_path: path,
+    alt_text: alt_text || `Fotografía de ${product.name}`,
+    is_cover: count === 0,
+    active: true,
+    sort_order: (count + 1) * 10,
+  });
+
+  if (insertError) {
+    await db.storage.from(PRODUCT_IMAGE_BUCKET).remove([path]);
+    return { error: "La fotografía subió, pero no pudimos guardarla." };
+  }
+
+  revalidateProduct(product_id);
+  return {
+    success:
+      count === 0
+        ? "Fotografía subida y establecida como portada."
+        : "Fotografía añadida a la galería.",
+  };
+}
+
+export async function saveProductImage(
+  _: ActionState,
+  d: FormData,
+): Promise<ActionState> {
+  const db = await requireAdmin();
+  const id = val(d, "image_id");
+  const product_id = val(d, "product_id");
+  const alt_text = val(d, "alt_text");
+  const sort_order = Number(val(d, "sort_order"));
+
+  if (
+    !UUID_RE.test(id) ||
+    !PRODUCT_ID_RE.test(product_id) ||
+    alt_text.length > 160 ||
+    !Number.isInteger(sort_order) ||
+    sort_order < 0 ||
+    sort_order > 999
+  )
+    return { error: "Revisa el texto y el orden de la fotografía." };
+
+  const { error } = await db
+    .from("product_images")
+    .update({
+      alt_text,
+      active: d.get("active") === "on",
+      sort_order,
+    })
+    .eq("id", id)
+    .eq("product_id", product_id);
+
+  if (error) {
+    if (migrationMissing(error.code))
+      return {
+        error:
+          "Galería V3 aún no está activada. Ejecuta supabase/product-images-v3.sql.",
+      };
+    return { error: "No pudimos actualizar la fotografía." };
+  }
+
+  revalidateProduct(product_id);
+  return { success: "Fotografía actualizada." };
+}
+
+export async function setProductImageCover(
+  _: ActionState,
+  d: FormData,
+): Promise<ActionState> {
+  const db = await requireAdmin();
+  const id = val(d, "image_id");
+  const product_id = val(d, "product_id");
+
+  if (!UUID_RE.test(id) || !PRODUCT_ID_RE.test(product_id))
+    return { error: "No pudimos identificar la fotografía." };
+
+  const { error } = await db.rpc("set_product_image_cover", {
+    target_id: id,
+  });
+
+  if (error) {
+    if (migrationMissing(error.code))
+      return {
+        error:
+          "Galería V3 aún no está activada. Ejecuta supabase/product-images-v3.sql.",
+      };
+    return { error: "No pudimos cambiar la portada." };
+  }
+
+  revalidateProduct(product_id);
+  return { success: "Nueva portada publicada." };
+}
+
+export async function deleteProductImage(
+  _: ActionState,
+  d: FormData,
+): Promise<ActionState> {
+  const db = await requireAdmin();
+  const id = val(d, "image_id");
+  const product_id = val(d, "product_id");
+
+  if (!UUID_RE.test(id) || !PRODUCT_ID_RE.test(product_id))
+    return { error: "No pudimos identificar la fotografía." };
+
+  const { data: image, error: readError } = await db
+    .from("product_images")
+    .select("storage_path,is_cover")
+    .eq("id", id)
+    .eq("product_id", product_id)
+    .maybeSingle();
+
+  if (readError || !image)
+    return { error: "No encontramos la fotografía." };
+
+  const { error: deleteError } = await db
+    .from("product_images")
+    .delete()
+    .eq("id", id)
+    .eq("product_id", product_id);
+
+  if (deleteError)
+    return { error: "No pudimos eliminar la fotografía." };
+
+  await db.storage.from(PRODUCT_IMAGE_BUCKET).remove([image.storage_path]);
+
+  if (image.is_cover) {
+    const { data: nextCover } = await db
+      .from("product_images")
+      .select("id")
+      .eq("product_id", product_id)
+      .eq("active", true)
+      .order("sort_order")
+      .limit(1)
+      .maybeSingle();
+
+    if (nextCover?.id)
+      await db.rpc("set_product_image_cover", {
+        target_id: nextCover.id,
+      });
+  }
+
+  revalidateProduct(product_id);
+  return { success: "Fotografía eliminada de la galería." };
 }
 
 export async function saveOrder(
