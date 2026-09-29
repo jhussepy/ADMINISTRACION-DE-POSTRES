@@ -1,6 +1,8 @@
 import "server-only";
 import { cache } from "react";
+import { auth, currentUser } from "@clerk/nextjs/server";
 import { supabase } from "./supabase/server";
+import { clerkConfigured } from "./clerk-auth";
 import { initialProducts } from "./products";
 import type { Product, ProductVariant, Profile } from "./types";
 import { notFound, redirect } from "next/navigation";
@@ -45,21 +47,40 @@ export const getProducts = cache(async (): Promise<Product[]> => {
   }));
 });
 export const getAccount = cache(async () => {
-  const db = await supabase();
+  if (!clerkConfigured()) return null;
+
+  const { userId } = await auth();
+  if (!userId) return null;
+
+  const [db, clerkUser] = await Promise.all([supabase(), currentUser()]);
   if (!db) return null;
-  const {
-    data: { user },
-  } = await db.auth.getUser();
-  if (!user) return null;
-  const [{ data: profile }, { data: admin }] = await Promise.all([
+
+  const [profileResult, adminResult] = await Promise.all([
     db
       .from("profiles")
       .select("full_name,address,phone")
-      .eq("id", user.id)
+      .eq("id", userId)
       .maybeSingle(),
-    db.from("admins").select("user_id").eq("user_id", user.id).maybeSingle(),
+    db.from("admins").select("user_id").eq("user_id", userId).maybeSingle(),
   ]);
-  return { user, profile: profile as Profile | null, isAdmin: Boolean(admin) };
+
+  const email =
+    clerkUser?.primaryEmailAddress?.emailAddress ??
+    clerkUser?.emailAddresses[0]?.emailAddress ??
+    "";
+  const name =
+    clerkUser?.fullName ??
+    [clerkUser?.firstName, clerkUser?.lastName].filter(Boolean).join(" ");
+
+  return {
+    id: userId,
+    email,
+    name,
+    profile: profileResult.error
+      ? null
+      : (profileResult.data as Profile | null),
+    isAdmin: !adminResult.error && Boolean(adminResult.data),
+  };
 });
 export async function requireAdmin() {
   const account = await getAccount();
