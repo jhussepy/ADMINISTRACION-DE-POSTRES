@@ -14,7 +14,11 @@ export const metadata: Metadata = {
 export default async function Catalog({
   searchParams,
 }: {
-  searchParams: Promise<{ categoria?: string; buscar?: string }>;
+  searchParams: Promise<{
+    categoria?: string;
+    buscar?: string;
+    orden?: string;
+  }>;
 }) {
   const [products, account, params] = await Promise.all([
     getProducts(),
@@ -23,14 +27,21 @@ export default async function Catalog({
   ]);
   const category =
     categories.find((item) => item === params.categoria) ?? "Todos";
+  const sort =
+    params.orden === "price-asc" ||
+    params.orden === "price-desc" ||
+    params.orden === "name"
+      ? params.orden
+      : "recommended";
   return (
     <Storefront
-      key={`${category}-${params.buscar ?? ""}`}
+      key={`${category}-${params.buscar ?? ""}-${sort}`}
       view="catalog"
       initialCategory={category}
       initialQuery={
         typeof params.buscar === "string" ? params.buscar.slice(0, 100) : ""
       }
+      initialSort={sort}
       products={products}
       account={
         account
