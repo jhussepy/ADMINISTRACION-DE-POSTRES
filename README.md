@@ -65,8 +65,8 @@ La prueba de navegador está en `tests/storefront.spec.ts` y se ejecuta con `npm
 - `lib/products.ts`: catálogo inicial y diseños disponibles.
 - `lib/demo-catalog.ts`: valores de muestra reemplazables por los reales.
 - `lib/supabase/`: cliente de servidor con cookies.
-- `supabase/schema.sql`: esquema completo para instalaciones nuevas.
-- `supabase/variants-v2.sql`: migración incremental para activar presentaciones y precios reales sin reinstalar la base.
+- `supabase/schema.sql`: esquema base de productos, perfiles, pedidos, administración y datos iniciales.
+- `supabase/variants-v2.sql`: activa Commerce V2 con presentaciones y precios reales. En una instalación nueva, ejecútalo inmediatamente después de `schema.sql`.
 - `docs/`: configuración, alcance y notas de verificación.
 
 ## Límites de esta primera versión
