@@ -15,7 +15,6 @@ alter table public.admins
 alter table public.profiles
   alter column id type text using id::text;
 
-drop function if exists public.is_admin();
 
 create or replace function public.is_admin()
 returns boolean
