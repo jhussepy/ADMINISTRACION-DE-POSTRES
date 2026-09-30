@@ -54,6 +54,12 @@ test("dashboard excludes quotations from financial totals", () => {
         deposit_cents: 5000,
       }),
       order({
+        id: "55555555-5555-4555-8555-555555555555",
+        status: "Confirmado",
+        total_cents: 12000,
+        deposit_cents: 2000,
+      }),
+      order({
         id: "44444444-4444-4444-8444-444444444444",
         status: "Cancelado",
         total_cents: 7000,
@@ -67,8 +73,8 @@ test("dashboard excludes quotations from financial totals", () => {
   assert.equal(metrics.today, 1);
   assert.equal(metrics.tomorrow, 1);
   assert.equal(metrics.quotes, 1);
-  assert.equal(metrics.confirmedAmount, 15000);
-  assert.equal(metrics.outstanding, 8000);
+  assert.equal(metrics.confirmedAmount, 17000);
+  assert.equal(metrics.outstanding, 10000);
 });
 
 test("calendar helpers use stable ISO dates and Monday-first grids", () => {
