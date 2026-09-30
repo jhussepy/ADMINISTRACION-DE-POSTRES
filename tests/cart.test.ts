@@ -13,6 +13,7 @@ import { initialProducts } from "../lib/products";
 import type { CheckoutDetails } from "../lib/types";
 const details: CheckoutDetails = {
   name: "María & José",
+  phone: "934 219 749",
   delivery: "delivery",
   address: "Ventanilla, calle 123",
   date: "2099-09-30",
@@ -96,6 +97,7 @@ test("WhatsApp uses correct recipient and encodes accents, plus signs and newlin
   assert.equal(url.pathname, "/51934219749");
   const text = url.searchParams.get("text")!;
   assert.match(text, /María & José/);
+  assert.match(text, /Teléfono: 934 219 749/);
   assert.match(text, /Cumpleaños \+ fresas/);
   assert.match(text, /2 × Cheesecake de fresa/);
   assert.match(text, /Estimado de muestra/);
@@ -104,6 +106,19 @@ test("WhatsApp uses correct recipient and encodes accents, plus signs and newlin
   assert.match(text, /Delivery: costo por confirmar/);
   assert.ok(text.includes("\n"));
   assert.throws(() => whatsappUrl([], initialProducts, details));
+});
+
+test("WhatsApp includes the Yemape order code after automatic registration", () => {
+  const message = new URL(
+    whatsappUrl(
+      [{ id: "cheesecake-fresa", quantity: 1 }],
+      initialProducts,
+      details,
+      "YMP-2099-0001",
+    ),
+  ).searchParams.get("text")!;
+  assert.match(message, /Código de pedido: YMP-2099-0001/);
+  assert.match(message, /solicitud ya quedó registrada en Yemape/i);
 });
 test("separate presentations survive cart normalization and cannot be forged", () => {
   const cart = normalizeCart(
