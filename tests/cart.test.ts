@@ -97,12 +97,12 @@ test("WhatsApp uses correct recipient and encodes accents, plus signs and newlin
   assert.equal(url.pathname, "/51934219749");
   const text = url.searchParams.get("text")!;
   assert.match(text, /María & José/);
-  assert.match(text, /Teléfono: 934 219 749/);
+  assert.match(text, /📱 934 219 749/);
   assert.match(text, /Cumpleaños \+ fresas/);
   assert.match(text, /2 × Cheesecake de fresa/);
   assert.match(text, /REPOSTERÍA YEMAPE/);
   assert.match(text, /Precio pendiente de confirmación/);
-  assert.match(text, /Total:\* Pendiente de cotización|\*Total:\* Pendiente de cotización/);
+  assert.match(text, /\*Total:\* Pendiente de cotización/);
   assert.doesNotMatch(text, /S\/\s*36\.00/);
   assert.match(text, /Pendiente de confirmación de disponibilidad y pago/);
   assert.match(text, /Costo de delivery: por confirmar/);
@@ -142,8 +142,10 @@ test("separate presentations survive cart normalization and cannot be forged", (
   const message = new URL(
     whatsappUrl(cart, initialProducts, details),
   ).searchParams.get("text")!;
-  assert.match(message, /2 × Pie de limón — Porción/);
-  assert.match(message, /1 × Pie de limón — Entero/);
+  assert.match(message, /2 × Pie de limón/);
+  assert.match(message, /Porción — Precio pendiente de confirmación/);
+  assert.match(message, /1 × Pie de limón/);
+  assert.match(message, /Entero · aprox\. 10 porciones — Precio pendiente de confirmación/);
   assert.match(message, /Precio pendiente de confirmación/);
   assert.doesNotMatch(message, /S\/\s*110\.00/);
 });
@@ -158,7 +160,7 @@ test("gift note and occasion are included but cannot exceed limits", () => {
     whatsappUrl([{ id: "pie-manzana", quantity: 1 }], initialProducts, order),
   ).searchParams.get("text")!;
   assert.match(message, /Ocasión: Cumpleaños/);
-  assert.match(message, /Dedicatoria solicitada: ¡Feliz día, Ana!/);
+  assert.match(message, /Dedicatoria: ¡Feliz día, Ana!/);
   assert.ok(
     checkoutError({ ...order, giftNote: "x".repeat(181) }, "2099-09-30"),
   );
@@ -190,7 +192,7 @@ test("personalized cake requires guests and carries its details to WhatsApp", ()
   );
   const message = url.searchParams.get("text")!;
   assert.match(message, /Personas: 12/);
-  assert.match(message, /Sabor deseado: Chocolate/);
+  assert.match(message, /Sabor: Chocolate/);
   assert.match(message, /Diseño o temática: Flores pastel/);
   assert.throws(() =>
     whatsappUrl([{ id: "torta-personalizada", quantity: 1 }], initialProducts, {
@@ -250,7 +252,8 @@ test("real Supabase variants override demo presentations and checkout validation
   const message = new URL(
     whatsappUrl(cart, products, details),
   ).searchParams.get("text")!;
-  assert.match(message, /2 × Torta de chocolate — Familiar · 20 porciones/);
+  assert.match(message, /2 × Torta de chocolate/);
+  assert.match(message, /Familiar · 20 porciones — S\/\s*300\.00/);
   assert.doesNotMatch(message, /Familiar · 20 porciones:.*\(ejemplo\)/i);
   assert.doesNotMatch(message, /Precio pendiente de confirmación/i);
   assert.match(message, /\*Total:\* S\/\s*300\.00/);
