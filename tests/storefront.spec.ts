@@ -331,8 +331,9 @@ test("public catalogue, cart persistence, guest checkout and WhatsApp handoff", 
   expect(message).toContain("Celebración + fresas");
   expect(message).toContain("Ocasión: Cumpleaños");
   expect(message).toContain("Dedicatoria solicitada: Feliz día, María");
-  expect(message).toContain("importes y presentaciones de ejemplo");
-  expect(message).toContain("aún no está confirmado");
+  expect(message).toContain("Precio pendiente de confirmación");
+  expect(message).toContain("Pendiente de confirmación de disponibilidad y pago");
+  expect(message).not.toContain("(ejemplo)");
   await page.goto("/catalogo");
   await expect(
     page.getByRole("button", {
@@ -584,7 +585,8 @@ test("photographic catalogue filters and new products reach the WhatsApp handoff
     "Terremoto de lúcuma",
   ])
     expect(message).toContain(`1 × ${name}`);
-  expect(message).toContain("Estimado de muestra");
+  expect(message).toContain("Precio pendiente de confirmación");
+  expect(message).toContain("Pendiente de cotización");
   expect(errors).toEqual([]);
 });
 
