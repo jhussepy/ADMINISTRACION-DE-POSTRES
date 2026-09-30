@@ -47,7 +47,14 @@ export default async function DeliveryCalendarPage({
 
   const selectedStatus = orderStatuses.find((status) => status === params.estado);
   if (selectedStatus) query = query.eq("status", selectedStatus);
-  else query = query.neq("status", "Cancelado");
+  else
+    query = query.in("status", [
+      "Nuevo",
+      "Por confirmar",
+      "Confirmado",
+      "En preparación",
+      "Listo",
+    ]);
 
   const { data, error } = await query;
   if (error) throw new Error("No se pudo cargar el calendario de entregas.");
