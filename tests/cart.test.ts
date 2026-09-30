@@ -100,10 +100,12 @@ test("WhatsApp uses correct recipient and encodes accents, plus signs and newlin
   assert.match(text, /Teléfono: 934 219 749/);
   assert.match(text, /Cumpleaños \+ fresas/);
   assert.match(text, /2 × Cheesecake de fresa/);
-  assert.match(text, /Estimado de muestra/);
-  assert.match(text, /no son precios finales/);
-  assert.match(text, /aún no está confirmado/);
-  assert.match(text, /Delivery: costo por confirmar/);
+  assert.match(text, /REPOSTERÍA YEMAPE/);
+  assert.match(text, /Precio pendiente de confirmación/);
+  assert.match(text, /Total:\* Pendiente de cotización|\*Total:\* Pendiente de cotización/);
+  assert.doesNotMatch(text, /S\/\s*36\.00/);
+  assert.match(text, /Pendiente de confirmación de disponibilidad y pago/);
+  assert.match(text, /Costo de delivery: por confirmar/);
   assert.ok(text.includes("\n"));
   assert.throws(() => whatsappUrl([], initialProducts, details));
 });
@@ -117,8 +119,8 @@ test("WhatsApp includes the Yemape order code after automatic registration", () 
       "YMP-2099-0001",
     ),
   ).searchParams.get("text")!;
-  assert.match(message, /Código de pedido: YMP-2099-0001/);
-  assert.match(message, /solicitud ya quedó registrada en Yemape/i);
+  assert.match(message, /Pedido YMP-2099-0001/);
+  assert.match(message, /Solicitud registrada con código YMP-2099-0001/);
 });
 test("separate presentations survive cart normalization and cannot be forged", () => {
   const cart = normalizeCart(
@@ -142,7 +144,8 @@ test("separate presentations survive cart normalization and cannot be forged", (
   ).searchParams.get("text")!;
   assert.match(message, /2 × Pie de limón — Porción/);
   assert.match(message, /1 × Pie de limón — Entero/);
-  assert.match(message, /importes y presentaciones de ejemplo/);
+  assert.match(message, /Precio pendiente de confirmación/);
+  assert.doesNotMatch(message, /S\/\s*110\.00/);
 });
 test("gift note and occasion are included but cannot exceed limits", () => {
   const order = {
@@ -249,6 +252,7 @@ test("real Supabase variants override demo presentations and checkout validation
   ).searchParams.get("text")!;
   assert.match(message, /2 × Torta de chocolate — Familiar · 20 porciones/);
   assert.doesNotMatch(message, /Familiar · 20 porciones:.*\(ejemplo\)/i);
-  assert.doesNotMatch(message, /IMPORTANTE: importes y presentaciones de ejemplo/i);
+  assert.doesNotMatch(message, /Precio pendiente de confirmación/i);
+  assert.match(message, /\*Total:\* S\/\s*300\.00/);
   assert.doesNotMatch(message, /Presentación interna/);
 });
