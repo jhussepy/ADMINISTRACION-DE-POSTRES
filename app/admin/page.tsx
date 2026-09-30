@@ -87,7 +87,7 @@ export default async function AdminPage() {
 
         <Link
           className="dashboard-kpi"
-          href="/admin/pedidos?estado=En%20preparaci%C3%B3n"
+          href="/admin/pedidos"
         >
           <span>
             <ChefHat size={18} /> En operación
@@ -104,7 +104,10 @@ export default async function AdminPage() {
           <small>{metrics.tomorrow} programadas para mañana</small>
         </Link>
 
-        <Link className="dashboard-kpi is-quote" href="/admin/pedidos">
+        <Link
+          className="dashboard-kpi is-quote"
+          href="/admin/pedidos?cotizacion=pendiente"
+        >
           <span>
             <ReceiptText size={18} /> Cotización pendiente
           </span>
