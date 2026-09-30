@@ -1,5 +1,5 @@
 import type { CartItem, Product, CheckoutDetails } from "./types";
-import { DEMO_MODE, presentation } from "./demo-catalog";
+import { presentation } from "./demo-catalog";
 export const CART_KEY = "yemape-cart-v1";
 export const MAX_QUANTITY = 20;
 export const WHATSAPP = "51934219749";
@@ -171,9 +171,7 @@ export function whatsappUrl(
       ? `Dirección: ${details.address.trim()}`
       : "Punto y horario de recojo: por confirmar.",
     details.delivery === "delivery"
-      ? DEMO_MODE
-        ? "Costo de delivery: por confirmar."
-        : "Costo de delivery: por confirmar."
+      ? "Costo de delivery: por confirmar."
       : undefined,
     `📅 Fecha solicitada: ${date}`,
     details.occasion?.trim()
