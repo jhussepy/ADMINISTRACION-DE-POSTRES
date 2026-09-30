@@ -131,3 +131,23 @@ El checkout no confía en precios enviados por el navegador. Al finalizar:
 La columna `checkout_key` es única y evita duplicados cuando el cliente toca dos veces o reintenta la misma solicitud.
 
 Los productos que todavía no tienen precio real se registran como **por cotizar**; Pedidos V2 nunca utiliza un precio ficticio del navegador como importe oficial.
+
+
+## Dashboard V2, calendario y WhatsApp V2
+
+Esta etapa no requiere una migración SQL adicional después de `orders-v2.sql`.
+
+- `/admin` muestra el centro de operaciones: atención pendiente, producción, entregas, cotizaciones e importes confirmados.
+- Los pedidos **Nuevo**, **Por confirmar** o con `quote_required=true` no se contabilizan como ventas confirmadas.
+- `/admin/calendario` organiza pedidos operativos por fecha de entrega y permite navegar por meses y estados.
+- El filtro **Cotización pendiente** en Pedidos abre directamente las solicitudes que todavía necesitan precio.
+- WhatsApp no muestra importes de `demo-catalog.ts` como si fueran precios oficiales. En su lugar usa **Precio pendiente de confirmación**.
+- Cuando una presentación tiene precio real, WhatsApp sí muestra ese importe y el pedido puede entrar en métricas financieras después de ser confirmado.
+
+Para verificar esta etapa:
+
+1. Crea una solicitud con un producto que todavía use precios demo y confirma que WhatsApp diga **Precio pendiente de confirmación**.
+2. Comprueba que el pedido aparezca como cotización pendiente y no incremente **Importe acordado**.
+3. Cambia el pedido a **Confirmado** únicamente después de definir su total real; entonces debe aparecer en las métricas.
+4. Abre `/admin/calendario` y confirma que el pedido aparezca en la fecha solicitada.
+5. Navega al mes anterior/siguiente y prueba los filtros de estado.
