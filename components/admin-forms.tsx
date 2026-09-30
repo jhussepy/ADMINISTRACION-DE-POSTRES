@@ -650,14 +650,26 @@ export function OrderUpdateForm({ order }: { order: Order }) {
   return (
     <form action={action} className="stack-form">
       <input type="hidden" name="id" value={order.id} />
+      <label>
+        Estado
+        <select name="status" defaultValue={order.status}>
+          {orderStatuses.map((s) => (
+            <option key={s}>{s}</option>
+          ))}
+        </select>
+      </label>
       <div className="two-cols">
         <label>
-          Estado
-          <select name="status" defaultValue={order.status}>
-            {orderStatuses.map((s) => (
-              <option key={s}>{s}</option>
-            ))}
-          </select>
+          Total acordado (S/)
+          <input
+            name="total"
+            type="number"
+            min="0"
+            max="999999.99"
+            step="0.01"
+            defaultValue={(order.total_cents / 100).toFixed(2)}
+            required
+          />
         </label>
         <label>
           Importe abonado (S/)
@@ -665,16 +677,30 @@ export function OrderUpdateForm({ order }: { order: Order }) {
             name="deposit"
             type="number"
             min="0"
-            max={order.total_cents / 100}
+            max="999999.99"
             step="0.01"
             defaultValue={(order.deposit_cents / 100).toFixed(2)}
             required
           />
         </label>
       </div>
+      <label className="checkbox-label">
+        <input
+          name="quote_resolved"
+          type="checkbox"
+          defaultChecked={!order.quote_required}
+        />
+        Precio final completamente confirmado
+      </label>
+      {order.quote_required && (
+        <p className="subtle">
+          Introduce el total acordado y marca esta casilla cuando termines la
+          cotización.
+        </p>
+      )}
       <Feedback state={state} />
       <button className="button secondary" disabled={pending}>
-        {pending ? "Guardando…" : "Actualizar"}
+        {pending ? "Guardando…" : "Actualizar pedido"}
       </button>
     </form>
   );
