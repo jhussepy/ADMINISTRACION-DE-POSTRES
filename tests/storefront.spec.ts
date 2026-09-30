@@ -87,7 +87,7 @@ test("custom cake page leads to guest WhatsApp order with customer details", asy
   const message = new URL(whatsapp).searchParams.get("text")!;
   expect(message).toContain("Tu torta, tu celebración");
   expect(message).toContain("Personas: 12");
-  expect(message).toContain("Sabor deseado: Chocolate");
+  expect(message).toContain("Sabor: Chocolate");
   expect(message).toContain("Diseño o temática: Flores en tonos pastel");
   expect(message).toContain("Dedicatoria para María");
 });
@@ -206,9 +206,11 @@ test("two presentations stay separate in the cart and WhatsApp describes the exa
     waitUntil: "load",
   });
   const message = new URL(whatsapp).searchParams.get("text")!;
-  expect(message).toContain("Pie de limón — Porción");
-  expect(message).toContain("Pie de limón — Entero");
-  expect(message).toContain("no son precios finales");
+  expect(message).toContain("1 × Pie de limón");
+  expect(message).toContain("Porción — Precio pendiente de confirmación");
+  expect(message).toContain("Entero · aprox. 10 porciones — Precio pendiente de confirmación");
+  expect(message).toContain("Pendiente de cotización");
+  expect(message).not.toContain("(ejemplo)");
 });
 test("front-page categories open a filtered carta and preserve the cart", async ({
   page,
