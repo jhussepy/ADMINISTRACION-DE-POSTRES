@@ -21,7 +21,8 @@ Primera versión de la tienda de **Repostería Yemape**, desarrollada con Next.j
 - **Commerce V2:** múltiples presentaciones reales por producto, cada una con precio propio, disponibilidad y orden, administradas desde `/admin/productos`.
 - **Galería V3:** carga de fotografías directamente desde Administración mediante Supabase Storage, hasta 8 por producto, con portada, orden, visibilidad y galería pública.
 - **Nuevo Producto V4:** alta guiada con precio de porción individual y entero, foto propia desde el primer formulario y sin reutilizar diseños de otros productos.
-- Pedidos: registro manual, fecha de entrega, total, importe abonado y estados. Resumen de productos visibles, pedidos por atender y saldo por cobrar.
+- **Pedidos V2:** registro automático antes de abrir WhatsApp, código único `YMP-AAAA-0001`, snapshot histórico de productos/precios, vínculo opcional con Clerk, estados operativos y ficha completa en Administración.
+- Pedidos manuales: siguen disponibles para teléfono, Instagram o chats externos, usando el mismo flujo de estados y códigos.
 
 **Modo demostrativo:** `lib/demo-catalog.ts` sigue proporcionando tamaños y precios de ejemplo mientras un producto no tenga variantes reales. La web y el mensaje de WhatsApp los marcan expresamente como ejemplos.
 
@@ -72,13 +73,14 @@ La prueba de navegador está en `tests/storefront.spec.ts` y se ejecuta con `npm
 - `supabase/clerk-auth.sql`: migra perfiles y autorización a Clerk.
 - `supabase/product-images-v3.sql`: crea el bucket y la galería segura de imágenes administrables.
 - `supabase/new-product-v4.sql`: permite el placeholder neutro y futuras imágenes locales sin mantener una lista rígida en la base de datos.
+- `supabase/orders-v2.sql`: activa códigos públicos, snapshot histórico, estados V2 y creación automática segura de solicitudes web.
 - `docs/`: configuración, alcance y notas de verificación.
 
 ## Límites de esta primera versión
 
-- Abrir WhatsApp no envía el mensaje por sí solo, no cobra y no confirma una compra. El cliente debe enviarlo; el negocio debe acordar disponibilidad, precio y entrega.
+- Abrir WhatsApp no envía el mensaje por sí solo, no cobra y no confirma una compra. Con Pedidos V2, la solicitud ya queda registrada antes de abrir el chat; el negocio aún debe confirmar disponibilidad, precio final y entrega.
 - El carrito no se borra al abrir WhatsApp. Se conserva en ese navegador; no se sincroniza entre dispositivos.
-- Los mensajes de WhatsApp no se importan automáticamente: los pedidos se registran en el panel después de coordinarlos.
+- Pedidos V2 registra la solicitud de la web automáticamente; conversaciones o pedidos que nazcan directamente fuera de la web todavía se registran manualmente.
 - Cuentas y administración requieren Clerk, Supabase, la migración `supabase/clerk-auth.sql` y un Clerk User ID autorizado como administrador.
 - Las fotografías iniciales siguen sirviendo como respaldo. Tras activar Galería V3, las nuevas imágenes pueden administrarse desde el panel sin modificar GitHub.
 - Inventario de ingredientes, costos de recetas, egresos y reportes completos corresponden a una siguiente etapa; el saldo por cobrar no equivale a ganancia.
