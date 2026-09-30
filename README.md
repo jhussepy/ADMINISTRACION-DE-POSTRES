@@ -20,6 +20,7 @@ Primera versión de la tienda de **Repostería Yemape**, desarrollada con Next.j
 - Productos: alta, edición, categoría, orden y visibilidad.
 - **Commerce V2:** múltiples presentaciones reales por producto, cada una con precio propio, disponibilidad y orden, administradas desde `/admin/productos`.
 - **Galería V3:** carga de fotografías directamente desde Administración mediante Supabase Storage, hasta 8 por producto, con portada, orden, visibilidad y galería pública.
+- **Nuevo Producto V4:** alta guiada con precio de porción individual y entero, foto propia desde el primer formulario y sin reutilizar diseños de otros productos.
 - Pedidos: registro manual, fecha de entrega, total, importe abonado y estados. Resumen de productos visibles, pedidos por atender y saldo por cobrar.
 
 **Modo demostrativo:** `lib/demo-catalog.ts` sigue proporcionando tamaños y precios de ejemplo mientras un producto no tenga variantes reales. La web y el mensaje de WhatsApp los marcan expresamente como ejemplos.
@@ -70,6 +71,7 @@ La prueba de navegador está en `tests/storefront.spec.ts` y se ejecuta con `npm
 - `supabase/variants-v2.sql`: activa Commerce V2 con presentaciones y precios reales.
 - `supabase/clerk-auth.sql`: migra perfiles y autorización a Clerk.
 - `supabase/product-images-v3.sql`: crea el bucket y la galería segura de imágenes administrables.
+- `supabase/new-product-v4.sql`: permite el placeholder neutro y futuras imágenes locales sin mantener una lista rígida en la base de datos.
 - `docs/`: configuración, alcance y notas de verificación.
 
 ## Límites de esta primera versión
