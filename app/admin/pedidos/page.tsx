@@ -8,7 +8,7 @@ import { money } from "@/lib/cart";
 export default async function OrdersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ estado?: string }>;
+  searchParams: Promise<{ estado?: string; cotizacion?: string }>;
 }) {
   const db = await requireAdmin();
   const params = await searchParams;
@@ -23,6 +23,8 @@ export default async function OrdersPage({
 
   if (orderStatuses.some((status) => status === params.estado))
     query = query.eq("status", params.estado!);
+  if (params.cotizacion === "pendiente")
+    query = query.eq("quote_required", true);
 
   const { data, error } = await query;
   if (error) throw new Error("No se pudieron cargar los pedidos.");
@@ -56,6 +58,9 @@ export default async function OrdersPage({
         <section className="admin-list">
           <nav className="admin-nav orders-filter" aria-label="Filtrar pedidos">
             <Link href="/admin/pedidos">Todos</Link>
+            <Link href="/admin/pedidos?cotizacion=pendiente">
+              Cotización pendiente
+            </Link>
             {orderStatuses.map((status) => (
               <Link
                 key={status}
