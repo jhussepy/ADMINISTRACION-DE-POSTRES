@@ -40,6 +40,9 @@ update public.orders
 set public_code = public.next_order_code()
 where public_code is null;
 
+alter table public.orders
+  drop constraint if exists orders_status_check;
+
 update public.orders
 set status = 'Por confirmar'
 where status = 'Pendiente';
@@ -48,8 +51,6 @@ alter table public.orders
   alter column public_code set default public.next_order_code(),
   alter column public_code set not null;
 
-alter table public.orders
-  drop constraint if exists orders_status_check;
 alter table public.orders
   add constraint orders_status_check
   check (
