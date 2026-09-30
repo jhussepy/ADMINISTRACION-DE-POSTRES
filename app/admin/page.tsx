@@ -27,8 +27,8 @@ export default async function AdminPage() {
         <h2>Hoy en Yemape</h2>
         <p>{summary.today} pedidos por entregar hoy.</p>
         <p className="subtle">
-          Este resumen incluye los pedidos que registraste aquí. Los mensajes de
-          WhatsApp no se importan automáticamente.
+          Este resumen incluye pedidos manuales y solicitudes creadas
+          automáticamente desde la tienda antes de abrir WhatsApp.
         </p>
         <Link href="/admin/pedidos" className="text-link">
           Organizar mis pedidos →
