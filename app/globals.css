@@ -4203,3 +4203,23 @@ legend {
     grid-template-columns: 1fr;
   }
 }
+
+
+.admin-create-success {
+  margin-bottom: 4px;
+  padding: 14px 16px;
+  border: 1px solid #cfe0d2;
+  border-radius: 11px;
+  background: #f5faf6;
+  display: grid;
+  gap: 4px;
+}
+.admin-create-success strong {
+  color: #315c40;
+  font-size: 12px;
+}
+.admin-create-success p {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.55;
+}
