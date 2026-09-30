@@ -330,7 +330,7 @@ test("public catalogue, cart persistence, guest checkout and WhatsApp handoff", 
   expect(message).toContain("María & José");
   expect(message).toContain("Celebración + fresas");
   expect(message).toContain("Ocasión: Cumpleaños");
-  expect(message).toContain("Dedicatoria solicitada: Feliz día, María");
+  expect(message).toContain("Dedicatoria: Feliz día, María");
   expect(message).toContain("Precio pendiente de confirmación");
   expect(message).toContain("Pendiente de confirmación de disponibilidad y pago");
   expect(message).not.toContain("(ejemplo)");
