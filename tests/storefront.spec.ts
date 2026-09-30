@@ -59,6 +59,7 @@ test("custom cake page leads to guest WhatsApp order with customer details", asy
   await expect(cart).toBeVisible();
   await cart.getByRole("button", { name: "Continuar como invitado" }).click();
   await cart.getByLabel("Tu nombre", { exact: true }).fill("Cliente de prueba");
+  await cart.getByLabel("Teléfono para coordinar").fill("934 219 749");
   await cart.getByLabel("Fecha deseada").fill("2099-09-30");
   await cart.getByLabel("¿Para cuántas personas?").fill("12");
   await cart.getByLabel("Sabor que te gustaría").fill("Chocolate");
@@ -187,6 +188,7 @@ test("two presentations stay separate in the cart and WhatsApp describes the exa
   await restored
     .getByLabel("Tu nombre", { exact: true })
     .fill("Cliente de prueba");
+  await restored.getByLabel("Teléfono para coordinar").fill("934 219 749");
   await restored.getByLabel("Fecha deseada").fill("2099-09-30");
   let whatsapp = "";
   await page.route("https://wa.me/**", async (route) => {
@@ -295,6 +297,7 @@ test("public catalogue, cart persistence, guest checkout and WhatsApp handoff", 
   await dialog.getByLabel("Tu nombre", { exact: true }).fill("María & José");
   await dialog.getByRole("radio", { name: "Delivery", exact: true }).check();
   await dialog.getByLabel("Distrito y dirección").fill("Ventanilla, calle 123");
+  await dialog.getByLabel("Teléfono para coordinar").fill("934 219 749");
   await dialog.getByLabel("Fecha deseada").fill("2099-09-30");
   await dialog
     .getByLabel("¿Algo que debamos saber?")
@@ -442,6 +445,7 @@ test("product details support quantities, keyboard closing and mobile cart acces
   const cart = page.getByRole("dialog", { name: "Tu carrito", exact: true });
   await cart.getByRole("button", { name: "Continuar como invitado" }).click();
   await page.getByLabel("Tu nombre", { exact: true }).fill("Cliente de prueba");
+  await page.getByLabel("Teléfono para coordinar").fill("934 219 749");
   await page.getByLabel("Fecha deseada").fill("2099-09-30");
   await expect(
     page.getByRole("heading", { name: "Revisa tu selección" }),
@@ -450,6 +454,9 @@ test("product details support quantities, keyboard closing and mobile cart acces
   await page.getByRole("button", { name: "Continuar como invitado" }).click();
   await expect(page.getByLabel("Tu nombre", { exact: true })).toHaveValue(
     "Cliente de prueba",
+  );
+  await expect(page.getByLabel("Teléfono para coordinar")).toHaveValue(
+    "934 219 749",
   );
   await expect(page.getByLabel("Fecha deseada")).toHaveValue("2099-09-30");
   await page.keyboard.press("Escape");
@@ -540,6 +547,7 @@ test("photographic catalogue filters and new products reach the WhatsApp handoff
     .getByRole("button", { name: "Continuar como invitado", exact: true })
     .click();
   await page.getByLabel("Tu nombre", { exact: true }).fill("Pedido de prueba");
+  await page.getByLabel("Teléfono para coordinar").fill("934 219 749");
   await page.getByLabel("Fecha deseada").fill("2099-09-30");
   for (const name of [
     "Torta de chocolate",
