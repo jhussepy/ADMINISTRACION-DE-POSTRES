@@ -11,7 +11,7 @@ import { money } from "@/lib/cart";
 export default async function ProductsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ editar?: string }>;
+  searchParams: Promise<{ editar?: string; creado?: string }>;
 }) {
   const db = await requireAdmin();
   const [{ data, error }, variantsResult, imagesResult, params] =
