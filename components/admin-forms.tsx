@@ -20,7 +20,6 @@ import {
   type Order,
   type ActionState,
 } from "@/lib/types";
-import { productImages } from "@/lib/products";
 function Feedback({ state }: { state: ActionState }) {
   return (
     <>
@@ -39,9 +38,31 @@ function Feedback({ state }: { state: ActionState }) {
 }
 export function ProductForm({ product }: { product?: Product }) {
   const [state, action, pending] = useActionState(saveProduct, {});
+  const isNew = !product;
+
   return (
-    <form action={action} className="stack-form">
+    <form action={action} className="stack-form product-core-form">
       <input type="hidden" name="id" value={product?.id ?? ""} />
+      <input
+        type="hidden"
+        name="presentation"
+        value={product?.presentation ?? "Varias presentaciones"}
+      />
+      <input
+        type="hidden"
+        name="price"
+        value={
+          product?.price_cents == null
+            ? ""
+            : (product.price_cents / 100).toFixed(2)
+        }
+      />
+      <input
+        type="hidden"
+        name="image"
+        value={product?.image ?? "/images/product-placeholder.svg"}
+      />
+
       <label>
         Nombre
         <input
@@ -50,70 +71,121 @@ export function ProductForm({ product }: { product?: Product }) {
           required
           minLength={3}
           maxLength={120}
+          placeholder="Ej.: Keke de zanahoria con almendras y pasas"
         />
       </label>
+
       <label>
         Descripción
         <textarea
           name="description"
           defaultValue={product?.description ?? ""}
-          rows={3}
+          rows={4}
           maxLength={500}
+          placeholder="Describe sabor, textura y para qué ocasión lo recomiendas."
         />
       </label>
-      <div className="two-cols">
-        <label>
-          Categoría
-          <select
-            name="category"
-            defaultValue={product?.category ?? "Cheesecakes"}
-          >
-            {categories.map((c) => (
-              <option key={c}>{c}</option>
-            ))}
-          </select>
-        </label>
-        <label>
-          Precio en soles
-          <input
-            name="price"
-            type="number"
-            min="0"
-            step="0.01"
-            max="999999.99"
-            defaultValue={
-              product?.price_cents == null
-                ? ""
-                : (product.price_cents / 100).toFixed(2)
-            }
-            placeholder="Vacío = por cotizar"
-          />
-        </label>
-      </div>
+
       <label>
-        Presentación
-        <input
-          name="presentation"
-          defaultValue={product?.presentation ?? ""}
-          placeholder="Ej.: Torta entera · 12 porciones"
-          required
-          minLength={2}
-          maxLength={120}
-        />
-      </label>
-      <label>
-        Diseño de producto
+        Categoría
         <select
-          name="image"
-          defaultValue={product?.image ?? productImages[0].path}
+          name="category"
+          defaultValue={product?.category ?? "Kekes"}
         >
-          {productImages.map((i) => (
-            <option value={i.path} key={i.path}>
-              {i.label}
-            </option>
+          {categories.map((c) => (
+            <option key={c}>{c}</option>
           ))}
         </select>
       </label>
+
+      {isNew ? (
+        <>
+          <section className="new-product-variants">
+            <div>
+              <span className="eyebrow">PRECIOS INICIALES</span>
+              <h3>¿Cómo lo venderás?</h3>
+              <p>
+                Crea de una vez la porción individual y el producto entero.
+                Después podrás añadir otros tamaños.
+              </p>
+            </div>
+
+            <div className="initial-variant-grid">
+              <label className="initial-variant-card">
+                <span className="initial-variant-title">
+                  <input
+                    name="initial_portion_active"
+                    type="checkbox"
+                    defaultChecked
+                  />
+                  <strong>Porción individual</strong>
+                </span>
+                <span>Precio por porción (S/)</span>
+                <input
+                  name="initial_portion_price"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  max="999999.99"
+                  placeholder="Ej.: 8.00"
+                />
+                <small>Puede quedar vacío si todavía vas a cotizar.</small>
+              </label>
+
+              <label className="initial-variant-card">
+                <span className="initial-variant-title">
+                  <input
+                    name="initial_whole_active"
+                    type="checkbox"
+                    defaultChecked
+                  />
+                  <strong>Entero</strong>
+                </span>
+                <span>Precio entero (S/)</span>
+                <input
+                  name="initial_whole_price"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  max="999999.99"
+                  placeholder="Ej.: 45.00"
+                />
+                <small>Luego puedes añadir mediano, grande, caja, etc.</small>
+              </label>
+            </div>
+          </section>
+
+          <section className="new-product-photo">
+            <div>
+              <span className="eyebrow">FOTO PRINCIPAL</span>
+              <h3>Sube la foto de este producto</h3>
+              <p>
+                Ya no tienes que escoger la imagen de otro postre. Si todavía
+                no tienes foto, se mostrará un diseño neutro hasta que la subas.
+              </p>
+            </div>
+            <label className="media-file-field">
+              <span>Fotografía del producto</span>
+              <input
+                type="file"
+                name="initial_image"
+                accept="image/jpeg,image/png,image/webp"
+                disabled={pending}
+              />
+              <small>JPG, PNG o WebP · máximo 5 MB</small>
+            </label>
+          </section>
+        </>
+      ) : (
+        <div className="product-management-note">
+          <strong>Precios y fotografías se gestionan por separado.</strong>
+          <p>
+            Usa “Presentaciones y precios” y “Galería de fotografías” debajo
+            para modificar importes, tamaños y portada.
+          </p>
+        </div>
+      )}
+
       <label>
         Orden en el catálogo
         <input
@@ -125,6 +197,7 @@ export function ProductForm({ product }: { product?: Product }) {
           required
         />
       </label>
+
       <label className="checkbox-label">
         <input
           name="active"
@@ -133,13 +206,19 @@ export function ProductForm({ product }: { product?: Product }) {
         />{" "}
         Visible en el catálogo
       </label>
+
       <Feedback state={state} />
       <button className="button" disabled={pending}>
-        {pending ? "Guardando…" : "Guardar producto"}
+        {pending
+          ? "Guardando…"
+          : isNew
+            ? "Crear producto"
+            : "Guardar información"}
       </button>
     </form>
   );
 }
+
 export function ProductVariantsPanel({
   product,
   variants,

@@ -11,7 +11,7 @@ import { money } from "@/lib/cart";
 export default async function ProductsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ editar?: string }>;
+  searchParams: Promise<{ editar?: string; creado?: string }>;
 }) {
   const db = await requireAdmin();
   const [{ data, error }, variantsResult, imagesResult, params] =
@@ -79,6 +79,15 @@ export default async function ProductsPage({
           <span className="eyebrow">CATÁLOGO</span>
           <h2>{editing ? "Editar producto" : "Nuevo producto"}</h2>
         </div>
+        {editing && params.creado === "1" && (
+          <div className="admin-create-success" role="status">
+            <strong>Producto creado correctamente.</strong>
+            <p>
+              Ya tiene sus presentaciones iniciales. Ahora puedes ajustar
+              precios, añadir más tamaños y gestionar sus fotografías.
+            </p>
+          </div>
+        )}
         <ProductForm key={editing?.id ?? "new"} product={editing} />
         {editing && (
           <>
@@ -99,8 +108,8 @@ export default async function ProductsPage({
         )}
         {!editing && (
           <p className="subtle admin-edit-hint">
-            Guarda el producto y después pulsa “Editar producto” para añadir
-            presentaciones y precios reales.
+            Al crear el producto se añadirán las presentaciones que selecciones
+            y, si subes una fotografía, quedará publicada como portada.
           </p>
         )}
       </section>

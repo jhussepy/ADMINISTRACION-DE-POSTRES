@@ -9,7 +9,8 @@ La tienda pública y el carrito funcionan sin iniciar sesión. **Clerk** gestion
 3. Ejecuta `supabase/variants-v2.sql` para activar Commerce V2.
 4. Si ya migraste la autenticación a Clerk, ejecuta `supabase/clerk-auth.sql`.
 5. Para activar fotografías administrables, ejecuta `supabase/product-images-v3.sql` una sola vez. Crea un bucket público solo para lectura de imágenes de catálogo; las escrituras siguen limitadas al administrador mediante RLS.
-6. No uses `service_role`, secret keys ni la contraseña de la base de datos en el frontend.
+6. Ejecuta `supabase/new-product-v4.sql` una sola vez para activar el nuevo flujo de alta de productos con foto propia y placeholder neutro.
+7. No uses `service_role`, secret keys ni la contraseña de la base de datos en el frontend.
 
 ## 2. Clerk con Google
 
@@ -93,3 +94,17 @@ Antes de abrirlo a clientes:
 ## Cambiar o añadir imágenes
 
 Las fotografías iniciales permanecen en `public/images/` como respaldo. Con Galería V3 activa, abre `/admin/productos`, edita un producto y usa **Galería de fotografías** para subir JPG, PNG o WebP de hasta 5 MB, elegir portada, ordenar, ocultar o eliminar.
+
+
+## Crear un producto nuevo
+
+En `/admin/productos`, el formulario **Nuevo producto** ya no pide escoger el diseño de otro producto.
+
+1. Escribe nombre, descripción y categoría.
+2. Activa **Porción individual**, **Entero** o ambas.
+3. Escribe un precio para cada presentación, o déjalo vacío para cotizar.
+4. Puedes subir la foto principal en el mismo formulario.
+5. Al crear el producto, la aplicación abre automáticamente su edición.
+6. Desde allí puedes añadir más presentaciones como mediana, grande o caja, y gestionar hasta 8 fotografías.
+
+Si no subes foto al crear el producto, se usa temporalmente un placeholder neutro de Yemape hasta que añadas la fotografía real.

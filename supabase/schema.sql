@@ -41,7 +41,10 @@ create table if not exists public.products (
 alter table public.products drop constraint if exists products_category_check;
 alter table public.products add constraint products_category_check check(category in ('Cheesecakes','Tortas','Kekes','Pies','Postres','Salados'));
 alter table public.products drop constraint if exists products_image_check;
-alter table public.products add constraint products_image_check check(image in ('/images/fresa.webp','/images/maracumango.webp','/images/tortas.webp','/images/triples.webp','/images/torta-chocolate.webp','/images/terremoto-lucuma.webp','/images/keke-arandanos.webp','/images/pie-limon.webp','/images/pie-maracuya.webp','/images/brownie-chocolate.webp','/images/pie-manzana.webp'));
+alter table public.products add constraint products_image_check check(
+  char_length(image) between 1 and 200
+  and image ~ '^/images/[A-Za-z0-9][A-Za-z0-9._-]*$'
+);
 alter table public.products enable row level security;
 revoke all on public.products from anon, authenticated;
 grant select on public.products to anon, authenticated;

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1200" role="img" aria-labelledby="title desc">
+  <title id="title">Fotografía pendiente de Yemape</title>
+  <desc id="desc">Marcador temporal para un producto que todavía no tiene fotografía.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fbf6f1"/>
+      <stop offset="1" stop-color="#efe0d8"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="1200" fill="url(#bg)"/>
+  <circle cx="600" cy="500" r="220" fill="#f7ebe5" stroke="#b46c6a" stroke-width="8"/>
+  <path d="M455 590c44-104 112-162 204-174 58-8 105 10 142 55-31 100-101 171-209 212-61-14-107-45-137-93Z" fill="#fffaf6" stroke="#8f3f48" stroke-width="10"/>
+  <path d="M520 514c35-39 74-61 118-68M505 565c59-42 121-65 186-69M535 617c54-25 104-39 150-41" fill="none" stroke="#d7a39b" stroke-width="14" stroke-linecap="round"/>
+  <text x="600" y="820" text-anchor="middle" fill="#6f2633" font-family="Georgia,serif" font-size="76" font-style="italic">Yemape</text>
+  <text x="600" y="882" text-anchor="middle" fill="#876f67" font-family="Arial,sans-serif" font-size="28" letter-spacing="6">FOTO PENDIENTE</text>
+</svg>

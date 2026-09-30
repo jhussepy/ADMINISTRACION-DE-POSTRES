@@ -136,6 +136,12 @@ export const initialProducts: Product[] = [
 ];
 export const productImages = [
   {
+    path: "/images/product-placeholder.svg",
+    width: 1200,
+    height: 1200,
+    label: "Foto pendiente",
+  },
+  {
     path: "/images/torta-chocolate.webp",
     width: 1122,
     height: 1402,
