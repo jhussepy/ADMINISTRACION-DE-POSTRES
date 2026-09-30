@@ -77,7 +77,7 @@ export default async function AdminPage() {
       </section>
 
       <section className="dashboard-kpis" aria-label="Resumen operativo">
-        <Link className="dashboard-kpi is-attention" href="/admin/pedidos?estado=Nuevo">
+        <Link className="dashboard-kpi is-attention" href="/admin/pedidos">
           <span>
             <Clock3 size={18} /> Requieren atención
           </span>
