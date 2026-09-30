@@ -180,6 +180,8 @@ declare
   v_line_total integer;
   v_total bigint := 0;
   v_quote_required boolean := false;
+  v_product_totals jsonb := '{}'::jsonb;
+  v_product_running_total integer;
   v_user_id text := nullif(auth.jwt()->>'sub','');
 begin
   if p_checkout_key is null then
@@ -272,6 +274,20 @@ begin
     if v_quantity > 20 then
       raise exception 'Cantidad inválida' using errcode='22023';
     end if;
+
+    v_product_running_total :=
+      coalesce((v_product_totals->>v_product_id)::integer, 0) + v_quantity;
+
+    if v_product_running_total > 20 then
+      raise exception 'Máximo de 20 unidades por producto' using errcode='22023';
+    end if;
+
+    v_product_totals := jsonb_set(
+      v_product_totals,
+      array[v_product_id],
+      to_jsonb(v_product_running_total),
+      true
+    );
 
     select name, presentation, price_cents
     into v_product_name, v_product_presentation, v_product_price
