@@ -35,9 +35,13 @@ export default function Privacy() {
 
         <h2>Información de pedidos</h2>
         <p>
-          Cuando coordinas una compra, el negocio puede registrar los datos
-          necesarios para prepararla, gestionar adelantos y entregas. El panel
-          de administración requiere una cuenta autorizada.
+          Cuando finalizas una solicitud desde la tienda, Yemape registra antes
+          de abrir WhatsApp un código de pedido, tus datos de contacto, fecha y
+          modalidad de entrega, observaciones y una copia de los productos,
+          presentaciones, cantidades y precios vigentes. Si has iniciado sesión
+          con Google, la solicitud puede quedar vinculada a tu identificador de
+          cuenta de Clerk. El panel de administración requiere una cuenta
+          autorizada.
         </p>
 
         <h2>Consultas sobre tus datos</h2>

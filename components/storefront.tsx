@@ -1220,11 +1220,13 @@ function CartDialog({
   remove: (id: string, variant: string) => void;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
+  const checkoutKey = useRef("");
   const [step, setStep] = useState<"cart" | "details">("cart");
   const [error, setError] = useState("");
   const [pending, startTransition] = useTransition();
   const [details, setDetails] = useState<CheckoutDetails>({
     name: account?.profile?.full_name ?? "",
+    phone: account?.profile?.phone ?? "",
     address: account?.profile?.address ?? "",
     date: "",
     delivery: "recojo",
@@ -1239,6 +1241,7 @@ function CartDialog({
   useEffect(() => {
     if (open) {
       ref.current?.showModal();
+      checkoutKey.current = crypto.randomUUID();
       setToday(limaToday());
       setStep("cart");
       setError("");
@@ -1267,7 +1270,11 @@ function CartDialog({
     setError("");
     startTransition(async () => {
       try {
-        const result = await prepareCheckout(cart, details);
+        const result = await prepareCheckout(
+          cart,
+          details,
+          checkoutKey.current,
+        );
         if (result.error || !result.url) {
           setError(result.error ?? "No pudimos abrir WhatsApp.");
           return;
@@ -1459,6 +1466,23 @@ function CartDialog({
                     value={details.name}
                     onChange={(e) => update("name", e.target.value)}
                   />
+                </label>
+                <label>
+                  Teléfono para coordinar
+                  <input
+                    type="tel"
+                    inputMode="tel"
+                    autoComplete="tel"
+                    required
+                    minLength={7}
+                    maxLength={20}
+                    placeholder="Ej.: 934 219 749"
+                    value={details.phone}
+                    onChange={(e) => update("phone", e.target.value)}
+                  />
+                  <small>
+                    Lo usaremos para identificar tu solicitud y coordinar por WhatsApp.
+                  </small>
                 </label>
                 <fieldset>
                   <legend>¿Cómo prefieres recibirlo?</legend>
@@ -1668,9 +1692,10 @@ function CartDialog({
                 <div className="order-notice">
                   <MessageCircle size={20} />
                   <p>
-                    Se abrirá WhatsApp con tu pedido listo para enviar.
-                    Confirmaremos disponibilidad, precio final y forma de pago
-                    contigo.
+                    Primero registraremos tu solicitud con un código Yemape y
+                    después abriremos WhatsApp con el pedido listo para enviar.
+                    La solicitud no queda confirmada hasta que coordinemos
+                    disponibilidad y pago contigo.
                   </p>
                 </div>
                 {error && (

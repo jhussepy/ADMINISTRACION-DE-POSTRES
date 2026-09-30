@@ -10,7 +10,8 @@ La tienda pública y el carrito funcionan sin iniciar sesión. **Clerk** gestion
 4. Si ya migraste la autenticación a Clerk, ejecuta `supabase/clerk-auth.sql`.
 5. Para activar fotografías administrables, ejecuta `supabase/product-images-v3.sql` una sola vez. Crea un bucket público solo para lectura de imágenes de catálogo; las escrituras siguen limitadas al administrador mediante RLS.
 6. Ejecuta `supabase/new-product-v4.sql` una sola vez para activar el nuevo flujo de alta de productos con foto propia y placeholder neutro.
-7. No uses `service_role`, secret keys ni la contraseña de la base de datos en el frontend.
+7. Ejecuta `supabase/orders-v2.sql` una sola vez para activar pedidos automáticos, códigos `YMP-...`, snapshot histórico y estados V2.
+8. No uses `service_role`, secret keys ni la contraseña de la base de datos en el frontend.
 
 ## 2. Clerk con Google
 
@@ -89,7 +90,12 @@ Antes de abrirlo a clientes:
 - sube una fotografía desde `/admin/productos`, conviértela en portada y verifica que sustituye la imagen anterior en catálogo y ficha;
 - sube una segunda fotografía y comprueba que aparece como miniatura navegable en la ficha;
 - oculta una fotografía y comprueba que desaparece para clientes sin eliminarla del panel;
-- sin sesión, confirma que `profiles`, `admins` y `orders` no exponen datos.
+- finaliza un carrito como invitado: antes de abrir WhatsApp debe crearse una solicitud con código `YMP-...` en `/admin/pedidos`;
+- repite el botón/reintento del mismo checkout y confirma que no se duplica el pedido;
+- verifica que el mensaje de WhatsApp incluya el código del pedido y el teléfono;
+- cambia después el precio de un producto y confirma que la ficha del pedido anterior conserva su precio histórico;
+- confirma que un pedido con producto por cotizar aparece marcado como **Requiere cotización**;
+- sin sesión, confirma que `profiles`, `admins`, `orders` y `order_items` no exponen datos mediante lecturas directas.
 
 ## Cambiar o añadir imágenes
 
@@ -108,3 +114,20 @@ En `/admin/productos`, el formulario **Nuevo producto** ya no pide escoger el di
 6. Desde allí puedes añadir más presentaciones como mediana, grande o caja, y gestionar hasta 8 fotografías.
 
 Si no subes foto al crear el producto, se usa temporalmente un placeholder neutro de Yemape hasta que añadas la fotografía real.
+
+
+## Pedidos V2 automáticos
+
+El checkout no confía en precios enviados por el navegador. Al finalizar:
+
+1. El servidor vuelve a normalizar el carrito.
+2. Supabase valida producto, presentación y disponibilidad.
+3. La función `create_checkout_order_v2` recalcula precios reales desde `products` / `product_variants`.
+4. Se crea un código como `YMP-2026-0001`.
+5. `order_items` guarda una copia histórica de nombre, presentación, cantidad y precio.
+6. Si existe una sesión Clerk, el pedido guarda el `customer_user_id`; como invitado queda nulo.
+7. Recién entonces se genera el enlace de WhatsApp con el código del pedido.
+
+La columna `checkout_key` es única y evita duplicados cuando el cliente toca dos veces o reintenta la misma solicitud.
+
+Los productos que todavía no tienen precio real se registran como **por cotizar**; Pedidos V2 nunca utiliza un precio ficticio del navegador como importe oficial.

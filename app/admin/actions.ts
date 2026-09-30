@@ -587,14 +587,15 @@ export async function saveOrder(
       delivery_date,
       total_cents,
       deposit_cents,
-      status: "Pendiente",
+      status: "Por confirmar",
+      source: "manual",
     });
   if (error) return { error: "No pudimos guardar el pedido." };
   revalidatePath("/admin");
   revalidatePath("/admin/pedidos");
   return {
     success:
-      "Pedido registrado como pendiente. Puedes actualizar su estado cuando lo confirmes.",
+      "Pedido registrado como por confirmar. Ya tiene un código Yemape asignado.",
   };
 }
 export async function updateOrder(
@@ -602,30 +603,53 @@ export async function updateOrder(
   d: FormData,
 ): Promise<ActionState> {
   const db = await requireAdmin();
-  const id = val(d, "id"),
-    status = val(d, "status");
-  if (!orderStatuses.some((s) => s === status))
-    return { error: "Estado no válido." };
-  let deposit_cents;
+  const id = val(d, "id");
+  const status = val(d, "status");
+  const quoteResolved = d.get("quote_resolved") === "on";
+
+  if (!UUID_RE.test(id) || !orderStatuses.some((s) => s === status))
+    return { error: "Pedido o estado no válido." };
+
+  let total_cents: number;
+  let deposit_cents: number;
   try {
+    total_cents = parsePrice(val(d, "total"))!;
     deposit_cents = parsePrice(val(d, "deposit"))!;
   } catch {
-    return { error: "Revisa el importe abonado." };
+    return { error: "Revisa el total y el importe abonado." };
   }
+
+  if (quoteResolved && total_cents <= 0)
+    return {
+      error:
+        "Indica el total final antes de marcar la cotización como confirmada.",
+    };
+
+  if (deposit_cents > total_cents)
+    return { error: "El importe abonado no puede superar el total." };
+
   const { data: order, error: readError } = await db
     .from("orders")
-    .select("total_cents")
+    .select("id")
     .eq("id", id)
-    .single();
+    .maybeSingle();
+
   if (readError || !order) return { error: "No encontramos el pedido." };
-  if (deposit_cents > order.total_cents)
-    return { error: "El importe abonado no puede superar el total." };
+
   const { error } = await db
     .from("orders")
-    .update({ status, deposit_cents })
+    .update({
+      status,
+      total_cents,
+      deposit_cents,
+      quote_required: !quoteResolved,
+    })
     .eq("id", id);
+
   if (error) return { error: "No pudimos actualizar el pedido." };
+
   revalidatePath("/admin");
   revalidatePath("/admin/pedidos");
+  revalidatePath("/admin/pedidos/" + id);
   return { success: "Pedido actualizado." };
 }

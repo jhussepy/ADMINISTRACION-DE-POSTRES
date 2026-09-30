@@ -82,6 +82,8 @@ export function checkoutError(
 ) {
   if (d.name.trim().length < 2 || d.name.trim().length > 100)
     return "Escribe tu nombre (entre 2 y 100 caracteres).";
+  if (!/^\+?[\d\s()-]{7,20}$/.test(d.phone.trim()))
+    return "Escribe un teléfono válido para coordinar tu pedido.";
   if (!["recojo", "delivery"].includes(d.delivery))
     return "Elige recojo o delivery.";
   if (!validDate(d.date) || d.date < today)
@@ -110,6 +112,7 @@ export function whatsappUrl(
   cart: CartItem[],
   products: Product[],
   details: CheckoutDetails,
+  orderCode?: string,
 ) {
   const hasCustomCake = cart.some((item) => item.id === "torta-personalizada");
   const error = checkoutError(details, limaToday(), hasCustomCake);
@@ -119,6 +122,7 @@ export function whatsappUrl(
   const date = details.date.split("-").reverse().join("/");
   const message = [
     "¡Hola, Repostería Yemape! Quisiera coordinar este pedido:",
+    orderCode ? `Código de pedido: ${orderCode}` : undefined,
     "",
     ...lines.map(
       (l) =>
@@ -134,6 +138,7 @@ export function whatsappUrl(
       ? "IMPORTANTE: importes y presentaciones de ejemplo; no son precios finales. Confirmar cotización real."
       : undefined,
     `Nombre: ${details.name.trim()}`,
+    `Teléfono: ${details.phone.trim()}`,
     `Modalidad: ${details.delivery === "delivery" ? "Delivery" : "Recojo"}`,
     details.delivery === "delivery"
       ? `Dirección: ${details.address.trim()}`
@@ -164,7 +169,9 @@ export function whatsappUrl(
     details.delivery === "delivery"
       ? "Delivery: costo por confirmar."
       : undefined,
-    "Este mensaje es una solicitud; el pedido aún no está confirmado.",
+    orderCode
+      ? "La solicitud ya quedó registrada en Yemape. Aún falta confirmar disponibilidad y pago."
+      : "Este mensaje es una solicitud; el pedido aún no está confirmado.",
   ]
     .filter((x) => x !== undefined)
     .join("\n");
