@@ -18,7 +18,10 @@ export function operationalOrderMetrics(orders: Order[], today: string) {
   const tomorrow = shiftIsoDate(today, 1);
   const active = orders.filter((order) => ACTIVE_STATUSES.has(order.status));
   const financiallyConfirmed = orders.filter(
-    (order) => order.status !== "Cancelado" && !order.quote_required,
+    (order) =>
+      ["Confirmado", "En preparación", "Listo", "Entregado"].includes(
+        order.status,
+      ) && !order.quote_required,
   );
 
   return {
