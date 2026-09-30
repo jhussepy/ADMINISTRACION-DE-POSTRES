@@ -1,14 +1,17 @@
 "use server";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/data";
 import { categories, orderStatuses, type ActionState } from "@/lib/types";
-import { productImages } from "@/lib/products";
 import { parsePrice, validDate } from "@/lib/cart";
 const val = (d: FormData, k: string) => String(d.get(k) ?? "").trim();
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const VARIANT_SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const PRODUCT_ID_RE = /^[a-zA-Z0-9_-]{1,80}$/;
+const LOCAL_PRODUCT_IMAGE_RE =
+  /^\/images\/[a-zA-Z0-9][a-zA-Z0-9._-]{0,180}$/;
+const NEW_PRODUCT_PLACEHOLDER = "/images/product-placeholder.svg";
 const PRODUCT_IMAGE_BUCKET = "product-images";
 const MAX_PRODUCT_IMAGES = 8;
 const MAX_PRODUCT_IMAGE_BYTES = 5 * 1024 * 1024;
@@ -32,51 +35,207 @@ export async function saveProduct(
   d: FormData,
 ): Promise<ActionState> {
   const db = await requireAdmin();
-  const id = val(d, "id") || crypto.randomUUID(),
-    name = val(d, "name"),
-    description = val(d, "description"),
-    category = val(d, "category"),
-    presentation = val(d, "presentation"),
-    image = val(d, "image");
+  const existingId = val(d, "id");
+  const isNew = !existingId;
+  const id = existingId || crypto.randomUUID();
+  const name = val(d, "name");
+  const description = val(d, "description");
+  const category = val(d, "category");
+  const presentation = val(d, "presentation") || "Varias presentaciones";
+  const image = val(d, "image") || NEW_PRODUCT_PLACEHOLDER;
+  const sort_order = Number(val(d, "sort_order"));
+
   if (
-    id.length > 80 ||
+    !PRODUCT_ID_RE.test(id) ||
     name.length < 3 ||
     name.length > 120 ||
     description.length > 500 ||
     presentation.length < 2 ||
     presentation.length > 120 ||
-    !categories.some((c) => c === category) ||
-    !productImages.some((i) => i.path === image)
+    !categories.some((item) => item === category) ||
+    !LOCAL_PRODUCT_IMAGE_RE.test(image) ||
+    !Number.isInteger(sort_order) ||
+    sort_order < 0 ||
+    sort_order > 999
   )
-    return { error: "Revisa el nombre, categoría, presentación e imagen." };
-  let price_cents;
-  try {
-    price_cents = parsePrice(val(d, "price"), true);
-  } catch {
     return {
-      error:
-        "El precio debe ser un número válido con hasta dos decimales. Déjalo vacío para cotizar.",
+      error: "Revisa el nombre, categoría, descripción y orden del producto.",
+    };
+
+  let price_cents: number | null = null;
+  if (!isNew) {
+    try {
+      price_cents = parsePrice(val(d, "price"), true);
+    } catch {
+      return {
+        error:
+          "El precio base anterior no es válido. Revisa las presentaciones del producto.",
+      };
+    }
+  }
+
+  const initialVariants: Array<{
+    id: string;
+    product_id: string;
+    slug: string;
+    label: string;
+    price_cents: number | null;
+    active: boolean;
+    sort_order: number;
+  }> = [];
+
+  if (isNew) {
+    const portionActive = d.get("initial_portion_active") === "on";
+    const wholeActive = d.get("initial_whole_active") === "on";
+
+    if (!portionActive && !wholeActive)
+      return {
+        error:
+          "Activa al menos una presentación: porción individual o entero.",
+      };
+
+    try {
+      if (portionActive)
+        initialVariants.push({
+          id: crypto.randomUUID(),
+          product_id: id,
+          slug: "porcion-individual",
+          label: "Porción individual",
+          price_cents: parsePrice(val(d, "initial_portion_price"), true),
+          active: true,
+          sort_order: 10,
+        });
+
+      if (wholeActive)
+        initialVariants.push({
+          id: crypto.randomUUID(),
+          product_id: id,
+          slug: "entero",
+          label: "Entero",
+          price_cents: parsePrice(val(d, "initial_whole_price"), true),
+          active: true,
+          sort_order: 20,
+        });
+    } catch {
+      return {
+        error:
+          "Revisa los precios de porción y entero. Usa hasta dos decimales.",
+      };
+    }
+  }
+
+  const initialFile = d.get("initial_image");
+  let initialImage:
+    | { file: File; extension: string; contentType: string }
+    | null = null;
+
+  if (isNew && initialFile instanceof File && initialFile.size > 0) {
+    if (initialFile.size > MAX_PRODUCT_IMAGE_BYTES)
+      return { error: "La fotografía no puede superar 5 MB." };
+
+    const extension = PRODUCT_IMAGE_TYPES.get(initialFile.type);
+    if (!extension)
+      return { error: "Usa una fotografía JPG, PNG o WebP." };
+
+    initialImage = {
+      file: initialFile,
+      extension,
+      contentType: initialFile.type,
     };
   }
-  const sort_order = Number(val(d, "sort_order"));
-  if (!Number.isInteger(sort_order) || sort_order < 0 || sort_order > 999)
-    return { error: "El orden debe estar entre 0 y 999." };
-  const { error } = await db
-    .from("products")
-    .upsert({
-      id,
-      name,
-      description,
-      category,
-      presentation,
-      image,
-      price_cents,
-      active: d.get("active") === "on",
-      sort_order,
+
+  const productPayload = {
+    id,
+    name,
+    description,
+    category,
+    presentation,
+    image: isNew ? NEW_PRODUCT_PLACEHOLDER : image,
+    price_cents,
+    active: d.get("active") === "on",
+    sort_order,
+  };
+
+  const productResult = isNew
+    ? await db.from("products").insert(productPayload)
+    : await db.from("products").update(productPayload).eq("id", id);
+
+  if (productResult.error) {
+    if (
+      isNew &&
+      productResult.error.code === "23514" &&
+      productResult.error.message.includes("products_image_check")
+    )
+      return {
+        error:
+          "Falta activar Nuevo Producto V4 en Supabase. Ejecuta supabase/new-product-v4.sql y vuelve a intentarlo.",
+      };
+    return { error: "No pudimos guardar el producto." };
+  }
+
+  if (isNew && initialVariants.length > 0) {
+    const { error: variantsError } = await db
+      .from("product_variants")
+      .insert(initialVariants);
+
+    if (variantsError) {
+      await db.from("products").delete().eq("id", id);
+      if (migrationMissing(variantsError.code))
+        return {
+          error:
+            "Commerce V2 no está disponible. Ejecuta supabase/variants-v2.sql.",
+        };
+      return {
+        error:
+          "No pudimos crear las presentaciones iniciales. El producto no fue guardado.",
+      };
+    }
+  }
+
+  if (isNew && initialImage) {
+    const path = `${id}/${crypto.randomUUID()}.${initialImage.extension}`;
+    const bytes = new Uint8Array(await initialImage.file.arrayBuffer());
+    const { error: uploadError } = await db.storage
+      .from(PRODUCT_IMAGE_BUCKET)
+      .upload(path, bytes, {
+        contentType: initialImage.contentType,
+        cacheControl: "31536000",
+        upsert: false,
+      });
+
+    if (uploadError) {
+      await db.from("products").delete().eq("id", id);
+      return {
+        error:
+          "No pudimos subir la fotografía. El producto no fue creado para evitar datos incompletos.",
+      };
+    }
+
+    const { error: imageError } = await db.from("product_images").insert({
+      product_id: id,
+      storage_path: path,
+      alt_text: `Fotografía de ${name}`,
+      is_cover: true,
+      active: true,
+      sort_order: 10,
     });
-  if (error) return { error: "No pudimos guardar el producto." };
+
+    if (imageError) {
+      await db.storage.from(PRODUCT_IMAGE_BUCKET).remove([path]);
+      await db.from("products").delete().eq("id", id);
+      return {
+        error:
+          "No pudimos conectar la fotografía con el producto. No se guardaron cambios.",
+      };
+    }
+  }
+
   revalidateProduct(id);
-  return { success: "Producto guardado. Ya se actualizó el catálogo." };
+
+  if (isNew)
+    redirect(`/admin/productos?editar=${encodeURIComponent(id)}&creado=1`);
+
+  return { success: "Información del producto actualizada." };
 }
 
 export async function saveVariant(
