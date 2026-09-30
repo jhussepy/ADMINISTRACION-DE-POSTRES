@@ -71,7 +71,8 @@ test("dashboard excludes quotations from financial totals", () => {
 
   assert.equal(metrics.attention, 2);
   assert.equal(metrics.today, 1);
-  assert.equal(metrics.tomorrow, 1);
+  assert.equal(metrics.tomorrow, 2);
+  assert.equal(metrics.production, 1);
   assert.equal(metrics.quotes, 1);
   assert.equal(metrics.confirmedAmount, 17000);
   assert.equal(metrics.outstanding, 10000);
