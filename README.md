@@ -22,9 +22,12 @@ Primera versión de la tienda de **Repostería Yemape**, desarrollada con Next.j
 - **Galería V3:** carga de fotografías directamente desde Administración mediante Supabase Storage, hasta 8 por producto, con portada, orden, visibilidad y galería pública.
 - **Nuevo Producto V4:** alta guiada con precio de porción individual y entero, foto propia desde el primer formulario y sin reutilizar diseños de otros productos.
 - **Pedidos V2:** registro automático antes de abrir WhatsApp, código único `YMP-AAAA-0001`, snapshot histórico de productos/precios, vínculo opcional con Clerk, estados operativos y ficha completa en Administración.
+- **Dashboard V2:** centro de operaciones con pedidos por atender, producción, entregas de hoy/mañana, cotizaciones y métricas financieras que excluyen pedidos sin precio confirmado.
+- **Calendario:** vista mensual de producción y entregas en `/admin/calendario`, con filtros por estado, modalidad y acceso directo a cada pedido.
+- **WhatsApp V2:** mensaje estructurado por productos, cliente, entrega y estado; los precios de demostración dejan de mostrarse como importes oficiales.
 - Pedidos manuales: siguen disponibles para teléfono, Instagram o chats externos, usando el mismo flujo de estados y códigos.
 
-**Modo demostrativo:** `lib/demo-catalog.ts` sigue proporcionando tamaños y precios de ejemplo mientras un producto no tenga variantes reales. La web y el mensaje de WhatsApp los marcan expresamente como ejemplos.
+**Modo demostrativo:** `lib/demo-catalog.ts` sigue proporcionando tamaños y precios de ejemplo mientras un producto no tenga variantes reales. La tienda puede mostrarlos como referencia de interfaz, pero WhatsApp V2 los convierte en **Precio pendiente de confirmación** y el Dashboard no los cuenta como ventas.
 
 Con **Commerce V2**, las variantes creadas en Supabase tienen prioridad automática sobre esos ejemplos. Puedes migrar un producto a la vez: cuando añades su primera variante real desde Administración, ficha, carrito y WhatsApp empiezan a usar únicamente esas presentaciones reales. Para activar la tabla en una instalación existente ejecuta `supabase/variants-v2.sql` en Supabase SQL Editor.
 
