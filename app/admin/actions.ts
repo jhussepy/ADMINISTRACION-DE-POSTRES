@@ -587,14 +587,15 @@ export async function saveOrder(
       delivery_date,
       total_cents,
       deposit_cents,
-      status: "Pendiente",
+      status: "Por confirmar",
+      source: "manual",
     });
   if (error) return { error: "No pudimos guardar el pedido." };
   revalidatePath("/admin");
   revalidatePath("/admin/pedidos");
   return {
     success:
-      "Pedido registrado como pendiente. Puedes actualizar su estado cuando lo confirmes.",
+      "Pedido registrado como por confirmar. Ya tiene un código Yemape asignado.",
   };
 }
 export async function updateOrder(
