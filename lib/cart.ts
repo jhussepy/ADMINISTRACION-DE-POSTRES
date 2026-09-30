@@ -117,66 +117,95 @@ export function whatsappUrl(
   const hasCustomCake = cart.some((item) => item.id === "torta-personalizada");
   const error = checkoutError(details, limaToday(), hasCustomCake);
   if (error) throw new Error(error);
-  const { lines, subtotal, unpriced, examples } = cartSummary(cart, products);
+
+  const { lines } = cartSummary(cart, products);
   if (!lines.length) throw new Error("Agrega un producto antes de continuar.");
+
   const date = details.date.split("-").reverse().join("/");
+  const pendingLines = lines.filter(
+    (line) => line.offer.example || line.offer.priceCents === null,
+  );
+  const confirmedLines = lines.filter(
+    (line) => !line.offer.example && line.offer.priceCents !== null,
+  );
+  const confirmedSubtotal = confirmedLines.reduce(
+    (sum, line) => sum + line.offer.priceCents! * line.quantity,
+    0,
+  );
+  const hasPendingPrice = pendingLines.length > 0;
+
+  const productLines = lines.flatMap((line) => [
+    `• ${line.quantity} × ${line.product.name}`,
+    `  ${line.offer.label} — ${
+      line.offer.example || line.offer.priceCents === null
+        ? "Precio pendiente de confirmación"
+        : money(line.offer.priceCents * line.quantity)
+    }`,
+  ]);
+
+  const totalLine = hasPendingPrice
+    ? confirmedSubtotal > 0
+      ? `*Subtotal confirmado:* ${money(confirmedSubtotal)} + productos por cotizar`
+      : "*Total:* Pendiente de cotización"
+    : `*Total:* ${money(confirmedSubtotal)}`;
+
   const message = [
-    "¡Hola, Repostería Yemape! Quisiera coordinar este pedido:",
-    orderCode ? `Código de pedido: ${orderCode}` : undefined,
+    "🍰 *REPOSTERÍA YEMAPE*",
+    orderCode ? `*Pedido ${orderCode}*` : "*Solicitud de pedido*",
     "",
-    ...lines.map(
-      (l) =>
-        `• ${l.quantity} × ${l.product.name} — ${l.offer.label}: ${l.offer.priceCents === null ? "precio por consultar" : `${money(l.offer.priceCents * l.quantity)}${l.offer.example ? " (ejemplo)" : ""}`}`,
-    ),
+    "*PRODUCTOS*",
+    ...productLines,
     "",
-    unpriced
-      ? subtotal > 0
-        ? `${examples ? "Estimado de muestra" : "Subtotal de productos con precio"}: ${money(subtotal)}. Faltan productos por cotizar.`
-        : "Importe de productos: por cotizar."
-      : `${examples ? "Estimado de muestra" : "Subtotal de productos"}: ${money(subtotal)}`,
-    examples
-      ? "IMPORTANTE: importes y presentaciones de ejemplo; no son precios finales. Confirmar cotización real."
+    totalLine,
+    hasPendingPrice
+      ? "ℹ️ Los productos sin precio oficial se confirmarán antes de preparar el pedido."
       : undefined,
-    `Nombre: ${details.name.trim()}`,
-    `Teléfono: ${details.phone.trim()}`,
+    "",
+    "*CLIENTE*",
+    details.name.trim(),
+    `📱 ${details.phone.trim()}`,
+    "",
+    "*ENTREGA*",
     `Modalidad: ${details.delivery === "delivery" ? "Delivery" : "Recojo"}`,
     details.delivery === "delivery"
       ? `Dirección: ${details.address.trim()}`
       : "Punto y horario de recojo: por confirmar.",
     details.delivery === "delivery"
       ? DEMO_MODE
-        ? "Cobertura y costo de envío: por confirmar (los ejemplos de la web no son tarifas)."
-        : "Cobertura y costo de envío: por confirmar."
+        ? "Costo de delivery: por confirmar."
+        : "Costo de delivery: por confirmar."
       : undefined,
-    `Fecha solicitada: ${date}`,
+    `📅 Fecha solicitada: ${date}`,
     details.occasion?.trim()
       ? `Ocasión: ${details.occasion.trim()}`
       : undefined,
     details.giftNote?.trim()
-      ? `Dedicatoria solicitada: ${details.giftNote.trim()}`
+      ? `Dedicatoria: ${details.giftNote.trim()}`
       : undefined,
-    hasCustomCake ? "Torta personalizada:" : undefined,
+    "",
+    hasCustomCake ? "*TORTA PERSONALIZADA*" : undefined,
     hasCustomCake ? `Personas: ${details.cakeGuests!.trim()}` : undefined,
     hasCustomCake && details.cakeFlavor?.trim()
-      ? `Sabor deseado: ${details.cakeFlavor.trim()}`
+      ? `Sabor: ${details.cakeFlavor.trim()}`
       : undefined,
     hasCustomCake && details.cakeDesign?.trim()
       ? `Diseño o temática: ${details.cakeDesign.trim()}`
       : undefined,
+    hasCustomCake ? "" : undefined,
     details.notes.trim() ? `Observaciones: ${details.notes.trim()}` : undefined,
     "",
-    "Por favor, confirmar disponibilidad, presentación, importe final y forma de pago.",
-    details.delivery === "delivery"
-      ? "Delivery: costo por confirmar."
-      : undefined,
+    "*ESTADO*",
     orderCode
-      ? "La solicitud ya quedó registrada en Yemape. Aún falta confirmar disponibilidad y pago."
-      : "Este mensaje es una solicitud; el pedido aún no está confirmado.",
+      ? `✅ Solicitud registrada con código ${orderCode}.`
+      : "Solicitud preparada para coordinación.",
+    "Pendiente de confirmación de disponibilidad y pago.",
   ]
-    .filter((x) => x !== undefined)
+    .filter((value) => value !== undefined)
     .join("\n");
+
   return `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(message)}`;
 }
+
 export function parsePrice(value: string, optional = false): number | null {
   if (optional && value.trim() === "") return null;
   if (!/^\d{1,6}(\.\d{1,2})?$/.test(value.trim()))
