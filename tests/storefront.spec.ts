@@ -87,7 +87,7 @@ test("custom cake page leads to guest WhatsApp order with customer details", asy
   const message = new URL(whatsapp).searchParams.get("text")!;
   expect(message).toContain("Tu torta, tu celebración");
   expect(message).toContain("Personas: 12");
-  expect(message).toContain("Sabor deseado: Chocolate");
+  expect(message).toContain("Sabor: Chocolate");
   expect(message).toContain("Diseño o temática: Flores en tonos pastel");
   expect(message).toContain("Dedicatoria para María");
 });
@@ -206,9 +206,11 @@ test("two presentations stay separate in the cart and WhatsApp describes the exa
     waitUntil: "load",
   });
   const message = new URL(whatsapp).searchParams.get("text")!;
-  expect(message).toContain("Pie de limón — Porción");
-  expect(message).toContain("Pie de limón — Entero");
-  expect(message).toContain("no son precios finales");
+  expect(message).toContain("1 × Pie de limón");
+  expect(message).toContain("Porción — Precio pendiente de confirmación");
+  expect(message).toContain("Entero · aprox. 10 porciones — Precio pendiente de confirmación");
+  expect(message).toContain("Pendiente de cotización");
+  expect(message).not.toContain("(ejemplo)");
 });
 test("front-page categories open a filtered carta and preserve the cart", async ({
   page,
@@ -330,9 +332,10 @@ test("public catalogue, cart persistence, guest checkout and WhatsApp handoff", 
   expect(message).toContain("María & José");
   expect(message).toContain("Celebración + fresas");
   expect(message).toContain("Ocasión: Cumpleaños");
-  expect(message).toContain("Dedicatoria solicitada: Feliz día, María");
-  expect(message).toContain("importes y presentaciones de ejemplo");
-  expect(message).toContain("aún no está confirmado");
+  expect(message).toContain("Dedicatoria: Feliz día, María");
+  expect(message).toContain("Precio pendiente de confirmación");
+  expect(message).toContain("Pendiente de confirmación de disponibilidad y pago");
+  expect(message).not.toContain("(ejemplo)");
   await page.goto("/catalogo");
   await expect(
     page.getByRole("button", {
@@ -584,7 +587,8 @@ test("photographic catalogue filters and new products reach the WhatsApp handoff
     "Terremoto de lúcuma",
   ])
     expect(message).toContain(`1 × ${name}`);
-  expect(message).toContain("Estimado de muestra");
+  expect(message).toContain("Precio pendiente de confirmación");
+  expect(message).toContain("Pendiente de cotización");
   expect(errors).toEqual([]);
 });
 
