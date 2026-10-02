@@ -39,6 +39,7 @@ export function mercadoPagoConfigured() {
   return Boolean(
     process.env.MP_ACCESS_TOKEN?.trim() &&
       process.env.MP_WEBHOOK_SECRET?.trim() &&
+      process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() &&
       process.env.NEXT_PUBLIC_SITE_URL?.trim(),
   );
 }
