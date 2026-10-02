@@ -575,6 +575,7 @@ export async function saveOrder(
     customer_phone = val(d, "customer_phone"),
     details = val(d, "details"),
     delivery_date = val(d, "delivery_date");
+
   if (
     customer_name.length < 2 ||
     customer_name.length > 100 ||
@@ -584,35 +585,36 @@ export async function saveOrder(
     !validDate(delivery_date)
   )
     return { error: "Revisa el cliente, teléfono, detalle y fecha." };
-  let total_cents, deposit_cents;
+
+  let total_cents: number;
   try {
     total_cents = parsePrice(val(d, "total"))!;
-    deposit_cents = parsePrice(val(d, "deposit") || "0")!;
   } catch {
-    return { error: "Escribe importes válidos con hasta dos decimales." };
+    return { error: "Escribe un total válido con hasta dos decimales." };
   }
-  if (total_cents <= 0 || deposit_cents > total_cents)
-    return {
-      error: "El total debe ser mayor a cero y el adelanto no puede superarlo.",
-    };
-  const { error } = await db
-    .from("orders")
-    .insert({
-      customer_name,
-      customer_phone,
-      details,
-      delivery_date,
-      total_cents,
-      deposit_cents,
-      status: "Por confirmar",
-      source: "manual",
-    });
+
+  if (total_cents <= 0)
+    return { error: "El total acordado debe ser mayor a cero." };
+
+  const { error } = await db.from("orders").insert({
+    customer_name,
+    customer_phone,
+    details,
+    delivery_date,
+    total_cents,
+    deposit_cents: 0,
+    status: "Por confirmar",
+    source: "manual",
+  });
+
   if (error) return { error: "No pudimos guardar el pedido." };
+
   revalidatePath("/admin");
   revalidatePath("/admin/pedidos");
+  revalidatePath("/admin/pagos");
   return {
     success:
-      "Pedido registrado como por confirmar. Ya tiene un código Yemape asignado.",
+      "Pedido registrado con S/0 abonado. Registra cualquier adelanto desde Pagos V2 para conservar la trazabilidad.",
   };
 }
 export async function updateOrder(
