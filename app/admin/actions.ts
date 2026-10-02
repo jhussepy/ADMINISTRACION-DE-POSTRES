@@ -674,8 +674,15 @@ export async function saveCustomerNote(
     .eq("id", customer_id)
     .maybeSingle();
 
-  if (customerError || !customer)
-    return { error: "No encontramos al cliente." };
+  if (customerError) {
+    if (migrationMissing(customerError.code))
+      return {
+        error:
+          "Clientes V1 aún no está activado. Ejecuta supabase/customers-v1.sql.",
+      };
+    return { error: "No pudimos comprobar el cliente." };
+  }
+  if (!customer) return { error: "No encontramos al cliente." };
 
   const { error } = await db.from("customer_notes").insert({
     customer_id,
