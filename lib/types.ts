@@ -56,7 +56,11 @@ export type CheckoutDetails = {
   giftNote?: string;
 };
 export type Profile = { full_name: string; address: string; phone: string };
-export type ActionState = { error?: string; success?: string };
+export type ActionState = {
+  error?: string;
+  success?: string;
+  url?: string;
+};
 export const orderStatuses = [
   "Nuevo",
   "Por confirmar",
@@ -156,4 +160,72 @@ export type OrderEvent = {
   actor_user_id: string | null;
   actor_role: "admin" | "customer" | "system";
   created_at: string;
+};
+
+
+export const paymentMethods = [
+  "yape",
+  "plin",
+  "transferencia",
+  "efectivo",
+  "mercadopago",
+  "otro",
+] as const;
+
+export const paymentStatuses = [
+  "pending",
+  "confirmed",
+  "rejected",
+  "refunded",
+  "failed",
+] as const;
+
+export type PaymentMethod = (typeof paymentMethods)[number];
+export type PaymentStatus = (typeof paymentStatuses)[number];
+
+export type PaymentProof = {
+  id: string;
+  payment_id: string;
+  storage_path: string;
+  original_name: string;
+  mime_type: "image/jpeg" | "image/png" | "image/webp" | "application/pdf";
+  size_bytes: number;
+  uploaded_by: string;
+  created_at: string;
+  signed_url?: string;
+};
+
+export type Payment = {
+  id: string;
+  order_id: string;
+  provider: "manual" | "mercadopago";
+  method: PaymentMethod;
+  status: PaymentStatus;
+  amount_cents: number;
+  currency: "PEN";
+  reference: string;
+  note: string;
+  provider_payment_id: string | null;
+  provider_preference_id: string | null;
+  provider_checkout_url: string | null;
+  idempotency_key: string | null;
+  paid_at: string | null;
+  verified_at: string | null;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+  payment_proofs?: PaymentProof[];
+};
+
+export type PaymentWithOrder = Payment & {
+  orders?: {
+    id: string;
+    public_code: string;
+    customer_name: string;
+    customer_phone: string;
+    total_cents: number;
+    deposit_cents: number;
+    quote_required: boolean;
+    status: Order["status"];
+  } | null;
 };
