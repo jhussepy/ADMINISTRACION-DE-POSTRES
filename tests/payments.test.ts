@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import crypto from "node:crypto";
+import { readFileSync } from "node:fs";
 import {
   centsFromProviderMajor,
   mapMercadoPagoStatus,
@@ -170,4 +171,19 @@ test("payment summary counts only confirmed money as paid", () => {
   assert.equal(summary.refunded, 2000);
   assert.equal(summary.confirmedCount, 1);
   assert.equal(summary.pendingCount, 1);
+});
+
+
+test("Pagos V2 migration keeps PL/pgSQL delimiters balanced", () => {
+  const sql = readFileSync(
+    new URL("../supabase/payments-v2.sql", import.meta.url),
+    "utf8",
+  );
+  const openings = sql.match(/\bas \$\$/g) ?? [];
+  const closings = sql.match(/\$\$;/g) ?? [];
+
+  assert.equal(openings.length, closings.length);
+  assert.doesNotMatch(sql, /\n\$;\n/);
+  assert.match(sql, /create trigger sync_order_confirmed_payments_trigger/);
+  assert.match(sql, /apply_mercadopago_payment_webhook/);
 });
