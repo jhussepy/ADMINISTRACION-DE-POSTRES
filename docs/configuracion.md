@@ -12,7 +12,8 @@ La tienda pública y el carrito funcionan sin iniciar sesión. **Clerk** gestion
 6. Ejecuta `supabase/new-product-v4.sql` una sola vez para activar el nuevo flujo de alta de productos con foto propia y placeholder neutro.
 7. Ejecuta `supabase/orders-v2.sql` una sola vez para activar pedidos automáticos, códigos `YMP-...`, snapshot histórico y estados V2.
 8. Ejecuta `supabase/customers-v1.sql` una sola vez para activar Clientes V1, notas internas y timeline auditado.
-9. No uses `service_role`, secret keys ni la contraseña de la base de datos en el frontend.
+9. Ejecuta `supabase/payments-v2.sql` una sola vez para activar movimientos de pago, comprobantes privados y conciliación.
+10. Nunca expongas `service_role`, secret keys ni la contraseña de la base de datos en el frontend. Pagos V2 usa `SUPABASE_SERVICE_ROLE_KEY` exclusivamente dentro del webhook servidor cuando Mercado Pago esté activo.
 
 ## 2. Clerk con Google
 
@@ -35,6 +36,9 @@ En **Vercel → Settings → Environment Variables**, configura en Production:
 | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Publishable key de Clerk |
 | `CLERK_SECRET_KEY` | Secret key de Clerk; debe permanecer privada |
 | `NEXT_PUBLIC_SITE_URL` | URL pública de Yemape, sin barra final |
+| `MP_ACCESS_TOKEN` | Token privado de Mercado Pago; solo servidor y solo al activar cobros online |
+| `MP_WEBHOOK_SECRET` | Secreto privado para verificar `x-signature` de Mercado Pago |
+| `SUPABASE_SERVICE_ROLE_KEY` | Clave privada usada solo por el webhook para conciliación transaccional; nunca `NEXT_PUBLIC_` |
 
 Después de guardar cambios haz un nuevo despliegue.
 
@@ -187,3 +191,76 @@ No se reconstruye un historial ficticio para cambios ocurridos antes de esta mig
 10. Verifica que un usuario no administrador no pueda leer `customers`, `customer_notes` ni `order_events` directamente.
 
 Las notas internas jamás forman parte del mensaje de WhatsApp ni de la tienda pública.
+
+
+## Pagos V2 + PagoKit
+
+Después del merge ejecuta **solo**:
+
+`supabase/payments-v2.sql`
+
+La migración:
+
+- crea `payments` para movimientos Yape, Plin, transferencia, efectivo, Mercado Pago y otros;
+- convierte cualquier adelanto histórico ya existente en un pago confirmado de migración;
+- hace que `orders.deposit_cents` se derive de la suma de pagos confirmados;
+- impide que pagos confirmados superen el total del pedido;
+- crea el bucket privado `payment-proofs` para JPG, PNG, WebP o PDF de hasta 5 MB;
+- crea deduplicación de webhooks;
+- prepara la función transaccional `apply_mercadopago_payment_webhook`;
+- conserva Pedidos V2, Clientes V1, códigos YMP y timeline actuales.
+
+### Operación manual
+
+En la ficha de un pedido puedes registrar:
+
+- Yape;
+- Plin;
+- transferencia bancaria;
+- efectivo;
+- otro método manual.
+
+Cada movimiento tiene importe, estado, referencia/operación, nota y comprobante opcional.
+
+**Confirmado** suma al abonado. **Pendiente** no suma. Si un pago confirmado pasa a
+**Reembolsado** o **Rechazado**, deja de formar parte del abonado.
+
+El campo **Abonado** ya no se edita manualmente desde el pedido.
+
+### Mercado Pago
+
+La integración está preparada pero es opcional.
+
+Mientras Yemape siga trabajando con precios demo **no configures las credenciales de producción**.
+El botón exige que la cotización del pedido esté resuelta y que exista saldo real.
+
+Cuando quieras activarlo en Vercel añade como secretos:
+
+- `MP_ACCESS_TOKEN`
+- `MP_WEBHOOK_SECRET`
+- `SUPABASE_SERVICE_ROLE_KEY`
+
+No pongas ninguna de esas variables con prefijo `NEXT_PUBLIC_`.
+
+La URL de notificación a registrar en Mercado Pago es:
+
+`https://TU-DOMINIO/api/payments/mercadopago/webhook`
+
+El retorno del navegador aterriza en `/pago/resultado`, pero esa pantalla nunca declara un pago
+como aprobado por sí sola. El estado se actualiza únicamente después del webhook verificado y una
+reconsulta autenticada al API de Mercado Pago.
+
+### Checklist de prueba
+
+1. Registra un pago Yape como **Pendiente** y confirma que el saldo no cambie.
+2. Cámbialo a **Confirmado** y comprueba que el abonado aumente automáticamente.
+3. Adjunta un comprobante y confirma que solo Administración pueda abrir la URL firmada.
+4. Intenta confirmar un importe que supere el total y verifica que se rechace.
+5. Pasa un pago confirmado a **Reembolsado** y confirma que deje de sumar al abonado.
+6. Abre `/admin/pagos` y prueba filtros/búsqueda.
+7. Con Mercado Pago todavía sin credenciales, verifica que la ficha lo muestre como preparado pero no activo.
+8. Cuando existan credenciales de test, genera un enlace únicamente en un pedido con cotización final.
+9. Envía un webhook con firma falsa y comprueba que responda 400 sin modificar pagos.
+10. Repite un evento válido y confirma que la deduplicación no duplica el cobro.
+
+Detalles de seguridad y atribución: `docs/PAGOKIT_INTEGRATION.md`.
