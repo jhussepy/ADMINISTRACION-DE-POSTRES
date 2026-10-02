@@ -11,6 +11,7 @@ import type { Order } from "../lib/types";
 
 const base = {
   id: "11111111-1111-4111-8111-111111111111",
+  customer_id: null,
   public_code: "YMP-2026-0001",
   source: "web" as const,
   customer_user_id: null,
