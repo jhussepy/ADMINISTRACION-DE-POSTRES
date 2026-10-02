@@ -269,7 +269,10 @@ begin
   for update;
 
   if not found then
-    return coalesce(new, old);
+    if tg_op = 'DELETE' then
+      return old;
+    end if;
+    return new;
   end if;
 
   select coalesce(sum(amount_cents), 0)
@@ -289,9 +292,12 @@ begin
   set deposit_cents = v_paid::integer
   where id = v_order_id;
 
-  return coalesce(new, old);
+  if tg_op = 'DELETE' then
+    return old;
+  end if;
+  return new;
 end;
-$$;
+$;
 
 revoke all on function public.sync_order_confirmed_payments() from public;
 
