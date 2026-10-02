@@ -303,7 +303,7 @@ revoke all on function public.sync_order_confirmed_payments() from public;
 
 drop trigger if exists sync_order_confirmed_payments_trigger on public.payments;
 create trigger sync_order_confirmed_payments_trigger
-after insert or update of status, amount_cents or delete
+after insert or delete or update of status, amount_cents
 on public.payments
 for each row
 execute function public.sync_order_confirmed_payments();
