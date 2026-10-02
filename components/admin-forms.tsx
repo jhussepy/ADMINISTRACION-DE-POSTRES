@@ -622,30 +622,23 @@ export function OrderForm() {
         Fecha de entrega
         <input name="delivery_date" type="date" required />
       </label>
-      <div className="two-cols">
-        <label>
-          Total acordado (S/)
-          <input
-            name="total"
-            type="number"
-            min="0.01"
-            max="999999.99"
-            step="0.01"
-            required
-          />
-        </label>
-        <label>
-          Importe abonado (S/)
-          <input
-            name="deposit"
-            type="number"
-            min="0"
-            max="999999.99"
-            step="0.01"
-            defaultValue="0"
-            required
-          />
-        </label>
+      <label>
+        Total acordado (S/)
+        <input
+          name="total"
+          type="number"
+          min="0.01"
+          max="999999.99"
+          step="0.01"
+          required
+        />
+      </label>
+      <div className="payment-derived-note">
+        <strong>Los adelantos se registran desde Pagos V2.</strong>
+        <span>
+          El pedido se crea con S/0 abonado. Después registra Yape, Plin,
+          transferencia, efectivo u otro movimiento para mantener la trazabilidad.
+        </span>
       </div>
       <Feedback state={state} />
       <button className="button" disabled={pending}>
