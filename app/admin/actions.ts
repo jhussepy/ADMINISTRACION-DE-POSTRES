@@ -968,12 +968,7 @@ export async function updatePaymentStatus(
     .from("payments")
     .update({
       status,
-      paid_at:
-        status === "confirmed"
-          ? now
-          : payment.status === "confirmed"
-            ? null
-            : undefined,
+      paid_at: status === "confirmed" ? now : undefined,
       verified_at: ["confirmed", "rejected", "refunded"].includes(status)
         ? now
         : null,
