@@ -628,12 +628,10 @@ export async function updateOrder(
     return { error: "Pedido o estado no válido." };
 
   let total_cents: number;
-  let deposit_cents: number;
   try {
     total_cents = parsePrice(val(d, "total"))!;
-    deposit_cents = parsePrice(val(d, "deposit"))!;
   } catch {
-    return { error: "Revisa el total y el importe abonado." };
+    return { error: "Revisa el total acordado." };
   }
 
   if (quoteResolved && total_cents <= 0)
@@ -642,23 +640,25 @@ export async function updateOrder(
         "Indica el total final antes de marcar la cotización como confirmada.",
     };
 
-  if (deposit_cents > total_cents)
-    return { error: "El importe abonado no puede superar el total." };
-
   const { data: order, error: readError } = await db
     .from("orders")
-    .select("id")
+    .select("id,deposit_cents")
     .eq("id", id)
     .maybeSingle();
 
   if (readError || !order) return { error: "No encontramos el pedido." };
+
+  if (order.deposit_cents > total_cents)
+    return {
+      error:
+        "El total no puede quedar por debajo de los pagos ya confirmados.",
+    };
 
   const { error } = await db
     .from("orders")
     .update({
       status,
       total_cents,
-      deposit_cents,
       quote_required: !quoteResolved,
     })
     .eq("id", id);
@@ -667,10 +667,10 @@ export async function updateOrder(
 
   revalidatePath("/admin");
   revalidatePath("/admin/pedidos");
+  revalidatePath("/admin/pagos");
   revalidatePath("/admin/pedidos/" + id);
   return { success: "Pedido actualizado." };
 }
-
 
 export async function saveCustomerNote(
   _: ActionState,
@@ -749,4 +749,393 @@ export async function deleteCustomerNote(
   revalidatePath("/admin/clientes");
   revalidatePath("/admin/clientes/" + customer_id);
   return { success: "Nota eliminada." };
+}
+
+
+function revalidatePaymentViews(orderId: string) {
+  revalidatePath("/admin");
+  revalidatePath("/admin/pagos");
+  revalidatePath("/admin/pedidos");
+  revalidatePath("/admin/pedidos/" + orderId);
+}
+
+function validatePaymentProof(file: File) {
+  if (file.size <= 0) return { error: "El comprobante está vacío." } as const;
+  if (file.size > MAX_PRODUCT_IMAGE_BYTES)
+    return { error: "El comprobante no puede superar 5 MB." } as const;
+  const extension = PAYMENT_PROOF_TYPES.get(file.type);
+  if (!extension)
+    return {
+      error: "Usa un comprobante JPG, PNG, WebP o PDF.",
+    } as const;
+  return { extension } as const;
+}
+
+async function savePaymentProofFile({
+  db,
+  paymentId,
+  orderId,
+  file,
+}: {
+  db: Awaited<ReturnType<typeof requireAdmin>>;
+  paymentId: string;
+  orderId: string;
+  file: File;
+}) {
+  const validation = validatePaymentProof(file);
+  if ("error" in validation) return { error: validation.error };
+
+  const path =
+    orderId +
+    "/" +
+    paymentId +
+    "/" +
+    crypto.randomUUID() +
+    "." +
+    validation.extension;
+  const bytes = new Uint8Array(await file.arrayBuffer());
+
+  const { error: uploadError } = await db.storage
+    .from(PAYMENT_PROOF_BUCKET)
+    .upload(path, bytes, {
+      contentType: file.type,
+      cacheControl: "3600",
+      upsert: false,
+    });
+
+  if (uploadError)
+    return {
+      error:
+        "No pudimos subir el comprobante. Comprueba que Pagos V2 esté activado.",
+    };
+
+  const { error: insertError } = await db.from("payment_proofs").insert({
+    payment_id: paymentId,
+    storage_path: path,
+    original_name: file.name.slice(0, 180),
+    mime_type: file.type,
+    size_bytes: file.size,
+  });
+
+  if (insertError) {
+    await db.storage.from(PAYMENT_PROOF_BUCKET).remove([path]);
+    return { error: "El archivo subió, pero no pudimos registrar el comprobante." };
+  }
+
+  return { success: true, path };
+}
+
+export async function registerPayment(
+  _: ActionState,
+  d: FormData,
+): Promise<ActionState> {
+  const db = await requireAdmin();
+  const orderId = val(d, "order_id");
+  const method = val(d, "method");
+  const status = val(d, "status");
+  const reference = val(d, "reference");
+  const note = val(d, "note");
+  const proof = d.get("proof");
+
+  if (!UUID_RE.test(orderId))
+    return { error: "No pudimos identificar el pedido." };
+  if (!paymentMethods.some((item) => item === method) || method === "mercadopago")
+    return { error: "Selecciona un método de pago manual válido." };
+  if (!["pending", "confirmed"].includes(status))
+    return { error: "El nuevo pago debe quedar Pendiente o Confirmado." };
+  if (reference.length > 120 || note.length > 500)
+    return { error: "La referencia o la nota son demasiado largas." };
+
+  let amountCents: number;
+  try {
+    amountCents = parsePrice(val(d, "amount"))!;
+  } catch {
+    return { error: "Escribe un importe válido con hasta dos decimales." };
+  }
+  if (amountCents <= 0)
+    return { error: "El importe del pago debe ser mayor a cero." };
+
+  if (proof instanceof File && proof.size > 0) {
+    const validation = validatePaymentProof(proof);
+    if ("error" in validation) return { error: validation.error };
+  }
+
+  const { data: order, error: orderError } = await db
+    .from("orders")
+    .select("id,total_cents,deposit_cents")
+    .eq("id", orderId)
+    .maybeSingle();
+
+  if (orderError || !order) return { error: "No encontramos el pedido." };
+
+  if (status === "confirmed" && order.deposit_cents + amountCents > order.total_cents)
+    return {
+      error:
+        "Este pago superaría el total del pedido. Revisa el importe o el total acordado.",
+    };
+
+  const paymentId = crypto.randomUUID();
+  const now = new Date().toISOString();
+  const { error: insertError } = await db.from("payments").insert({
+    id: paymentId,
+    order_id: orderId,
+    provider: "manual",
+    method,
+    status,
+    amount_cents: amountCents,
+    currency: "PEN",
+    reference,
+    note,
+    paid_at: status === "confirmed" ? now : null,
+    verified_at: status === "confirmed" ? now : null,
+  });
+
+  if (insertError) {
+    if (migrationMissing(insertError.code))
+      return {
+        error:
+          "Pagos V2 aún no está activado. Ejecuta supabase/payments-v2.sql.",
+      };
+    return { error: "No pudimos registrar el pago." };
+  }
+
+  if (proof instanceof File && proof.size > 0) {
+    const saved = await savePaymentProofFile({
+      db,
+      paymentId,
+      orderId,
+      file: proof,
+    });
+    if ("error" in saved) {
+      await db.from("payments").delete().eq("id", paymentId);
+      return { error: saved.error };
+    }
+  }
+
+  revalidatePaymentViews(orderId);
+  return {
+    success:
+      status === "confirmed"
+        ? "Pago confirmado y saldo actualizado."
+        : "Pago registrado como pendiente de verificación.",
+  };
+}
+
+export async function updatePaymentStatus(
+  _: ActionState,
+  d: FormData,
+): Promise<ActionState> {
+  const db = await requireAdmin();
+  const paymentId = val(d, "payment_id");
+  const orderId = val(d, "order_id");
+  const status = val(d, "status");
+
+  if (!UUID_RE.test(paymentId) || !UUID_RE.test(orderId))
+    return { error: "No pudimos identificar el pago." };
+  if (!paymentStatuses.some((item) => item === status) || status === "failed")
+    return { error: "Estado de pago no válido." };
+
+  const { data: payment, error: paymentError } = await db
+    .from("payments")
+    .select("id,order_id,provider,status,amount_cents")
+    .eq("id", paymentId)
+    .eq("order_id", orderId)
+    .maybeSingle();
+
+  if (paymentError || !payment) return { error: "No encontramos el pago." };
+  if (payment.provider !== "manual")
+    return {
+      error:
+        "Los pagos de Mercado Pago solo cambian mediante el webhook verificado.",
+    };
+
+  if (status === "confirmed" && payment.status !== "confirmed") {
+    const { data: order, error: orderError } = await db
+      .from("orders")
+      .select("total_cents,deposit_cents")
+      .eq("id", orderId)
+      .maybeSingle();
+    if (orderError || !order) return { error: "No encontramos el pedido." };
+    if (order.deposit_cents + payment.amount_cents > order.total_cents)
+      return {
+        error:
+          "Confirmar este pago superaría el total actual del pedido.",
+      };
+  }
+
+  const now = new Date().toISOString();
+  const { error } = await db
+    .from("payments")
+    .update({
+      status,
+      paid_at:
+        status === "confirmed"
+          ? now
+          : payment.status === "confirmed"
+            ? null
+            : undefined,
+      verified_at: ["confirmed", "rejected", "refunded"].includes(status)
+        ? now
+        : null,
+      updated_at: now,
+    })
+    .eq("id", paymentId)
+    .eq("order_id", orderId);
+
+  if (error) return { error: "No pudimos actualizar el pago." };
+
+  revalidatePaymentViews(orderId);
+  return { success: "Estado del pago actualizado." };
+}
+
+export async function uploadPaymentProof(
+  _: ActionState,
+  d: FormData,
+): Promise<ActionState> {
+  const db = await requireAdmin();
+  const paymentId = val(d, "payment_id");
+  const orderId = val(d, "order_id");
+  const file = d.get("proof");
+
+  if (!UUID_RE.test(paymentId) || !UUID_RE.test(orderId))
+    return { error: "No pudimos identificar el pago." };
+  if (!(file instanceof File) || file.size <= 0)
+    return { error: "Selecciona un comprobante." };
+
+  const { data: payment, error: paymentError } = await db
+    .from("payments")
+    .select("id")
+    .eq("id", paymentId)
+    .eq("order_id", orderId)
+    .maybeSingle();
+  if (paymentError || !payment) return { error: "No encontramos el pago." };
+
+  const saved = await savePaymentProofFile({
+    db,
+    paymentId,
+    orderId,
+    file,
+  });
+  if ("error" in saved) return { error: saved.error };
+
+  revalidatePaymentViews(orderId);
+  return { success: "Comprobante añadido al pago." };
+}
+
+export async function createMercadoPagoPaymentLink(
+  _: ActionState,
+  d: FormData,
+): Promise<ActionState> {
+  const db = await requireAdmin();
+  const orderId = val(d, "order_id");
+
+  if (!UUID_RE.test(orderId))
+    return { error: "No pudimos identificar el pedido." };
+  if (!mercadoPagoConfigured())
+    return {
+      error:
+        "Mercado Pago todavía no está configurado. Añade MP_ACCESS_TOKEN, MP_WEBHOOK_SECRET y SUPABASE_SERVICE_ROLE_KEY en Vercel cuando quieras activarlo.",
+    };
+
+  const { data: order, error: orderError } = await db
+    .from("orders")
+    .select("id,public_code,total_cents,deposit_cents,quote_required,status")
+    .eq("id", orderId)
+    .maybeSingle();
+
+  if (orderError || !order) return { error: "No encontramos el pedido." };
+  if (order.quote_required || order.total_cents <= 0)
+    return {
+      error:
+        "Primero confirma la cotización y el total final del pedido.",
+    };
+
+  const outstanding = order.total_cents - order.deposit_cents;
+  if (outstanding <= 0)
+    return { error: "Este pedido ya no tiene saldo pendiente." };
+
+  const { data: reusable } = await db
+    .from("payments")
+    .select("id,provider_checkout_url")
+    .eq("order_id", orderId)
+    .eq("provider", "mercadopago")
+    .eq("status", "pending")
+    .eq("amount_cents", outstanding)
+    .not("provider_checkout_url", "is", null)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (reusable?.provider_checkout_url)
+    return {
+      success: "Enlace Mercado Pago listo para compartir.",
+      url: reusable.provider_checkout_url,
+    };
+
+  const paymentId = crypto.randomUUID();
+  const idempotencyKey = crypto.randomUUID();
+
+  const { error: insertError } = await db.from("payments").insert({
+    id: paymentId,
+    order_id: orderId,
+    provider: "mercadopago",
+    method: "mercadopago",
+    status: "pending",
+    amount_cents: outstanding,
+    currency: "PEN",
+    reference: "Enlace Mercado Pago",
+    note: "Saldo pendiente generado desde Administración.",
+    idempotency_key: idempotencyKey,
+  });
+
+  if (insertError) {
+    if (migrationMissing(insertError.code))
+      return {
+        error:
+          "Pagos V2 aún no está activado. Ejecuta supabase/payments-v2.sql.",
+      };
+    return { error: "No pudimos preparar el pago." };
+  }
+
+  try {
+    const preference = await createMercadoPagoPreference({
+      paymentId,
+      orderId,
+      orderCode: order.public_code,
+      amountCents: outstanding,
+      idempotencyKey,
+    });
+
+    const { error: updateError } = await db
+      .from("payments")
+      .update({
+        provider_preference_id: preference.preferenceId,
+        provider_checkout_url: preference.checkoutUrl,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", paymentId);
+
+    if (updateError) throw new Error("No se pudo guardar la preferencia.");
+
+    revalidatePaymentViews(orderId);
+    return {
+      success: "Enlace Mercado Pago creado. Puedes compartirlo con el cliente.",
+      url: preference.checkoutUrl,
+    };
+  } catch {
+    await db
+      .from("payments")
+      .update({
+        status: "failed",
+        note: "No se pudo crear la preferencia de Mercado Pago.",
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", paymentId);
+
+    revalidatePaymentViews(orderId);
+    return {
+      error:
+        "Mercado Pago no pudo generar el enlace. El intento quedó registrado como fallido.",
+    };
+  }
 }
