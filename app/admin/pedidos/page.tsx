@@ -104,14 +104,31 @@ export default async function OrdersPage({
 
         <section className="admin-list">
           <nav className="admin-nav orders-filter" aria-label="Filtrar pedidos">
-            <Link href="/admin/pedidos">Todos</Link>
-            <Link href="/admin/pedidos?cotizacion=pendiente">
+            <Link
+              href={
+                search
+                  ? "/admin/pedidos?q=" + encodeURIComponent(search)
+                  : "/admin/pedidos"
+              }
+            >
+              Todos
+            </Link>
+            <Link
+              href={
+                "/admin/pedidos?cotizacion=pendiente" +
+                (search ? "&q=" + encodeURIComponent(search) : "")
+              }
+            >
               Cotización pendiente
             </Link>
             {orderStatuses.map((status) => (
               <Link
                 key={status}
-                href={"/admin/pedidos?estado=" + encodeURIComponent(status)}
+                href={
+                  "/admin/pedidos?estado=" +
+                  encodeURIComponent(status) +
+                  (search ? "&q=" + encodeURIComponent(search) : "")
+                }
               >
                 {status}
               </Link>
