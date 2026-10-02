@@ -11,7 +11,8 @@ La tienda pública y el carrito funcionan sin iniciar sesión. **Clerk** gestion
 5. Para activar fotografías administrables, ejecuta `supabase/product-images-v3.sql` una sola vez. Crea un bucket público solo para lectura de imágenes de catálogo; las escrituras siguen limitadas al administrador mediante RLS.
 6. Ejecuta `supabase/new-product-v4.sql` una sola vez para activar el nuevo flujo de alta de productos con foto propia y placeholder neutro.
 7. Ejecuta `supabase/orders-v2.sql` una sola vez para activar pedidos automáticos, códigos `YMP-...`, snapshot histórico y estados V2.
-8. No uses `service_role`, secret keys ni la contraseña de la base de datos en el frontend.
+8. Ejecuta `supabase/customers-v1.sql` una sola vez para activar Clientes V1, notas internas y timeline auditado.
+9. No uses `service_role`, secret keys ni la contraseña de la base de datos en el frontend.
 
 ## 2. Clerk con Google
 
@@ -151,3 +152,38 @@ Para verificar esta etapa:
 3. Cambia el pedido a **Confirmado** únicamente después de definir su total real; entonces debe aparecer en las métricas.
 4. Abre `/admin/calendario` y confirma que el pedido aparezca en la fecha solicitada.
 5. Navega al mes anterior/siguiente y prueba los filtros de estado.
+
+
+## Clientes V1 y timeline auditado
+
+Después del merge de esta etapa ejecuta **solo**:
+
+`supabase/customers-v1.sql`
+
+La migración:
+
+- crea una ficha CRM única por teléfono normalizado;
+- considera equivalentes números peruanos como `970 769 587`, `+51 970 769 587` y `0051 970 769 587`;
+- vincula automáticamente los pedidos existentes con su cliente correspondiente;
+- conserva todos los pedidos, códigos `YMP`, importes y fechas actuales;
+- añade `customer_id` a los pedidos para navegación directa pedido ↔ cliente;
+- crea notas internas protegidas por RLS;
+- registra cambios futuros de estado, cotización, total y adelanto en `order_events`;
+- registra el actor como Administrador, Cliente o Sistema según el contexto.
+
+No se reconstruye un historial ficticio para cambios ocurridos antes de esta migración. La ficha de pedido siempre muestra su fecha real de creación y el timeline avanzado empieza a registrar los cambios posteriores a la activación.
+
+### Verificación de Clientes V1
+
+1. Abre `/admin/clientes` y confirma que los pedidos existentes se hayan agrupado por teléfono.
+2. Busca un cliente por nombre y luego por teléfono.
+3. Abre su ficha y comprueba historial, productos y direcciones.
+4. Guarda una nota interna, recarga y confirma que persiste.
+5. Abre uno de sus pedidos y confirma que aparezca **Ver ficha del cliente**.
+6. Cambia el estado del pedido, por ejemplo de **Nuevo** a **Por confirmar**.
+7. Recarga la ficha del pedido y confirma que el timeline registre el cambio con fecha/hora.
+8. Modifica un adelanto y confirma que aparezca un evento de pago.
+9. Si resuelves una cotización, comprueba que el timeline guarde el total acordado.
+10. Verifica que un usuario no administrador no pueda leer `customers`, `customer_notes` ni `order_events` directamente.
+
+Las notas internas jamás forman parte del mensaje de WhatsApp ni de la tienda pública.

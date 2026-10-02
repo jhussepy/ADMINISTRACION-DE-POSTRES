@@ -4,14 +4,17 @@ import { OrderForm, OrderUpdateForm } from "@/components/admin-forms";
 import type { Order } from "@/lib/types";
 import { orderStatuses } from "@/lib/types";
 import { money } from "@/lib/cart";
+import { safeCrmSearch } from "@/lib/crm";
+import { Search } from "lucide-react";
 
 export default async function OrdersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ estado?: string; cotizacion?: string }>;
+  searchParams: Promise<{ estado?: string; cotizacion?: string; q?: string }>;
 }) {
   const db = await requireAdmin();
   const params = await searchParams;
+  const search = safeCrmSearch(params.q);
   let query = db
     .from("orders")
     .select(
@@ -25,6 +28,14 @@ export default async function OrdersPage({
     query = query.eq("status", params.estado!);
   if (params.cotizacion === "pendiente")
     query = query.eq("quote_required", true);
+  if (search)
+    query = query.or(
+      [
+        `public_code.ilike.%${search}%`,
+        `customer_name.ilike.%${search}%`,
+        `customer_phone.ilike.%${search}%`,
+      ].join(","),
+    );
 
   const { data, error } = await query;
   if (error) throw new Error("No se pudieron cargar los pedidos.");
@@ -45,6 +56,42 @@ export default async function OrdersPage({
         <span className="badge">{orders.length} en esta vista</span>
       </div>
 
+      <form className="crm-search orders-crm-search" method="get">
+        <Search size={18} />
+        <input
+          type="search"
+          name="q"
+          defaultValue={search}
+          placeholder="Buscar código YMP, cliente o teléfono"
+          maxLength={80}
+          aria-label="Buscar pedidos"
+        />
+        {params.estado && (
+          <input type="hidden" name="estado" value={params.estado} />
+        )}
+        {params.cotizacion && (
+          <input type="hidden" name="cotizacion" value={params.cotizacion} />
+        )}
+        <button className="button" type="submit">
+          Buscar
+        </button>
+        {search && (
+          <Link
+            className="button secondary"
+            href={
+              params.estado
+                ? "/admin/pedidos?estado=" + encodeURIComponent(params.estado)
+                : params.cotizacion
+                  ? "/admin/pedidos?cotizacion=" +
+                    encodeURIComponent(params.cotizacion)
+                  : "/admin/pedidos"
+            }
+          >
+            Limpiar
+          </Link>
+        )}
+      </form>
+
       <div className="admin-grid orders-v2-grid">
         <section className="panel">
           <h2>Registrar pedido manual</h2>
@@ -57,14 +104,31 @@ export default async function OrdersPage({
 
         <section className="admin-list">
           <nav className="admin-nav orders-filter" aria-label="Filtrar pedidos">
-            <Link href="/admin/pedidos">Todos</Link>
-            <Link href="/admin/pedidos?cotizacion=pendiente">
+            <Link
+              href={
+                search
+                  ? "/admin/pedidos?q=" + encodeURIComponent(search)
+                  : "/admin/pedidos"
+              }
+            >
+              Todos
+            </Link>
+            <Link
+              href={
+                "/admin/pedidos?cotizacion=pendiente" +
+                (search ? "&q=" + encodeURIComponent(search) : "")
+              }
+            >
               Cotización pendiente
             </Link>
             {orderStatuses.map((status) => (
               <Link
                 key={status}
-                href={"/admin/pedidos?estado=" + encodeURIComponent(status)}
+                href={
+                  "/admin/pedidos?estado=" +
+                  encodeURIComponent(status) +
+                  (search ? "&q=" + encodeURIComponent(search) : "")
+                }
               >
                 {status}
               </Link>

@@ -25,6 +25,10 @@ Primera versión de la tienda de **Repostería Yemape**, desarrollada con Next.j
 - **Dashboard V2:** centro de operaciones con pedidos por atender, producción, entregas de hoy/mañana, cotizaciones y métricas financieras que excluyen pedidos sin precio confirmado.
 - **Calendario:** vista mensual de producción y entregas en `/admin/calendario`, con filtros por estado, modalidad y acceso directo a cada pedido.
 - **WhatsApp V2:** mensaje estructurado por productos, cliente, entrega y estado; los precios de demostración dejan de mostrarse como importes oficiales.
+- **Clientes V1 / CRM:** ficha única por teléfono normalizado, búsqueda, historial de pedidos, productos recurrentes, direcciones utilizadas, modalidad habitual y WhatsApp directo.
+- **Notas internas:** contexto privado del cliente visible solo para Administración, protegido por RLS.
+- **Timeline de pedido:** auditoría de cambios de estado, cotización, total y adelantos con fecha/hora y actor.
+- **Búsqueda de pedidos:** localización rápida por código `YMP`, nombre o teléfono, combinable con filtros existentes.
 - Pedidos manuales: siguen disponibles para teléfono, Instagram o chats externos, usando el mismo flujo de estados y códigos.
 
 **Modo demostrativo:** `lib/demo-catalog.ts` sigue proporcionando tamaños y precios de ejemplo mientras un producto no tenga variantes reales. La tienda puede mostrarlos como referencia de interfaz, pero WhatsApp V2 los convierte en **Precio pendiente de confirmación** y el Dashboard no los cuenta como ventas.
@@ -77,6 +81,7 @@ La prueba de navegador está en `tests/storefront.spec.ts` y se ejecuta con `npm
 - `supabase/product-images-v3.sql`: crea el bucket y la galería segura de imágenes administrables.
 - `supabase/new-product-v4.sql`: permite el placeholder neutro y futuras imágenes locales sin mantener una lista rígida en la base de datos.
 - `supabase/orders-v2.sql`: activa códigos públicos, snapshot histórico, estados V2 y creación automática segura de solicitudes web.
+- `supabase/customers-v1.sql`: activa CRM de clientes, deduplicación por teléfono, notas internas y timeline auditado de pedidos.
 - `docs/`: configuración, alcance y notas de verificación.
 
 ## Límites de esta primera versión
@@ -86,6 +91,7 @@ La prueba de navegador está en `tests/storefront.spec.ts` y se ejecuta con `npm
 - Pedidos V2 registra la solicitud de la web automáticamente; conversaciones o pedidos que nazcan directamente fuera de la web todavía se registran manualmente.
 - Cuentas y administración requieren Clerk, Supabase, la migración `supabase/clerk-auth.sql` y un Clerk User ID autorizado como administrador.
 - Las fotografías iniciales siguen sirviendo como respaldo. Tras activar Galería V3, las nuevas imágenes pueden administrarse desde el panel sin modificar GitHub.
+- El CRM no calcula gasto histórico del cliente mientras existan pedidos con precios demo o por cotizar; evita mostrar cifras comerciales falsas.
 - Inventario de ingredientes, costos de recetas, egresos y reportes completos corresponden a una siguiente etapa; el saldo por cobrar no equivale a ganancia.
 - Antes de abrir ventas, el propietario debe confirmar precios, presentaciones, catálogo, horarios, recojo y condiciones de delivery.
 - Cada postre cuenta actualmente con una foto; las galerías con distintos ángulos requieren fotos adicionales.

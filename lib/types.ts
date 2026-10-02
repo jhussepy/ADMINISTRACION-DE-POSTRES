@@ -83,6 +83,7 @@ export type OrderItem = {
 
 export type Order = {
   id: string;
+  customer_id: string | null;
   public_code: string;
   source: "manual" | "web";
   customer_user_id: string | null;
@@ -104,4 +105,55 @@ export type Order = {
   status: (typeof orderStatuses)[number];
   created_at: string;
   order_items?: OrderItem[];
+};
+
+
+export type CustomerOrderSummary = Pick<
+  Order,
+  | "id"
+  | "public_code"
+  | "status"
+  | "delivery_method"
+  | "delivery_address"
+  | "delivery_date"
+  | "quote_required"
+  | "created_at"
+>;
+
+export type Customer = {
+  id: string;
+  normalized_phone: string;
+  phone: string;
+  full_name: string;
+  clerk_user_id: string | null;
+  last_delivery_method: "recojo" | "delivery" | null;
+  last_delivery_address: string;
+  last_order_at: string | null;
+  created_at: string;
+  updated_at: string;
+  orders?: CustomerOrderSummary[];
+};
+
+export type CustomerNote = {
+  id: string;
+  customer_id: string;
+  note: string;
+  created_by: string;
+  created_at: string;
+};
+
+export type OrderEvent = {
+  id: string;
+  order_id: string;
+  event_type:
+    | "status_change"
+    | "quote_resolved"
+    | "payment_update"
+    | "total_update";
+  from_status: string | null;
+  to_status: string | null;
+  amount_cents: number | null;
+  actor_user_id: string | null;
+  actor_role: "admin" | "customer" | "system";
+  created_at: string;
 };

@@ -1,8 +1,10 @@
 "use client";
 import { useActionState } from "react";
 import {
+  deleteCustomerNote,
   deleteProductImage,
   deleteVariant,
+  saveCustomerNote,
   saveOrder,
   saveProduct,
   saveProductImage,
@@ -701,6 +703,54 @@ export function OrderUpdateForm({ order }: { order: Order }) {
       <Feedback state={state} />
       <button className="button secondary" disabled={pending}>
         {pending ? "Guardando…" : "Actualizar pedido"}
+      </button>
+    </form>
+  );
+}
+
+
+export function CustomerNoteForm({ customerId }: { customerId: string }) {
+  const [state, action, pending] = useActionState(saveCustomerNote, {});
+  return (
+    <form action={action} className="stack-form customer-note-form">
+      <input type="hidden" name="customer_id" value={customerId} />
+      <label>
+        Nueva nota interna
+        <textarea
+          name="note"
+          minLength={2}
+          maxLength={1000}
+          rows={4}
+          required
+          placeholder="Ej.: Prefiere poco dulce. Llamar antes del delivery."
+        />
+      </label>
+      <p className="subtle">
+        Solo el equipo administrador puede ver estas notas.
+      </p>
+      <Feedback state={state} />
+      <button className="button" disabled={pending}>
+        {pending ? "Guardando…" : "Guardar nota"}
+      </button>
+    </form>
+  );
+}
+
+export function CustomerNoteDeleteForm({
+  customerId,
+  noteId,
+}: {
+  customerId: string;
+  noteId: string;
+}) {
+  const [state, action, pending] = useActionState(deleteCustomerNote, {});
+  return (
+    <form action={action} className="customer-note-delete">
+      <input type="hidden" name="customer_id" value={customerId} />
+      <input type="hidden" name="note_id" value={noteId} />
+      <Feedback state={state} />
+      <button className="text-button danger-button" disabled={pending}>
+        {pending ? "Eliminando…" : "Eliminar nota"}
       </button>
     </form>
   );

@@ -653,3 +653,83 @@ export async function updateOrder(
   revalidatePath("/admin/pedidos/" + id);
   return { success: "Pedido actualizado." };
 }
+
+
+export async function saveCustomerNote(
+  _: ActionState,
+  d: FormData,
+): Promise<ActionState> {
+  const db = await requireAdmin();
+  const customer_id = val(d, "customer_id");
+  const note = val(d, "note");
+
+  if (!UUID_RE.test(customer_id))
+    return { error: "No pudimos identificar al cliente." };
+  if (note.length < 2 || note.length > 1000)
+    return { error: "La nota debe tener entre 2 y 1000 caracteres." };
+
+  const { data: customer, error: customerError } = await db
+    .from("customers")
+    .select("id")
+    .eq("id", customer_id)
+    .maybeSingle();
+
+  if (customerError) {
+    if (migrationMissing(customerError.code))
+      return {
+        error:
+          "Clientes V1 aún no está activado. Ejecuta supabase/customers-v1.sql.",
+      };
+    return { error: "No pudimos comprobar el cliente." };
+  }
+  if (!customer) return { error: "No encontramos al cliente." };
+
+  const { error } = await db.from("customer_notes").insert({
+    customer_id,
+    note,
+  });
+
+  if (error) {
+    if (migrationMissing(error.code))
+      return {
+        error:
+          "Clientes V1 aún no está activado. Ejecuta supabase/customers-v1.sql.",
+      };
+    return { error: "No pudimos guardar la nota interna." };
+  }
+
+  revalidatePath("/admin/clientes");
+  revalidatePath("/admin/clientes/" + customer_id);
+  return { success: "Nota interna guardada." };
+}
+
+export async function deleteCustomerNote(
+  _: ActionState,
+  d: FormData,
+): Promise<ActionState> {
+  const db = await requireAdmin();
+  const note_id = val(d, "note_id");
+  const customer_id = val(d, "customer_id");
+
+  if (!UUID_RE.test(note_id) || !UUID_RE.test(customer_id))
+    return { error: "No pudimos identificar la nota." };
+
+  const { error } = await db
+    .from("customer_notes")
+    .delete()
+    .eq("id", note_id)
+    .eq("customer_id", customer_id);
+
+  if (error) {
+    if (migrationMissing(error.code))
+      return {
+        error:
+          "Clientes V1 aún no está activado. Ejecuta supabase/customers-v1.sql.",
+      };
+    return { error: "No pudimos eliminar la nota." };
+  }
+
+  revalidatePath("/admin/clientes");
+  revalidatePath("/admin/clientes/" + customer_id);
+  return { success: "Nota eliminada." };
+}
