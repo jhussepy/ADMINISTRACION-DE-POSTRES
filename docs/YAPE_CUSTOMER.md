@@ -4,7 +4,7 @@ El enlace privado de cada pedido muestra el saldo acordado, los datos de Yape y 
 
 ## Activación
 
-1. Ejecuta `supabase/yape-customer-v1.sql` y después `supabase/yape-mp-exclusion-v1.sql` en Supabase SQL Editor. La segunda migración impide ofrecer Yape y un enlace Mercado Pago vigente al mismo pedido.
+1. Ejecuta `supabase/yape-customer-v1.sql`, `supabase/yape-mp-exclusion-v1.sql` y `supabase/yape-mp-exclusion-v2.sql` en Supabase SQL Editor, en ese orden. La segunda migración impide ofrecer Yape y un enlace Mercado Pago vigente al mismo pedido; la tercera permite procesar avisos repetidos de pagos que ya estaban pendientes.
 2. Configura en Vercel para Production y Preview:
    - `YAPE_NUMBER`: número real de nueve dígitos que empieza por 9.
    - `YAPE_HOLDER`: nombre del destinatario que el cliente verá en Yape.

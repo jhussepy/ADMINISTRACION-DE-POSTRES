@@ -242,3 +242,17 @@ test("Yape and Mercado Pago migration serializes both payment channels", () => {
   assert.match(sql, /guard_overlapping_payment_channels_trigger/);
   assert.match(sql, /provider_expires_at is null or p.provider_expires_at > now\(\)/);
 });
+
+test("payment exclusion v2 preserves pending webhook updates", () => {
+  const sql = readFileSync(
+    new URL("../supabase/yape-mp-exclusion-v2.sql", import.meta.url),
+    "utf8",
+  );
+  assert.equal(sql.split("as $$").length - 1, 1);
+  assert.equal(sql.split("$$;").length - 1, 1);
+  const unchangedPending = sql.indexOf("if tg_op = 'UPDATE' then");
+  const overlapCheck = sql.indexOf("if new.provider = 'mercadopago'", unchangedPending);
+  assert.ok(unchangedPending > 0 && overlapCheck > unchangedPending);
+  assert.match(sql, /old\.status = 'pending'/);
+  assert.match(sql, /new\.provider_expires_at is not distinct from old\.provider_expires_at/);
+});
