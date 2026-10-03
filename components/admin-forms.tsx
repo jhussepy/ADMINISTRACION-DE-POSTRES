@@ -724,9 +724,9 @@ export function PaymentRegisterForm({ order }: { order: Order }) {
         </label>
         <label>
           Estado inicial
-          <select name="status" defaultValue="confirmed">
-            <option value="confirmed">Confirmado</option>
+          <select name="status" defaultValue="pending">
             <option value="pending">Pendiente de verificación</option>
+            <option value="confirmed">Confirmado tras verificar</option>
           </select>
         </label>
       </div>

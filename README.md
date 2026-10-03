@@ -86,6 +86,7 @@ La prueba de navegador está en `tests/storefront.spec.ts` y se ejecuta con `npm
 - `supabase/orders-v2.sql`: activa códigos públicos, snapshot histórico, estados V2 y creación automática segura de solicitudes web.
 - `supabase/customers-v1.sql`: activa CRM de clientes, deduplicación por teléfono, notas internas y timeline auditado de pedidos.
 - `supabase/payments-v2.sql`: activa movimientos de pago, comprobantes privados, conciliación de saldo y webhook transaccional de Mercado Pago.
+- `supabase/payments-v2-hardening.sql`: ejecutar después de Pagos V2 y **antes** de desplegar esta versión; limita los enlaces nuevos de Mercado Pago a 30 minutos y bloquea confirmaciones manuales durante su vigencia.
 - `docs/PAGOKIT_INTEGRATION.md`: arquitectura de seguridad adaptada de PagoKit y checklist de activación.
 - `docs/`: configuración, alcance y notas de verificación.
 
@@ -97,7 +98,7 @@ La prueba de navegador está en `tests/storefront.spec.ts` y se ejecuta con `npm
 - Cuentas y administración requieren Clerk, Supabase, la migración `supabase/clerk-auth.sql` y un Clerk User ID autorizado como administrador.
 - Las fotografías iniciales siguen sirviendo como respaldo. Tras activar Galería V3, las nuevas imágenes pueden administrarse desde el panel sin modificar GitHub.
 - El CRM no calcula gasto histórico del cliente mientras existan pedidos con precios demo o por cotizar; evita mostrar cifras comerciales falsas.
-- Mercado Pago permanece preparado pero no debe activarse con precios demo; el pedido exige cotización real antes de generar un enlace.
+- Mercado Pago permanece preparado pero no debe activarse con precios demo; el pedido exige cotización real antes de generar un enlace. Los enlaces nuevos duran 30 minutos. Un enlace antiguo sin vencimiento impide confirmar pagos manuales hasta que se inhabilite en Mercado Pago y se concilie su registro local. Los pagos iniciados antes de vencer pueden liquidarse después; revisa la cuenta del proveedor y cualquier evento rechazado antes de registrar otro cobro.
 - Pagos V2 registra cobros y saldos, pero no equivale a contabilidad ni utilidad empresarial.
 - Inventario de ingredientes, costos de recetas, egresos y reportes completos corresponden a una siguiente etapa; el saldo por cobrar no equivale a ganancia.
 - Antes de abrir ventas, el propietario debe confirmar precios, presentaciones, catálogo, horarios, recojo y condiciones de delivery.

@@ -22,25 +22,27 @@ export default async function AdminPage() {
   const db = await requireAdmin();
   const today = limaToday();
 
-  const [ordersResult, productsResult] = await Promise.all([
-    db
-      .from("orders")
-      .select("*")
-      .order("delivery_date", { ascending: true })
-      .order("created_at", { ascending: false })
-      .limit(300),
-    db
-      .from("products")
-      .select("id", { count: "exact", head: true })
-      .eq("active", true),
-  ]);
+  const productsResult = await db
+    .from("products")
+    .select("id", { count: "exact", head: true })
+    .eq("active", true);
 
-  if (ordersResult.error)
-    throw new Error("No se pudo cargar el centro de operaciones.");
   if (productsResult.error)
     throw new Error("No se pudo cargar el catálogo.");
 
-  const orders = (ordersResult.data ?? []) as Order[];
+  const orders: Order[] = [];
+  const batchSize = 500;
+  for (let offset = 0; ; offset += batchSize) {
+    const { data, error } = await db
+      .from("orders")
+      .select("*")
+      .order("id", { ascending: true })
+      .range(offset, offset + batchSize - 1);
+    if (error) throw new Error("No se pudo cargar el centro de operaciones.");
+    const batch = (data ?? []) as Order[];
+    orders.push(...batch);
+    if (batch.length < batchSize) break;
+  }
   const metrics = operationalOrderMetrics(orders, today);
   const activeOrders = orders
     .filter((order) =>
