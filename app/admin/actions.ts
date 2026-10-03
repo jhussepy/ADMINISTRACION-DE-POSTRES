@@ -696,7 +696,7 @@ export async function advanceOrderStatus(
 
   const { data: order, error: readError } = await db
     .from("orders")
-    .select("status,quote_required")
+    .select("status,quote_required,total_cents")
     .eq("id", id)
     .maybeSingle();
   if (readError || !order) return { error: "No encontramos el pedido." };
@@ -705,7 +705,7 @@ export async function advanceOrderStatus(
 
   const next = nextOrderStatus(order.status);
   if (!next) return { error: "Este pedido ya no tiene una etapa siguiente." };
-  if (next === "Confirmado" && order.quote_required)
+  if (next === "Confirmado" && (order.quote_required || order.total_cents <= 0))
     return { error: "Confirma el precio final en el pedido antes de avanzar." };
 
   let update = db
@@ -713,7 +713,8 @@ export async function advanceOrderStatus(
     .update({ status: next })
     .eq("id", id)
     .eq("status", expectedStatus);
-  if (next === "Confirmado") update = update.eq("quote_required", false);
+  if (next === "Confirmado")
+    update = update.eq("quote_required", false).gt("total_cents", 0);
   const { data: updated, error } = await update.select("id").maybeSingle();
   if (error || !updated)
     return { error: "El pedido cambió. Actualiza la página e inténtalo de nuevo." };
