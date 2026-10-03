@@ -847,14 +847,13 @@ async function activeMercadoPagoLink(
     .eq("order_id", orderId)
     .eq("provider", "mercadopago")
     .eq("status", "pending")
-    .order("created_at", { ascending: false });
+    .or("provider_expires_at.is.null,provider_expires_at.gt." + new Date().toISOString())
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
 
   if (error) throw new Error("No se pudo comprobar la vigencia de los enlaces.");
-  return data?.find(
-    (payment) =>
-      !payment.provider_expires_at ||
-      new Date(payment.provider_expires_at).getTime() > Date.now(),
-  ) ?? null;
+  return data;
 }
 
 export async function registerPayment(
