@@ -280,3 +280,19 @@ test("manual payment guard migration serializes writes and records activation", 
   assert.match(sql, /p\.method = 'yape'[\s\S]*?p\.status = 'pending'/);
   assert.match(sql, /values \('manual-payment-guard-v1'\)/);
 });
+
+test("manual payment guard v2 releases the old confirmed amount before checking a demotion", () => {
+  const sql = readFileSync(
+    new URL("../supabase/manual-payment-guard-v2.sql", import.meta.url),
+    "utf8",
+  );
+  assert.equal(sql.split("as $$").length - 1, 1);
+  assert.equal(sql.split("$$;").length - 1, 1);
+  const lock = sql.indexOf("for update;");
+  const demotion = sql.indexOf("v_paid := v_paid - old.amount_cents;");
+  const balanceCheck = sql.indexOf("if v_total <= v_paid then");
+  assert.ok(lock < demotion && demotion < balanceCheck);
+  assert.match(sql, /old.status = 'confirmed'/);
+  assert.match(sql, /old.order_id is not distinct from new.order_id/);
+  assert.match(sql, /values \('manual-payment-guard-v2'\)/);
+});

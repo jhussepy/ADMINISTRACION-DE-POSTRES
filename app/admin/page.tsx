@@ -52,7 +52,7 @@ export default async function AdminPage() {
       db
         .from("payment_schema_versions")
         .select("version")
-        .eq("version", "manual-payment-guard-v1")
+        .eq("version", "manual-payment-guard-v2")
         .maybeSingle(),
     ]);
   const schemaChecks = [
@@ -73,7 +73,7 @@ export default async function AdminPage() {
     },
     {
       label: "Control de saldo y Yape pendiente",
-      file: "manual-payment-guard-v1.sql",
+      file: "manual-payment-guard-v2.sql",
       state: guardCheck.error || !guardCheck.data ? "pending" : "ready",
     },
   ];

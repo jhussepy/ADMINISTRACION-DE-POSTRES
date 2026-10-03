@@ -4,7 +4,7 @@ El enlace privado de cada pedido muestra el saldo acordado, los datos de Yape y 
 
 ## Activación
 
-1. Ejecuta `supabase/yape-customer-v1.sql`, `supabase/yape-mp-exclusion-v1.sql`, `supabase/yape-mp-exclusion-v2.sql` y `supabase/manual-payment-guard-v1.sql` en Supabase SQL Editor, en ese orden. La última migración impide crear nuevos pagos pendientes cuando el pedido ya está cubierto, exceder el saldo o registrar dos Yapes pendientes para un mismo pedido. Si las tres primeras ya están instaladas, ejecuta solo la última.
+1. Ejecuta `supabase/yape-customer-v1.sql`, `supabase/yape-mp-exclusion-v1.sql`, `supabase/yape-mp-exclusion-v2.sql` y `supabase/manual-payment-guard-v2.sql` en Supabase SQL Editor, en ese orden. La última migración impide crear nuevos pagos pendientes cuando el pedido ya está cubierto, exceder el saldo o registrar dos Yapes pendientes para un mismo pedido. También permite devolver un pago confirmado a pendiente sin contar dos veces su importe. Si las tres primeras ya están instaladas, ejecuta solo la última. `manual-payment-guard-v2.sql` sustituye a `manual-payment-guard-v1.sql` y se puede ejecutar aunque V1 ya esté aplicada.
 2. Configura en Vercel para Production y Preview:
    - `YAPE_NUMBER`: número real de nueve dígitos que empieza por 9.
    - `YAPE_HOLDER`: nombre del destinatario que el cliente verá en Yape.
