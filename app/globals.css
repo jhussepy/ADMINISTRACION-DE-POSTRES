@@ -5971,3 +5971,48 @@ legend {
     width: 100%;
   }
 }
+
+/* Pago por Yape, accesible desde un enlace privado del pedido. */
+.yape-page { min-height: 100vh; background: linear-gradient(155deg, #fff8f2, var(--cream) 48%); }
+.yape-shell { width: min(1120px, calc(100% - 32px)); margin: 0 auto; padding: clamp(24px, 5vw, 64px) 0 80px; }
+.yape-shell > .text-link { display: inline-flex; min-height: 44px; align-items: center; }
+.yape-hero { margin: 20px 0 30px; max-width: 750px; display: grid; gap: 10px; }
+.yape-hero h1 { font-family: var(--font-serif); font-size: clamp(36px, 5vw, 62px); font-weight: 500; line-height: 1.12; }
+.yape-hero p { color: var(--muted); font-size: 17px; }
+.yape-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(270px, 0.75fr); align-items: start; gap: 24px; }
+.yape-grid .panel, .yape-unavailable { padding: clamp(22px, 4vw, 38px); }
+.yape-instructions { display: grid; gap: 20px; }
+.yape-heading { display: flex; align-items: center; gap: 16px; color: var(--wine); }
+.yape-heading h2 { color: var(--ink); font-family: var(--font-serif); font-weight: 500; font-size: 27px; }
+.yape-balance-label { color: var(--muted); margin-bottom: -20px; }
+.yape-balance { font-family: var(--font-serif); font-weight: 500; line-height: 1; font-size: clamp(38px, 6vw, 58px); }
+.yape-account { display: grid; grid-template-columns: 1fr auto; gap: 8px 16px; align-items: baseline; border-block: 1px solid var(--border); padding: 18px 0; }
+.yape-account span { color: var(--muted); }
+.yape-account strong { text-align: right; font-size: 18px; overflow-wrap: anywhere; }
+.yape-qr { display: grid; justify-items: center; gap: 10px; padding: 16px; border-radius: 16px; background: var(--pink); }
+.yape-qr img { max-width: 100%; height: auto; border-radius: 12px; }
+.yape-qr small { color: var(--ink); text-align: center; }
+.yape-copy { width: fit-content; min-height: 44px; }
+.yape-proof-form { border-top: 1px solid var(--border); padding-top: 22px; }
+.yape-proof-form .button { min-height: 48px; }
+.yape-pending { border: 1px solid #cddfcf; background: #edf6ee; color: #295338; border-radius: 12px; padding: 14px 16px; }
+.yape-help { display: grid; gap: 18px; }
+.yape-help ol { list-style: none; display: grid; gap: 18px; padding: 0; margin: 0; }
+.yape-help li { display: flex; gap: 12px; align-items: flex-start; }
+.yape-help li svg { margin-top: 3px; color: var(--wine); }
+.yape-help p { color: var(--muted); font-size: 14px; }
+.yape-unavailable { display: grid; gap: 12px; max-width: 700px; }
+.yape-unavailable svg { color: var(--wine); }
+.yape-share-box { margin: 22px 0; display: grid; gap: 12px; }
+.yape-share-box input { overflow: hidden; text-overflow: ellipsis; }
+.yape-share-box .button { width: fit-content; min-height: 44px; }
+@media (max-width: 760px) {
+  .yape-grid { grid-template-columns: 1fr; }
+  .yape-shell { width: min(100% - 24px, 580px); }
+  .yape-grid .panel { padding: 22px; }
+}
+@media (max-width: 420px) {
+  .yape-account { grid-template-columns: 1fr; gap: 2px; }
+  .yape-account strong { text-align: left; margin-bottom: 10px; }
+  .yape-copy { width: 100%; }
+}
