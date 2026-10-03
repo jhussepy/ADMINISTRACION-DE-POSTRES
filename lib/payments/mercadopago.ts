@@ -50,12 +50,14 @@ export async function createMercadoPagoPreference({
   orderCode,
   amountCents,
   idempotencyKey,
+  expiresAt,
 }: {
   paymentId: string;
   orderId: string;
   orderCode: string;
   amountCents: number;
   idempotencyKey: string;
+  expiresAt: string;
 }) {
   const base = siteUrl();
   const response = await mpFetch("/checkout/preferences", {
@@ -76,6 +78,9 @@ export async function createMercadoPagoPreference({
         },
       ],
       external_reference: paymentId,
+      expires: true,
+      expiration_date_from: new Date().toISOString(),
+      expiration_date_to: expiresAt,
       back_urls: {
         success: `${base}/pago/resultado`,
         pending: `${base}/pago/resultado`,

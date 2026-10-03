@@ -12,7 +12,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${origin}/catalogo`, changeFrequency: "weekly", priority: 0.9 },
     ...products.map((product) => ({
       url: `${origin}/postres/${product.id}`,
-      images: [`${origin}${product.image}`],
+      images: [new URL(product.image, origin).toString()],
       changeFrequency: "monthly" as const,
       priority: 0.7,
     })),

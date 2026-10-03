@@ -26,7 +26,7 @@ function formatDate(value: string) {
 export default async function PaymentsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ estado?: string; metodo?: string; q?: string }>;
+  searchParams: Promise<{ estado?: string; metodo?: string; q?: string; pagina?: string }>;
 }) {
   const db = await requireAdmin();
   const params = await searchParams;
@@ -34,34 +34,41 @@ export default async function PaymentsPage({
   const status = paymentStatuses.find((item) => item === params.estado);
   const method = paymentMethods.find((item) => item === params.metodo);
 
-  let query = db
-    .from("payments")
-    .select(
-      "*,orders(id,public_code,customer_name,customer_phone,total_cents,deposit_cents,quote_required,status),payment_proofs(id)",
-    )
-    .order("created_at", { ascending: false })
-    .limit(300);
+  const all: PaymentWithOrder[] = [];
+  const batchSize = 300;
+  for (let offset = 0; ; offset += batchSize) {
+    let query = db
+      .from("payments")
+      .select(
+        "*,orders(id,public_code,customer_name,customer_phone,total_cents,deposit_cents,quote_required,status),payment_proofs(id)",
+      )
+      .order("created_at", { ascending: false })
+      .order("id", { ascending: false })
+      .range(offset, offset + batchSize - 1);
 
-  if (status) query = query.eq("status", status);
-  if (method) query = query.eq("method", method);
+    if (status) query = query.eq("status", status);
+    if (method) query = query.eq("method", method);
 
-  const { data, error } = await query;
+    const { data, error } = await query;
 
-  if (error && ["42P01", "PGRST205", "42703"].includes(error.code))
-    return (
-      <section className="panel admin-migration-notice">
-        <strong>Pagos V2 está listo en el código, falta activarlo.</strong>
-        <p>
-          Después del merge ejecuta <code>supabase/payments-v2.sql</code> una
-          sola vez en Supabase SQL Editor.
-        </p>
-      </section>
-    );
+    if (error && ["42P01", "PGRST205", "42703"].includes(error.code))
+      return (
+        <section className="panel admin-migration-notice">
+          <strong>Pagos V2 está listo en el código, falta activarlo.</strong>
+          <p>
+            Después del merge ejecuta <code>supabase/payments-v2.sql</code> una
+            sola vez en Supabase SQL Editor.
+          </p>
+        </section>
+      );
 
-  if (error) throw new Error("No se pudieron cargar los pagos.");
+    if (error) throw new Error("No se pudieron cargar los pagos.");
+    const batch = (data ?? []) as PaymentWithOrder[];
+    all.push(...batch);
+    if (batch.length < batchSize) break;
+  }
 
-  const all = (data ?? []) as PaymentWithOrder[];
-  const payments = search
+  const matching = search
     ? all.filter((payment) => {
         const haystack = [
           payment.reference,
@@ -75,7 +82,14 @@ export default async function PaymentsPage({
         return haystack.includes(search.toLowerCase());
       })
     : all;
-  const summary = paymentSummary(payments);
+  const requestedPage = Number(params.pagina);
+  const pageNumber = Number.isSafeInteger(requestedPage) && requestedPage > 0
+    ? requestedPage
+    : 1;
+  const pageCount = Math.max(1, Math.ceil(matching.length / 50));
+  const currentPage = Math.min(pageNumber, pageCount);
+  const payments = matching.slice((currentPage - 1) * 50, currentPage * 50);
+  const summary = paymentSummary(matching);
 
   const filterSuffix =
     (status ? "&estado=" + encodeURIComponent(status) : "") +
@@ -173,6 +187,9 @@ export default async function PaymentsPage({
         </nav>
       </div>
 
+      <p className="subtle">
+        {matching.length} movimientos · Página {currentPage} de {pageCount}
+      </p>
       {payments.length ? (
         <section className="payments-admin-list">
           {payments.map((payment) => (
@@ -232,6 +249,26 @@ export default async function PaymentsPage({
           <h3>No hay pagos en esta vista</h3>
           <p>Los movimientos registrados desde los pedidos aparecerán aquí.</p>
         </div>
+      )}
+      {pageCount > 1 && (
+        <nav className="admin-nav" aria-label="Páginas de pagos">
+          {currentPage > 1 && (
+            <Link href={"/admin/pagos?" + new URLSearchParams({
+              ...(status ? { estado: status } : {}),
+              ...(method ? { metodo: method } : {}),
+              ...(search ? { q: search } : {}),
+              pagina: String(currentPage - 1),
+            })}>← Anterior</Link>
+          )}
+          {currentPage < pageCount && (
+            <Link href={"/admin/pagos?" + new URLSearchParams({
+              ...(status ? { estado: status } : {}),
+              ...(method ? { metodo: method } : {}),
+              ...(search ? { q: search } : {}),
+              pagina: String(currentPage + 1),
+            })}>Siguiente →</Link>
+          )}
+        </nav>
       )}
     </div>
   );

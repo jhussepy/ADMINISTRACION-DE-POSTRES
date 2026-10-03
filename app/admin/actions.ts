@@ -644,7 +644,7 @@ export async function updateOrder(
 
   const { data: order, error: readError } = await db
     .from("orders")
-    .select("id,deposit_cents")
+    .select("id,deposit_cents,total_cents,status")
     .eq("id", id)
     .maybeSingle();
 
@@ -655,6 +655,15 @@ export async function updateOrder(
       error:
         "El total no puede quedar por debajo de los pagos ya confirmados.",
     };
+
+  if (total_cents !== order.total_cents || status === "Cancelado") {
+    try {
+      if (await activeMercadoPagoLink(db, id))
+        return { error: "Hay un enlace de Mercado Pago vigente. Espera a que venza antes de cambiar el total o cancelar el pedido." };
+    } catch {
+      return { error: "Activa primero supabase/payments-v2-hardening.sql para cambiar este pedido." };
+    }
+  }
 
   const { error } = await db
     .from("orders")
@@ -827,6 +836,26 @@ async function savePaymentProofFile({
   return { success: true, path };
 }
 
+
+async function activeMercadoPagoLink(
+  db: Awaited<ReturnType<typeof requireAdmin>>,
+  orderId: string,
+) {
+  const { data, error } = await db
+    .from("payments")
+    .select("id,amount_cents,provider_checkout_url,provider_expires_at")
+    .eq("order_id", orderId)
+    .eq("provider", "mercadopago")
+    .eq("status", "pending")
+    .or("provider_expires_at.is.null,provider_expires_at.gt." + new Date().toISOString())
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) throw new Error("No se pudo comprobar la vigencia de los enlaces.");
+  return data;
+}
+
 export async function registerPayment(
   _: ActionState,
   d: FormData,
@@ -875,6 +904,15 @@ export async function registerPayment(
       error:
         "Este pago superaría el total del pedido. Revisa el importe o el total acordado.",
     };
+
+  if (status === "confirmed") {
+    try {
+      if (await activeMercadoPagoLink(db, orderId))
+        return { error: "Hay un enlace de Mercado Pago vigente. Espera a que venza antes de confirmar un pago manual." };
+    } catch {
+      return { error: "Activa primero supabase/payments-v2-hardening.sql para registrar pagos." };
+    }
+  }
 
   const paymentId = crypto.randomUUID();
   const now = new Date().toISOString();
@@ -963,6 +1001,12 @@ export async function updatePaymentStatus(
         error:
           "Confirmar este pago superaría el total actual del pedido.",
       };
+    try {
+      if (await activeMercadoPagoLink(db, orderId))
+        return { error: "Hay un enlace de Mercado Pago vigente. Espera a que venza antes de confirmar este pago." };
+    } catch {
+      return { error: "Activa primero supabase/payments-v2-hardening.sql para confirmar pagos." };
+    }
   }
 
   const now = new Date().toISOString();
@@ -1041,6 +1085,8 @@ export async function createMercadoPagoPaymentLink(
     .maybeSingle();
 
   if (orderError || !order) return { error: "No encontramos el pedido." };
+  if (order.status === "Cancelado")
+    return { error: "No se puede cobrar un pedido cancelado." };
   if (order.quote_required || order.total_cents <= 0)
     return {
       error:
@@ -1051,24 +1097,41 @@ export async function createMercadoPagoPaymentLink(
   if (outstanding <= 0)
     return { error: "Este pedido ya no tiene saldo pendiente." };
 
-  const { data: reusable } = await db
+  let activeLink: Awaited<ReturnType<typeof activeMercadoPagoLink>>;
+  try {
+    activeLink = await activeMercadoPagoLink(db, orderId);
+  } catch {
+    return { error: "Activa primero supabase/payments-v2-hardening.sql para generar enlaces." };
+  }
+
+  if (activeLink) {
+    if (activeLink.provider_expires_at && activeLink.amount_cents === outstanding && activeLink.provider_checkout_url)
+      return {
+        success: "Enlace Mercado Pago listo para compartir.",
+        url: activeLink.provider_checkout_url,
+      };
+    return {
+      error: activeLink.provider_expires_at
+        ? "Ya hay un enlace de Mercado Pago vigente para este pedido. Espera a que venza antes de generar uno nuevo."
+        : "Existe un enlace antiguo sin vencimiento. Inhabilítalo en Mercado Pago y actualiza su estado antes de generar otro.",
+    };
+  }
+
+  const { error: expiredError } = await db
     .from("payments")
-    .select("id,provider_checkout_url")
+    .update({
+      status: "failed",
+      note: "Enlace vencido; se necesita generar uno nuevo.",
+      updated_at: new Date().toISOString(),
+    })
     .eq("order_id", orderId)
     .eq("provider", "mercadopago")
     .eq("status", "pending")
-    .eq("amount_cents", outstanding)
-    .not("provider_checkout_url", "is", null)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+    .lt("provider_expires_at", new Date().toISOString());
+  if (expiredError)
+    return { error: "No pudimos cerrar el enlace vencido. Vuelve a intentarlo." };
 
-  if (reusable?.provider_checkout_url)
-    return {
-      success: "Enlace Mercado Pago listo para compartir.",
-      url: reusable.provider_checkout_url,
-    };
-
+  const expiresAt = new Date(Date.now() + 30 * 60 * 1000).toISOString();
   const paymentId = crypto.randomUUID();
   const idempotencyKey = crypto.randomUUID();
 
@@ -1083,6 +1146,7 @@ export async function createMercadoPagoPaymentLink(
     reference: "Enlace Mercado Pago",
     note: "Saldo pendiente generado desde Administración.",
     idempotency_key: idempotencyKey,
+    provider_expires_at: expiresAt,
   });
 
   if (insertError) {
@@ -1101,6 +1165,7 @@ export async function createMercadoPagoPaymentLink(
       orderCode: order.public_code,
       amountCents: outstanding,
       idempotencyKey,
+      expiresAt,
     });
 
     const { error: updateError } = await db

@@ -221,3 +221,12 @@ test("Pagos V2 migration keeps PL/pgSQL delimiters balanced", () => {
   assert.match(sql, /create trigger sync_order_confirmed_payments_trigger/);
   assert.match(sql, /apply_mercadopago_payment_webhook/);
 });
+
+test("payment hardening migration has balanced PL/pgSQL blocks", () => {
+  const sql = readFileSync(
+    new URL("../supabase/payments-v2-hardening.sql", import.meta.url),
+    "utf8",
+  );
+  assert.equal(sql.split("as $$").length - 1, 2);
+  assert.equal(sql.split("$$;").length - 1, 2);
+});
