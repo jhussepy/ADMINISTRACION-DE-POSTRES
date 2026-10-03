@@ -1,5 +1,5 @@
 "use client";
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import {
   deleteCustomerNote,
   deleteProductImage,
@@ -704,6 +704,7 @@ export function OrderUpdateForm({ order }: { order: Order }) {
 
 export function PaymentRegisterForm({ order }: { order: Order }) {
   const [state, action, pending] = useActionState(registerPayment, {});
+  const [status, setStatus] = useState("pending");
   const manualMethods = paymentMethods.filter(
     (method) => method !== "mercadopago",
   );
@@ -724,7 +725,11 @@ export function PaymentRegisterForm({ order }: { order: Order }) {
         </label>
         <label>
           Estado inicial
-          <select name="status" defaultValue="pending">
+          <select
+            name="status"
+            value={status}
+            onChange={(event) => setStatus(event.target.value)}
+          >
             <option value="pending">Pendiente de verificación</option>
             <option value="confirmed">Confirmado tras verificar</option>
           </select>
@@ -771,6 +776,15 @@ export function PaymentRegisterForm({ order }: { order: Order }) {
         />
         <small>JPG, PNG, WebP o PDF · máximo 5 MB</small>
       </label>
+      {status === "confirmed" && (
+        <label className="payment-verification">
+          <input name="transfer_verified" type="checkbox" required />
+          <span>
+            Verifiqué que el dinero ingresó en la cuenta o caja. El comprobante
+            por sí solo no acredita el pago.
+          </span>
+        </label>
+      )}
       <Feedback state={state} />
       <button className="button" disabled={pending}>
         {pending ? "Registrando…" : "Registrar pago"}
@@ -785,6 +799,7 @@ export function PaymentStatusForm({
   payment: Payment;
 }) {
   const [state, action, pending] = useActionState(updatePaymentStatus, {});
+  const [status, setStatus] = useState<string>(payment.status);
 
   if (payment.provider !== "manual")
     return (
@@ -797,7 +812,11 @@ export function PaymentStatusForm({
     <form action={action} className="payment-status-form">
       <input type="hidden" name="payment_id" value={payment.id} />
       <input type="hidden" name="order_id" value={payment.order_id} />
-      <select name="status" defaultValue={payment.status}>
+      <select
+        name="status"
+        value={status}
+        onChange={(event) => setStatus(event.target.value)}
+      >
         {(["pending", "confirmed", "rejected", "refunded"] as const).map(
           (status) => (
             <option key={status} value={status}>
@@ -806,6 +825,15 @@ export function PaymentStatusForm({
           ),
         )}
       </select>
+      {status === "confirmed" && payment.status !== "confirmed" && (
+        <label className="payment-verification">
+          <input name="transfer_verified" type="checkbox" required />
+          <span>
+            Verifiqué el ingreso real en la cuenta o caja; revisé el importe y
+            la referencia.
+          </span>
+        </label>
+      )}
       <button className="button secondary" disabled={pending}>
         {pending ? "Guardando…" : "Cambiar estado"}
       </button>

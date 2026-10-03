@@ -25,8 +25,7 @@ function signedHeaders({
   timestamp: number;
   secret: string;
 }) {
-  const signed =
-    `id:${paymentId};request-id:${requestId};ts:${timestamp};`;
+  const signed = `id:${paymentId};request-id:${requestId};ts:${timestamp};`;
   const signature = crypto
     .createHmac("sha256", Buffer.from(secret, "utf8"))
     .update(signed, "utf8")
@@ -207,7 +206,6 @@ test("payment summary counts only confirmed money as paid", () => {
   assert.equal(summary.pendingCount, 1);
 });
 
-
 test("Pagos V2 migration keeps PL/pgSQL delimiters balanced", () => {
   const sql = readFileSync(
     new URL("../supabase/payments-v2.sql", import.meta.url),
@@ -240,7 +238,10 @@ test("Yape and Mercado Pago migration serializes both payment channels", () => {
   assert.equal(sql.split("$$;").length - 1, 1);
   assert.match(sql, /for update/);
   assert.match(sql, /guard_overlapping_payment_channels_trigger/);
-  assert.match(sql, /provider_expires_at is null or p.provider_expires_at > now\(\)/);
+  assert.match(
+    sql,
+    /provider_expires_at is null or p.provider_expires_at > now\(\)/,
+  );
 });
 
 test("payment exclusion v2 preserves pending webhook updates", () => {
@@ -251,8 +252,31 @@ test("payment exclusion v2 preserves pending webhook updates", () => {
   assert.equal(sql.split("as $$").length - 1, 1);
   assert.equal(sql.split("$$;").length - 1, 1);
   const unchangedPending = sql.indexOf("if tg_op = 'UPDATE' then");
-  const overlapCheck = sql.indexOf("if new.provider = 'mercadopago'", unchangedPending);
+  const overlapCheck = sql.indexOf(
+    "if new.provider = 'mercadopago'",
+    unchangedPending,
+  );
   assert.ok(unchangedPending > 0 && overlapCheck > unchangedPending);
   assert.match(sql, /old\.status = 'pending'/);
-  assert.match(sql, /new\.provider_expires_at is not distinct from old\.provider_expires_at/);
+  assert.match(
+    sql,
+    /new\.provider_expires_at is not distinct from old\.provider_expires_at/,
+  );
+});
+
+test("manual payment guard migration serializes writes and records activation", () => {
+  const sql = readFileSync(
+    new URL("../supabase/manual-payment-guard-v1.sql", import.meta.url),
+    "utf8",
+  );
+  assert.equal(sql.split("as $$").length - 1, 1);
+  assert.equal(sql.split("$$;").length - 1, 1);
+  assert.match(sql, /from public\.orders[\s\S]*?for update/);
+  assert.match(
+    sql,
+    /before insert or update of status, amount_cents, provider, method, order_id/,
+  );
+  assert.match(sql, /v_total <= v_paid/);
+  assert.match(sql, /p\.method = 'yape'[\s\S]*?p\.status = 'pending'/);
+  assert.match(sql, /values \('manual-payment-guard-v1'\)/);
 });
