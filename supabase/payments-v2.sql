@@ -297,7 +297,7 @@ begin
   end if;
   return new;
 end;
-$;
+$$;
 
 revoke all on function public.sync_order_confirmed_payments() from public;
 
