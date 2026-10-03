@@ -2,15 +2,33 @@ import { test, expect, type Locator } from "@playwright/test";
 
 async function expectImageLoaded(image: Locator) {
   await image.scrollIntoViewIfNeeded();
-  await expect
-    .poll(
-      () =>
-        image.evaluate(
-          (element) => (element as HTMLImageElement).naturalWidth,
-        ),
-      { timeout: 15_000, intervals: [250, 500, 1000] },
-    )
-    .toBeGreaterThan(0);
+  try {
+    await expect
+      .poll(
+        () =>
+          image.evaluate(
+            (element) => (element as HTMLImageElement).naturalWidth,
+          ),
+        { timeout: 15_000, intervals: [250, 500, 1000] },
+      )
+      .toBeGreaterThan(0);
+  } catch (error) {
+    const details = await image.evaluate(async (element) => {
+      const img = element as HTMLImageElement;
+      const source = img.currentSrc || img.src;
+      let response = "unavailable";
+      try {
+        const result = await fetch(source);
+        response = String(result.status);
+      } catch (reason) {
+        response = String(reason);
+      }
+      return { alt: img.alt, source, complete: img.complete, response };
+    });
+    throw new Error(`Image did not load: ${JSON.stringify(details)}`, {
+      cause: error,
+    });
+  }
 }
 test("shareable product page keeps the cart while browsing related desserts", async ({
   page,
