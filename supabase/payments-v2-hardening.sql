@@ -21,6 +21,9 @@ declare
   v_order_id uuid;
   v_paid bigint;
   v_total integer;
+  v_deposit integer;
+  v_quote_required boolean;
+  v_order_status text;
 begin
   if tg_op = 'UPDATE' and new.order_id is distinct from old.order_id then
     raise exception 'No se puede mover un pago entre pedidos';
@@ -28,8 +31,8 @@ begin
 
   v_order_id := case when tg_op = 'DELETE' then old.order_id else new.order_id end;
 
-  select total_cents
-  into v_total
+  select total_cents, deposit_cents, quote_required, status
+  into v_total, v_deposit, v_quote_required, v_order_status
   from public.orders
   where id = v_order_id
   for update;
@@ -39,6 +42,15 @@ begin
       return old;
     end if;
     return new;
+  end if;
+
+  if tg_op = 'INSERT' and new.provider = 'mercadopago'
+     and new.status = 'pending' then
+    if v_quote_required or v_order_status = 'Cancelado'
+       or new.amount_cents <> v_total - v_deposit then
+      raise exception 'El importe del enlace ya no coincide con el saldo del pedido'
+        using errcode='22023';
+    end if;
   end if;
 
   if tg_op <> 'DELETE' then
