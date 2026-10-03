@@ -31,6 +31,7 @@ Primera versión de la tienda de **Repostería Yemape**, desarrollada con Next.j
 - **Búsqueda de pedidos:** localización rápida por código `YMP`, nombre o teléfono, combinable con filtros existentes.
 - **Pagos V2:** registro de Yape, Plin, transferencia, efectivo y otros métodos, con estado, referencia, comprobante privado y saldo derivado solo de pagos confirmados.
 - **Centro de pagos:** `/admin/pagos` reúne movimientos, filtros, búsquedas y trazabilidad por pedido.
+- **Yape para clientes:** una vez confirmado el total, Administración comparte un enlace privado para que el cliente vea los datos de Yape y envíe su comprobante; el abono queda pendiente hasta la verificación manual. Requiere la migración y configuración de `docs/YAPE_CUSTOMER.md`.
 - **PagoKit + Mercado Pago:** arquitectura de checkout alojado, idempotencia, webhook HMAC, reconsulta autoritativa y conciliación transaccional preparada para activarse cuando existan precios oficiales.
 - Pedidos manuales: siguen disponibles para teléfono, Instagram o chats externos, usando el mismo flujo de estados y códigos.
 
@@ -87,6 +88,7 @@ La prueba de navegador está en `tests/storefront.spec.ts` y se ejecuta con `npm
 - `supabase/customers-v1.sql`: activa CRM de clientes, deduplicación por teléfono, notas internas y timeline auditado de pedidos.
 - `supabase/payments-v2.sql`: activa movimientos de pago, comprobantes privados, conciliación de saldo y webhook transaccional de Mercado Pago.
 - `supabase/payments-v2-hardening.sql`: ejecutar después de Pagos V2 y **antes** de desplegar esta versión; limita los enlaces nuevos de Mercado Pago a 30 minutos y bloquea confirmaciones manuales durante su vigencia.
+- `supabase/yape-customer-v1.sql`: crea el token privado de pago de cada pedido y limita los comprobantes pendientes del cliente.
 - `docs/PAGOKIT_INTEGRATION.md`: arquitectura de seguridad adaptada de PagoKit y checklist de activación.
 - `docs/`: configuración, alcance y notas de verificación.
 

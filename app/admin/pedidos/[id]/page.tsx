@@ -23,6 +23,9 @@ import {
   paymentSummary,
 } from "@/lib/payments";
 import { mercadoPagoConfigured } from "@/lib/payments/mercadopago";
+import { yapeConfiguration } from "@/lib/yape";
+import { serviceDatabaseConfigured } from "@/lib/supabase/service";
+import { siteUrl } from "@/lib/site-url";
 import {
   MercadoPagoLinkForm,
   OrderUpdateForm,
@@ -148,6 +151,8 @@ export default async function OrderDetailPage({
   );
   const paymentTotals = paymentSummary(payments);
   const mpConfigured = mercadoPagoConfigured();
+  const yapeReady = Boolean(yapeConfiguration() && serviceDatabaseConfigured() && order.yape_payment_token);
+  const yapeLink = yapeReady ? siteUrl() + "/pagar/" + order.yape_payment_token : null;
   const items = (order.order_items ?? [])
     .slice()
     .sort((a, b) => a.position - b.position);
@@ -155,6 +160,12 @@ export default async function OrderDetailPage({
   const normalizedPhone = normalizeCustomerPhone(order.customer_phone);
   const digits =
     normalizedPhone.length === 9 ? "51" + normalizedPhone : normalizedPhone;
+  const yapeMessage = yapeLink
+    ? encodeURIComponent(
+        "Hola " + order.customer_name + ", tu pedido " + order.public_code +
+        " ya tiene un importe acordado. Puedes ver cómo pagar por Yape y enviar tu comprobante aquí: " + yapeLink,
+      )
+    : "";
   const whatsappText = encodeURIComponent(
     "Hola " +
       order.customer_name +
@@ -326,7 +337,7 @@ export default async function OrderDetailPage({
                   </div>
 
                   <div className="payment-entry-box pagokit-box">
-                    <span className="eyebrow">PAGOKIT · MERCADO PAGO</span>
+                    <span className="eyebrow">MERCADO PAGO</span>
                     <h3>Enlace de pago alojado</h3>
                     <p className="subtle">
                       El importe se toma del saldo del pedido en el servidor. La
@@ -345,6 +356,41 @@ export default async function OrderDetailPage({
                       </div>
                     )}
                   </div>
+                </div>
+
+                <div className="payment-entry-box yape-share-box">
+                  <span className="eyebrow">YAPE PARA EL CLIENTE</span>
+                  <h3>Enlace para pagar y enviar comprobante</h3>
+                  {yapeLink && !order.quote_required && order.status !== "Cancelado" &&
+                    order.total_cents > order.deposit_cents ? (
+                    <>
+                      <p className="subtle">
+                        Comparte este enlace después de confirmar el precio y la entrega.
+                        El cliente ve el saldo actual; el comprobante llega como pendiente.
+                      </p>
+                      <input
+                        aria-label="Enlace privado de pago por Yape"
+                        readOnly
+                        value={yapeLink}
+                      />
+                      {digits.length >= 7 && (
+                        <a
+                          className="button whatsapp-button"
+                          href={"https://wa.me/" + digits + "?text=" + yapeMessage}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          <MessageCircle size={18} /> Compartir por WhatsApp
+                        </a>
+                      )}
+                    </>
+                  ) : (
+                    <p className="subtle">
+                      {!yapeReady
+                        ? "Para activarlo, configura YAPE_NUMBER, YAPE_HOLDER y SUPABASE_SERVICE_ROLE_KEY en Vercel y ejecuta supabase/yape-customer-v1.sql."
+                        : "El enlace estará disponible cuando el precio final esté confirmado y exista saldo pendiente."}
+                    </p>
+                  )}
                 </div>
 
                 <div className="payment-list">

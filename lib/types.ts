@@ -87,6 +87,7 @@ export type OrderItem = {
 
 export type Order = {
   id: string;
+  yape_payment_token?: string | null;
   customer_id: string | null;
   public_code: string;
   source: "manual" | "web";
