@@ -10,6 +10,7 @@ import {
   type ActionState,
 } from "@/lib/types";
 import { parsePrice, validDate } from "@/lib/cart";
+import { nextOrderStatus } from "@/lib/order-progress";
 import {
   createMercadoPagoPreference,
   mercadoPagoConfigured,
@@ -681,6 +682,46 @@ export async function updateOrder(
   revalidatePath("/admin/pagos");
   revalidatePath("/admin/pedidos/" + id);
   return { success: "Pedido actualizado." };
+}
+
+export async function advanceOrderStatus(
+  _: ActionState,
+  d: FormData,
+): Promise<ActionState> {
+  const db = await requireAdmin();
+  const id = val(d, "id");
+  const expectedStatus = val(d, "expected_status");
+  if (!UUID_RE.test(id) || !orderStatuses.some((status) => status === expectedStatus))
+    return { error: "Pedido o estado no válido." };
+
+  const { data: order, error: readError } = await db
+    .from("orders")
+    .select("status,quote_required")
+    .eq("id", id)
+    .maybeSingle();
+  if (readError || !order) return { error: "No encontramos el pedido." };
+  if (order.status !== expectedStatus)
+    return { error: "El pedido cambió. Actualiza la página antes de continuar." };
+
+  const next = nextOrderStatus(order.status);
+  if (!next) return { error: "Este pedido ya no tiene una etapa siguiente." };
+  if (next === "Confirmado" && order.quote_required)
+    return { error: "Confirma el precio final en el pedido antes de avanzar." };
+
+  let update = db
+    .from("orders")
+    .update({ status: next })
+    .eq("id", id)
+    .eq("status", expectedStatus);
+  if (next === "Confirmado") update = update.eq("quote_required", false);
+  const { data: updated, error } = await update.select("id").maybeSingle();
+  if (error || !updated)
+    return { error: "El pedido cambió. Actualiza la página e inténtalo de nuevo." };
+
+  revalidatePath("/admin");
+  revalidatePath("/admin/pedidos");
+  revalidatePath("/admin/pedidos/" + id);
+  return { success: "Pedido actualizado a " + next + ". Comparte el cambio por WhatsApp." };
 }
 
 export async function saveCustomerNote(
