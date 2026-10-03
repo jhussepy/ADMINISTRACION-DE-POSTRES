@@ -4,7 +4,7 @@ El enlace privado de cada pedido muestra el saldo acordado, los datos de Yape y 
 
 ## Activación
 
-1. Ejecuta `supabase/yape-customer-v1.sql` en Supabase SQL Editor después de `payments-v2-hardening.sql`.
+1. Ejecuta `supabase/yape-customer-v1.sql` y después `supabase/yape-mp-exclusion-v1.sql` en Supabase SQL Editor. La segunda migración impide ofrecer Yape y un enlace Mercado Pago vigente al mismo pedido.
 2. Configura en Vercel para Production y Preview:
    - `YAPE_NUMBER`: número real de nueve dígitos que empieza por 9.
    - `YAPE_HOLDER`: nombre del destinatario que el cliente verá en Yape.
@@ -20,3 +20,9 @@ No copies datos de prueba a Production. Si faltan el número, el titular, el tok
 En la ficha del pedido, la captura aparecerá en **Pagos y comprobantes** como Yape **Pendiente de verificación**. Revisa el movimiento recibido en tu propia cuenta de Yape, coteja importe y número de operación y recién entonces confírmalo. Una captura por sí sola no demuestra que el dinero haya llegado. Puedes rechazarla si no coincide.
 
 El enlace es una credencial del pedido: compártelo únicamente con ese cliente. No publiques capturas que contengan el enlace. Solo se permite un comprobante Yape pendiente por pedido y hasta cinco envíos por día; la captura se almacena en un bucket privado.
+
+## Evitar cobros simultáneos
+
+Mientras un enlace Mercado Pago está vigente, la página Yape oculta los datos de pago y no admite comprobantes nuevos. Si ya hay un Yape pendiente, Administración no puede generar un enlace Mercado Pago hasta verificar o rechazar ese movimiento. La base de datos aplica la misma regla para peticiones concurrentes. Si la migración detecta un pedido que ya combina ambos canales pendientes, se detiene para que lo concilies antes de continuar.
+
+Un pago iniciado en un proveedor antes del vencimiento podría liquidarse más tarde. Revisa los movimientos reales del proveedor antes de aceptar otro cobro para ese pedido.

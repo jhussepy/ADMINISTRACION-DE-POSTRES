@@ -42,9 +42,20 @@ export default async function YapePaymentPage({
     .limit(1);
   if (paymentError) throw new Error("No se pudo consultar el estado del pago.");
 
+  const { data: activeCheckout, error: checkoutError } = await db
+    .from("payments")
+    .select("id")
+    .eq("order_id", order.id)
+    .eq("provider", "mercadopago")
+    .eq("status", "pending")
+    .or("provider_expires_at.is.null,provider_expires_at.gt." + new Date().toISOString())
+    .limit(1);
+  if (checkoutError) throw new Error("No se pudo revisar el medio de pago activo.");
+
+  const hasActiveCheckout = Boolean(activeCheckout?.length);
   const outstanding = Math.max(0, order.total_cents - order.deposit_cents);
   const canPay =
-    !order.quote_required && order.status !== "Cancelado" && outstanding > 0;
+    !order.quote_required && order.status !== "Cancelado" && outstanding > 0 && !hasActiveCheckout;
 
   return (
     <main className="yape-page">
@@ -60,10 +71,12 @@ export default async function YapePaymentPage({
         {!canPay ? (
           <section className="panel yape-unavailable">
             <CheckCircle2 size={28} />
-            <h2>{order.status === "Cancelado" ? "Este pedido fue cancelado" : outstanding <= 0 ? "Este pedido no tiene saldo pendiente" : "El pago aún no está disponible"}</h2>
-            <p>{outstanding <= 0
-              ? "Si ya enviaste un comprobante, espera nuestra confirmación."
-              : "Primero confirmaremos el importe final del pedido contigo por WhatsApp."}</p>
+            <h2>{hasActiveCheckout ? "Este pedido usa otro medio de pago" : order.status === "Cancelado" ? "Este pedido fue cancelado" : outstanding <= 0 ? "Este pedido no tiene saldo pendiente" : "El pago aún no está disponible"}</h2>
+            <p>{hasActiveCheckout
+              ? "Hay un enlace Mercado Pago vigente. No envíes dinero por Yape; consulta con la tienda antes de pagar."
+              : outstanding <= 0
+                ? "Si ya enviaste un comprobante, espera nuestra confirmación."
+                : "Primero confirmaremos el importe final del pedido contigo por WhatsApp."}</p>
           </section>
         ) : (
           <div className="yape-grid">

@@ -89,6 +89,7 @@ La prueba de navegador está en `tests/storefront.spec.ts` y se ejecuta con `npm
 - `supabase/payments-v2.sql`: activa movimientos de pago, comprobantes privados, conciliación de saldo y webhook transaccional de Mercado Pago.
 - `supabase/payments-v2-hardening.sql`: ejecutar después de Pagos V2 y **antes** de desplegar esta versión; limita los enlaces nuevos de Mercado Pago a 30 minutos y bloquea confirmaciones manuales durante su vigencia.
 - `supabase/yape-customer-v1.sql`: crea el token privado de pago de cada pedido y limita los comprobantes pendientes del cliente.
+- `supabase/yape-mp-exclusion-v1.sql`: impide usar Yape y un enlace Mercado Pago vigente en el mismo pedido, incluso con solicitudes concurrentes.
 - `docs/PAGOKIT_INTEGRATION.md`: arquitectura de seguridad adaptada de PagoKit y checklist de activación.
 - `docs/`: configuración, alcance y notas de verificación.
 

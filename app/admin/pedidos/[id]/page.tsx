@@ -151,8 +151,16 @@ export default async function OrderDetailPage({
   );
   const paymentTotals = paymentSummary(payments);
   const mpConfigured = mercadoPagoConfigured();
+  const hasPendingYape = payments.some(
+    (payment) => payment.provider === "manual" && payment.method === "yape" && payment.status === "pending",
+  );
+  const hasActiveMp = payments.some(
+    (payment) => payment.provider === "mercadopago" &&
+      payment.status === "pending" &&
+      (!payment.provider_expires_at || new Date(payment.provider_expires_at).getTime() > Date.now()),
+  );
   const yapeReady = Boolean(yapeConfiguration() && serviceDatabaseConfigured() && order.yape_payment_token);
-  const yapeLink = yapeReady ? siteUrl() + "/pagar/" + order.yape_payment_token : null;
+  const yapeLink = yapeReady && !hasActiveMp ? siteUrl() + "/pagar/" + order.yape_payment_token : null;
   const items = (order.order_items ?? [])
     .slice()
     .sort((a, b) => a.position - b.position);
@@ -343,7 +351,9 @@ export default async function OrderDetailPage({
                       El importe se toma del saldo del pedido en el servidor. La
                       vuelta desde Mercado Pago nunca se usa como prueba de pago.
                     </p>
-                    {mpConfigured ? (
+                    {hasPendingYape ? (
+                      <p className="subtle">Hay un pago Yape pendiente. Verifícalo o recházalo antes de generar otro enlace.</p>
+                    ) : mpConfigured ? (
                       <MercadoPagoLinkForm orderId={order.id} />
                     ) : (
                       <div className="payment-provider-disabled">
@@ -388,7 +398,9 @@ export default async function OrderDetailPage({
                     <p className="subtle">
                       {!yapeReady
                         ? "Para activarlo, configura YAPE_NUMBER, YAPE_HOLDER y SUPABASE_SERVICE_ROLE_KEY en Vercel y ejecuta supabase/yape-customer-v1.sql."
-                        : "El enlace estará disponible cuando el precio final esté confirmado y exista saldo pendiente."}
+                        : hasActiveMp
+                          ? "Hay un enlace Mercado Pago vigente. Espera a que venza antes de ofrecer Yape al cliente."
+                          : "El enlace estará disponible cuando el precio final esté confirmado y exista saldo pendiente."}
                     </p>
                   )}
                 </div>
