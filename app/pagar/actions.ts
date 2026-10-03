@@ -53,6 +53,18 @@ export async function submitYapeProof(
   if (amountCents > outstanding)
     return { error: "El importe supera el saldo pendiente del pedido." };
 
+  const { data: activeCheckout, error: checkoutError } = await db
+    .from("payments")
+    .select("id")
+    .eq("order_id", order.id)
+    .eq("provider", "mercadopago")
+    .eq("status", "pending")
+    .or("provider_expires_at.is.null,provider_expires_at.gt." + new Date().toISOString())
+    .limit(1);
+  if (checkoutError) return { error: "No pudimos revisar los enlaces activos." };
+  if (activeCheckout?.length)
+    return { error: "Este pedido tiene un enlace Mercado Pago vigente. No envíes dinero por Yape; coordina con la tienda qué medio usar." };
+
   const { data: pending, error: pendingError } = await db
     .from("payments")
     .select("id")

@@ -209,6 +209,7 @@ export type Payment = {
   provider_payment_id: string | null;
   provider_preference_id: string | null;
   provider_checkout_url: string | null;
+  provider_expires_at?: string | null;
   idempotency_key: string | null;
   paid_at: string | null;
   verified_at: string | null;

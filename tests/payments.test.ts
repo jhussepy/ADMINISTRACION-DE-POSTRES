@@ -230,3 +230,15 @@ test("payment hardening migration has balanced PL/pgSQL blocks", () => {
   assert.equal(sql.split("as $$").length - 1, 2);
   assert.equal(sql.split("$$;").length - 1, 2);
 });
+
+test("Yape and Mercado Pago migration serializes both payment channels", () => {
+  const sql = readFileSync(
+    new URL("../supabase/yape-mp-exclusion-v1.sql", import.meta.url),
+    "utf8",
+  );
+  assert.equal(sql.split("as $$").length - 1, 1);
+  assert.equal(sql.split("$$;").length - 1, 1);
+  assert.match(sql, /for update/);
+  assert.match(sql, /guard_overlapping_payment_channels_trigger/);
+  assert.match(sql, /provider_expires_at is null or p.provider_expires_at > now\(\)/);
+});

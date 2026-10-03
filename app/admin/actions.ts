@@ -914,6 +914,15 @@ export async function registerPayment(
     }
   }
 
+  if (method === "yape" && status === "pending") {
+    try {
+      if (await activeMercadoPagoLink(db, orderId))
+        return { error: "Hay un enlace Mercado Pago vigente. Espera a que venza antes de registrar un Yape." };
+    } catch {
+      return { error: "No pudimos comprobar los enlaces de pago activos." };
+    }
+  }
+
   const paymentId = crypto.randomUUID();
   const now = new Date().toISOString();
   const { error: insertError } = await db.from("payments").insert({
@@ -1096,6 +1105,18 @@ export async function createMercadoPagoPaymentLink(
   const outstanding = order.total_cents - order.deposit_cents;
   if (outstanding <= 0)
     return { error: "Este pedido ya no tiene saldo pendiente." };
+
+  const { data: pendingYape, error: yapeError } = await db
+    .from("payments")
+    .select("id")
+    .eq("order_id", orderId)
+    .eq("provider", "manual")
+    .eq("method", "yape")
+    .eq("status", "pending")
+    .limit(1);
+  if (yapeError) return { error: "No pudimos comprobar los pagos Yape pendientes." };
+  if (pendingYape?.length)
+    return { error: "Hay un pago Yape pendiente. Verifícalo o recházalo antes de generar un enlace Mercado Pago." };
 
   let activeLink: Awaited<ReturnType<typeof activeMercadoPagoLink>>;
   try {
