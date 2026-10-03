@@ -108,7 +108,7 @@ returns trigger
 language plpgsql
 security definer
 set search_path=''
-as $
+as $$
 begin
   if (new.total_cents is distinct from old.total_cents
       or (new.status = 'Cancelado' and old.status is distinct from new.status))
@@ -124,7 +124,7 @@ begin
   end if;
   return new;
 end;
-$;
+$$;
 
 revoke all on function public.guard_order_with_active_mp() from public;
 
