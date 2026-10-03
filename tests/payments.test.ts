@@ -43,6 +43,7 @@ test("Mercado Pago signature accepts valid event and rejects tampering", () => {
   const timestamp = 1_800_000_000;
   const paymentId = "99999";
   const requestId = "req-yemape-1";
+  const notificationUrl = `https://yemape.example/api/payments/mercadopago/webhook?data.id=${paymentId}&type=payment`;
   const rawBody = JSON.stringify({
     id: 12345,
     type: "payment",
@@ -59,6 +60,7 @@ test("Mercado Pago signature accepts valid event and rejects tampering", () => {
   assert.equal(
     verifyMercadoPagoSignature({
       rawBody,
+      notificationUrl,
       headers,
       secret,
       nowSeconds: timestamp,
@@ -69,6 +71,7 @@ test("Mercado Pago signature accepts valid event and rejects tampering", () => {
   assert.equal(
     verifyMercadoPagoSignature({
       rawBody,
+      notificationUrl,
       headers,
       secret: "wrong-secret",
       nowSeconds: timestamp,
@@ -80,6 +83,7 @@ test("Mercado Pago signature accepts valid event and rejects tampering", () => {
   assert.equal(
     verifyMercadoPagoSignature({
       rawBody: tampered,
+      notificationUrl,
       headers,
       secret,
       nowSeconds: timestamp,
@@ -90,11 +94,41 @@ test("Mercado Pago signature accepts valid event and rejects tampering", () => {
   assert.equal(
     verifyMercadoPagoSignature({
       rawBody,
+      notificationUrl,
       headers,
       secret,
       nowSeconds: timestamp + 301,
     }),
     false,
+  );
+
+  assert.equal(
+    verifyMercadoPagoSignature({
+      rawBody,
+      notificationUrl: notificationUrl.replace(paymentId, "88888"),
+      headers,
+      secret,
+      nowSeconds: timestamp,
+    }),
+    false,
+  );
+
+  const milliseconds = timestamp * 1000;
+  const msHeaders = signedHeaders({
+    paymentId,
+    requestId,
+    timestamp: milliseconds,
+    secret,
+  });
+  assert.equal(
+    verifyMercadoPagoSignature({
+      rawBody,
+      notificationUrl,
+      headers: msHeaders,
+      secret,
+      nowSeconds: timestamp,
+    }),
+    true,
   );
 });
 

@@ -29,6 +29,7 @@ export async function POST(request: Request) {
   if (
     !verifyMercadoPagoSignature({
       rawBody,
+      notificationUrl: request.url,
       headers: request.headers,
       secret,
     })

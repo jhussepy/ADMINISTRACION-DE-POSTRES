@@ -58,11 +58,13 @@ export function extractMercadoPagoPaymentId(rawBody: string) {
  */
 export function verifyMercadoPagoSignature({
   rawBody,
+  notificationUrl,
   headers,
   secret,
   nowSeconds = Math.floor(Date.now() / 1000),
 }: {
   rawBody: string;
+  notificationUrl: string;
   headers: Headers;
   secret: string;
   nowSeconds?: number;
@@ -73,14 +75,24 @@ export function verifyMercadoPagoSignature({
   const requestId = headers.get(REQUEST_ID_HEADER);
   if (!rawSignature || !requestId) return false;
 
+  // Mercado Pago signs data.id from the URL. Reject a body that disagrees
+  // before using its payment ID to fetch the authoritative payment.
   const paymentId = extractMercadoPagoPaymentId(rawBody);
-  if (!paymentId) return false;
+  let signedPaymentId: string | null;
+  try {
+    signedPaymentId = new URL(notificationUrl).searchParams.get("data.id");
+  } catch {
+    return false;
+  }
+  if (!paymentId || signedPaymentId !== paymentId) return false;
 
   const { signatures, timestamp } = unpackSignatureHeader(rawSignature);
   if (!timestamp || signatures.length === 0) return false;
 
+  if (!/^\d{10,13}$/.test(timestamp)) return false;
   const ts = Number(timestamp);
-  const skew = Math.abs(nowSeconds - ts);
+  // Legacy payment notifications use seconds; newer MP examples use ms.
+  const skew = Math.abs(nowSeconds - (ts >= 1e12 ? ts / 1000 : ts));
   if (!Number.isFinite(skew) || skew > TOLERANCE_SECONDS) return false;
 
   const signed = `id:${paymentId};request-id:${requestId};ts:${timestamp};`;
