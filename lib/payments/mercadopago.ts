@@ -79,6 +79,7 @@ export async function createMercadoPagoPreference({
       ],
       external_reference: paymentId,
       expires: true,
+      expiration_date_from: new Date().toISOString(),
       expiration_date_to: expiresAt,
       back_urls: {
         success: `${base}/pago/resultado`,
