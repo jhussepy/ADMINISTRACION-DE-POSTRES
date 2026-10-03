@@ -1,4 +1,17 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Locator } from "@playwright/test";
+
+async function expectImageLoaded(image: Locator) {
+  await image.scrollIntoViewIfNeeded();
+  await expect
+    .poll(
+      () =>
+        image.evaluate(
+          (element) => (element as HTMLImageElement).naturalWidth,
+        ),
+      { timeout: 15_000, intervals: [250, 500, 1000] },
+    )
+    .toBeGreaterThan(0);
+}
 test("shareable product page keeps the cart while browsing related desserts", async ({
   page,
 }, testInfo) => {
@@ -11,13 +24,7 @@ test("shareable product page keeps the cart while browsing related desserts", as
     "scrollWidth",
     await page.locator("body").evaluate((el) => el.clientWidth),
   );
-  await expect
-    .poll(() =>
-      page
-        .locator(".product-page-image img")
-        .evaluate((img) => (img as HTMLImageElement).naturalWidth),
-    )
-    .toBeGreaterThan(0);
+  await expectImageLoaded(page.locator(".product-page-image img"));
   await page.screenshot({
     path: `test-results/yemape-product-${testInfo.project.name}.png`,
     fullPage: true,
@@ -137,13 +144,7 @@ test("new pies and brownie have shareable product pages and valid photos", async
   ]) {
     await page.goto(`/postres/${id}`);
     await expect(page.locator(".product-page-image img")).toBeVisible();
-    await expect
-      .poll(() =>
-        page
-          .locator(".product-page-image img")
-          .evaluate((img) => (img as HTMLImageElement).naturalWidth),
-      )
-      .toBeGreaterThan(0);
+    await expectImageLoaded(page.locator(".product-page-image img"));
     await expect(page.locator('meta[property="og:image"]')).toHaveAttribute(
       "content",
       new RegExp(`${id}\\.webp$`),
@@ -396,13 +397,7 @@ test("product details support quantities, keyboard closing and mobile cart acces
   await expect(
     detail.getByAltText("Presentación de Cheesecake de fresa"),
   ).toBeVisible();
-  await expect
-    .poll(() =>
-      detail
-        .locator("img")
-        .evaluate((img) => (img as HTMLImageElement).naturalWidth),
-    )
-    .toBeGreaterThan(0);
+  await expectImageLoaded(detail.locator("img"));
   await page.screenshot({
     path: `test-results/yemape-detail-${testInfo.project.name}.png`,
   });
@@ -483,12 +478,8 @@ test("photographic catalogue filters and new products reach the WhatsApp handoff
     "alt",
     "Torta de chocolate",
   );
-  for (const img of await page.locator(".product-photo img").all()) {
-    await img.scrollIntoViewIfNeeded();
-    await expect
-      .poll(() => img.evaluate((el) => (el as HTMLImageElement).naturalWidth))
-      .toBeGreaterThan(0);
-  }
+  for (const img of await page.locator(".product-photo img").all())
+    await expectImageLoaded(img);
   await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
   await page.screenshot({
     path: `test-results/yemape-photos-${testInfo.project.name}.png`,
@@ -504,13 +495,7 @@ test("photographic catalogue filters and new products reach the WhatsApp handoff
     exact: true,
   });
   await expect(detail).toBeVisible();
-  await expect
-    .poll(() =>
-      detail
-        .locator("img")
-        .evaluate((el) => (el as HTMLImageElement).naturalWidth),
-    )
-    .toBeGreaterThan(0);
+  await expectImageLoaded(detail.locator("img"));
   await page.screenshot({
     path: `test-results/yemape-photo-detail-${testInfo.project.name}.png`,
   });

@@ -4,6 +4,8 @@ import {
   deleteCustomerNote,
   deleteProductImage,
   deleteVariant,
+  createMercadoPagoPaymentLink,
+  registerPayment,
   saveCustomerNote,
   saveOrder,
   saveProduct,
@@ -11,17 +13,22 @@ import {
   saveVariant,
   setProductImageCover,
   updateOrder,
+  updatePaymentStatus,
+  uploadPaymentProof,
   uploadProductImage,
 } from "@/app/admin/actions";
 import {
   categories,
   orderStatuses,
+  paymentMethods,
   type Product,
   type ProductImage,
   type ProductVariant,
   type Order,
+  type Payment,
   type ActionState,
 } from "@/lib/types";
+import { paymentMethodLabels, paymentStatusLabels } from "@/lib/payments";
 function Feedback({ state }: { state: ActionState }) {
   return (
     <>
@@ -615,30 +622,23 @@ export function OrderForm() {
         Fecha de entrega
         <input name="delivery_date" type="date" required />
       </label>
-      <div className="two-cols">
-        <label>
-          Total acordado (S/)
-          <input
-            name="total"
-            type="number"
-            min="0.01"
-            max="999999.99"
-            step="0.01"
-            required
-          />
-        </label>
-        <label>
-          Importe abonado (S/)
-          <input
-            name="deposit"
-            type="number"
-            min="0"
-            max="999999.99"
-            step="0.01"
-            defaultValue="0"
-            required
-          />
-        </label>
+      <label>
+        Total acordado (S/)
+        <input
+          name="total"
+          type="number"
+          min="0.01"
+          max="999999.99"
+          step="0.01"
+          required
+        />
+      </label>
+      <div className="payment-derived-note">
+        <strong>Los adelantos se registran desde Pagos V2.</strong>
+        <span>
+          El pedido se crea con S/0 abonado. Después registra Yape, Plin,
+          transferencia, efectivo u otro movimiento para mantener la trazabilidad.
+        </span>
       </div>
       <Feedback state={state} />
       <button className="button" disabled={pending}>
@@ -660,31 +660,25 @@ export function OrderUpdateForm({ order }: { order: Order }) {
           ))}
         </select>
       </label>
-      <div className="two-cols">
-        <label>
-          Total acordado (S/)
-          <input
-            name="total"
-            type="number"
-            min="0"
-            max="999999.99"
-            step="0.01"
-            defaultValue={(order.total_cents / 100).toFixed(2)}
-            required
-          />
-        </label>
-        <label>
-          Importe abonado (S/)
-          <input
-            name="deposit"
-            type="number"
-            min="0"
-            max="999999.99"
-            step="0.01"
-            defaultValue={(order.deposit_cents / 100).toFixed(2)}
-            required
-          />
-        </label>
+      <label>
+        Total acordado (S/)
+        <input
+          name="total"
+          type="number"
+          min="0"
+          max="999999.99"
+          step="0.01"
+          defaultValue={(order.total_cents / 100).toFixed(2)}
+          required
+        />
+      </label>
+      <div className="payment-derived-note">
+        <strong>
+          Abonado confirmado: S/ {(order.deposit_cents / 100).toFixed(2)}
+        </strong>
+        <span>
+          Pagos V2 calcula este importe automáticamente. Ya no se edita a mano.
+        </span>
       </div>
       <label className="checkbox-label">
         <input
@@ -708,6 +702,170 @@ export function OrderUpdateForm({ order }: { order: Order }) {
   );
 }
 
+export function PaymentRegisterForm({ order }: { order: Order }) {
+  const [state, action, pending] = useActionState(registerPayment, {});
+  const manualMethods = paymentMethods.filter(
+    (method) => method !== "mercadopago",
+  );
+
+  return (
+    <form action={action} className="stack-form payment-register-form">
+      <input type="hidden" name="order_id" value={order.id} />
+      <div className="two-cols">
+        <label>
+          Método
+          <select name="method" defaultValue="yape">
+            {manualMethods.map((method) => (
+              <option key={method} value={method}>
+                {paymentMethodLabels[method]}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Estado inicial
+          <select name="status" defaultValue="confirmed">
+            <option value="confirmed">Confirmado</option>
+            <option value="pending">Pendiente de verificación</option>
+          </select>
+        </label>
+      </div>
+      <div className="two-cols">
+        <label>
+          Importe (S/)
+          <input
+            name="amount"
+            type="number"
+            min="0.01"
+            max="999999.99"
+            step="0.01"
+            required
+            placeholder="Ej.: 50.00"
+          />
+        </label>
+        <label>
+          Operación / referencia
+          <input
+            name="reference"
+            maxLength={120}
+            placeholder="Ej.: operación Yape 847291"
+          />
+        </label>
+      </div>
+      <label>
+        Nota interna <small>(opcional)</small>
+        <textarea
+          name="note"
+          rows={3}
+          maxLength={500}
+          placeholder="Ej.: Adelanto recibido para separar fecha."
+        />
+      </label>
+      <label className="media-file-field payment-proof-field">
+        <span>Comprobante opcional</span>
+        <input
+          type="file"
+          name="proof"
+          accept="image/jpeg,image/png,image/webp,application/pdf"
+          disabled={pending}
+        />
+        <small>JPG, PNG, WebP o PDF · máximo 5 MB</small>
+      </label>
+      <Feedback state={state} />
+      <button className="button" disabled={pending}>
+        {pending ? "Registrando…" : "Registrar pago"}
+      </button>
+    </form>
+  );
+}
+
+export function PaymentStatusForm({
+  payment,
+}: {
+  payment: Payment;
+}) {
+  const [state, action, pending] = useActionState(updatePaymentStatus, {});
+
+  if (payment.provider !== "manual")
+    return (
+      <p className="subtle">
+        Estado controlado automáticamente por Mercado Pago.
+      </p>
+    );
+
+  return (
+    <form action={action} className="payment-status-form">
+      <input type="hidden" name="payment_id" value={payment.id} />
+      <input type="hidden" name="order_id" value={payment.order_id} />
+      <select name="status" defaultValue={payment.status}>
+        {(["pending", "confirmed", "rejected", "refunded"] as const).map(
+          (status) => (
+            <option key={status} value={status}>
+              {paymentStatusLabels[status]}
+            </option>
+          ),
+        )}
+      </select>
+      <button className="button secondary" disabled={pending}>
+        {pending ? "Guardando…" : "Cambiar estado"}
+      </button>
+      <Feedback state={state} />
+    </form>
+  );
+}
+
+export function PaymentProofUploadForm({
+  payment,
+}: {
+  payment: Payment;
+}) {
+  const [state, action, pending] = useActionState(uploadPaymentProof, {});
+
+  return (
+    <form action={action} className="payment-proof-upload">
+      <input type="hidden" name="payment_id" value={payment.id} />
+      <input type="hidden" name="order_id" value={payment.order_id} />
+      <input
+        type="file"
+        name="proof"
+        accept="image/jpeg,image/png,image/webp,application/pdf"
+        required
+        disabled={pending}
+      />
+      <button className="text-button" disabled={pending}>
+        {pending ? "Subiendo…" : "Añadir comprobante"}
+      </button>
+      <Feedback state={state} />
+    </form>
+  );
+}
+
+export function MercadoPagoLinkForm({ orderId }: { orderId: string }) {
+  const [state, action, pending] = useActionState(
+    createMercadoPagoPaymentLink,
+    {},
+  );
+
+  return (
+    <form action={action} className="mercadopago-link-form">
+      <input type="hidden" name="order_id" value={orderId} />
+      <button className="button secondary full" disabled={pending}>
+        {pending ? "Generando enlace…" : "Generar enlace Mercado Pago"}
+      </button>
+      <Feedback state={state} />
+      {state.url && (
+        <a
+          className="button full"
+          href={state.url}
+          target="_blank"
+          rel="noreferrer"
+        >
+          Abrir enlace de pago
+        </a>
+      )}
+    </form>
+  );
+}
 
 export function CustomerNoteForm({ customerId }: { customerId: string }) {
   const [state, action, pending] = useActionState(saveCustomerNote, {});

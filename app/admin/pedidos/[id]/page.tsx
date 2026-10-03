@@ -7,14 +7,29 @@ import {
   CreditCard,
   History,
   MapPin,
+  FileText,
   MessageCircle,
   UserRound,
+  WalletCards,
 } from "lucide-react";
 import { requireAdmin } from "@/lib/data";
 import { money } from "@/lib/cart";
 import { normalizeCustomerPhone } from "@/lib/crm";
-import type { Order, OrderEvent } from "@/lib/types";
-import { OrderUpdateForm } from "@/components/admin-forms";
+import type { Order, OrderEvent, Payment } from "@/lib/types";
+import {
+  paymentMethodLabel,
+  paymentStatusClass,
+  paymentStatusLabel,
+  paymentSummary,
+} from "@/lib/payments";
+import { mercadoPagoConfigured } from "@/lib/payments/mercadopago";
+import {
+  MercadoPagoLinkForm,
+  OrderUpdateForm,
+  PaymentProofUploadForm,
+  PaymentRegisterForm,
+  PaymentStatusForm,
+} from "@/components/admin-forms";
 
 function formatCreated(value: string) {
   return new Intl.DateTimeFormat("es-PE", {
@@ -78,7 +93,7 @@ export default async function OrderDetailPage({
   const db = await requireAdmin();
   const { id } = await params;
 
-  const [orderResult, eventsResult] = await Promise.all([
+  const [orderResult, eventsResult, paymentsResult] = await Promise.all([
     db
       .from("orders")
       .select(
@@ -91,6 +106,11 @@ export default async function OrderDetailPage({
       .select("*")
       .eq("order_id", id)
       .order("created_at", { ascending: true }),
+    db
+      .from("payments")
+      .select("*,payment_proofs(*)")
+      .eq("order_id", id)
+      .order("created_at", { ascending: false }),
   ]);
 
   if (orderResult.error || !orderResult.data) notFound();
@@ -101,8 +121,33 @@ export default async function OrderDetailPage({
   if (eventsResult.error && timelineEnabled)
     throw new Error("No pudimos cargar el historial del pedido.");
 
+  const paymentsEnabled =
+    !paymentsResult.error ||
+    !["42P01", "PGRST205", "42703"].includes(paymentsResult.error.code);
+  if (paymentsResult.error && paymentsEnabled)
+    throw new Error("No pudimos cargar los pagos del pedido.");
+
   const order = orderResult.data as Order;
   const events = ((eventsResult.data ?? []) as OrderEvent[]).slice();
+  const rawPayments = (paymentsResult.data ?? []) as Payment[];
+  const payments = await Promise.all(
+    rawPayments.map(async (payment) => ({
+      ...payment,
+      payment_proofs: await Promise.all(
+        (payment.payment_proofs ?? []).map(async (proof) => {
+          const { data } = await db.storage
+            .from("payment-proofs")
+            .createSignedUrl(proof.storage_path, 600);
+          return {
+            ...proof,
+            signed_url: data?.signedUrl,
+          };
+        }),
+      ),
+    })),
+  );
+  const paymentTotals = paymentSummary(payments);
+  const mpConfigured = mercadoPagoConfigured();
   const items = (order.order_items ?? [])
     .slice()
     .sort((a, b) => a.position - b.position);
@@ -223,6 +268,164 @@ export default async function OrderDetailPage({
             )}
           </section>
 
+          <section className="panel order-payments-panel">
+            <div className="customer-section-head">
+              <div>
+                <span className="eyebrow">PAGOS V2</span>
+                <h2>Pagos y comprobantes</h2>
+              </div>
+              <WalletCards size={20} />
+            </div>
+
+            {!paymentsEnabled ? (
+              <div className="admin-migration-notice">
+                <strong>Pagos V2 pendiente de activar.</strong>
+                <p>
+                  Después del merge ejecuta <code>supabase/payments-v2.sql</code>
+                  una sola vez. Los adelantos existentes se conservarán.
+                </p>
+              </div>
+            ) : (
+              <>
+                <div className="payment-summary-grid">
+                  <div>
+                    <span>Confirmado</span>
+                    <strong>{money(paymentTotals.confirmed)}</strong>
+                  </div>
+                  <div>
+                    <span>Pendiente de verificar</span>
+                    <strong>{money(paymentTotals.pending)}</strong>
+                  </div>
+                  <div>
+                    <span>Saldo del pedido</span>
+                    <strong>
+                      {money(Math.max(0, order.total_cents - order.deposit_cents))}
+                    </strong>
+                  </div>
+                </div>
+
+                <div className="payment-progress" aria-label="Progreso de pago">
+                  <span
+                    style={{
+                      width:
+                        order.total_cents > 0
+                          ? Math.min(
+                              100,
+                              (order.deposit_cents / order.total_cents) * 100,
+                            ) + "%"
+                          : "0%",
+                    }}
+                  />
+                </div>
+
+                <div className="payment-entry-grid">
+                  <div className="payment-entry-box">
+                    <span className="eyebrow">REGISTRO MANUAL</span>
+                    <h3>Yape, Plin, transferencia o efectivo</h3>
+                    <PaymentRegisterForm order={order} />
+                  </div>
+
+                  <div className="payment-entry-box pagokit-box">
+                    <span className="eyebrow">PAGOKIT · MERCADO PAGO</span>
+                    <h3>Enlace de pago alojado</h3>
+                    <p className="subtle">
+                      El importe se toma del saldo del pedido en el servidor. La
+                      vuelta desde Mercado Pago nunca se usa como prueba de pago.
+                    </p>
+                    {mpConfigured ? (
+                      <MercadoPagoLinkForm orderId={order.id} />
+                    ) : (
+                      <div className="payment-provider-disabled">
+                        <strong>Preparado, todavía no activado.</strong>
+                        <p>
+                          Añade las credenciales de Mercado Pago y la clave
+                          service-role únicamente en Vercel cuando tengas precios
+                          oficiales y quieras cobrar online.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="payment-list">
+                  {payments.length ? (
+                    payments.map((payment) => (
+                      <article
+                        className={
+                          "payment-card " + paymentStatusClass(payment.status)
+                        }
+                        key={payment.id}
+                      >
+                        <div className="payment-card-head">
+                          <div>
+                            <span className="payment-method">
+                              {paymentMethodLabel(payment.method)}
+                            </span>
+                            <strong>{money(payment.amount_cents)}</strong>
+                          </div>
+                          <span className="badge">
+                            {paymentStatusLabel(payment.status)}
+                          </span>
+                        </div>
+
+                        <div className="payment-card-meta">
+                          <span>
+                            Registrado {formatCreated(payment.created_at)}
+                          </span>
+                          {payment.reference && (
+                            <span>Ref.: {payment.reference}</span>
+                          )}
+                          {payment.provider_payment_id && (
+                            <span>
+                              ID proveedor: {payment.provider_payment_id}
+                            </span>
+                          )}
+                        </div>
+
+                        {payment.note && <p>{payment.note}</p>}
+
+                        {!!payment.payment_proofs?.length && (
+                          <div className="payment-proof-list">
+                            {payment.payment_proofs.map((proof) =>
+                              proof.signed_url ? (
+                                <a
+                                  href={proof.signed_url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  key={proof.id}
+                                >
+                                  <FileText size={14} />
+                                  {proof.original_name || "Ver comprobante"}
+                                </a>
+                              ) : (
+                                <span key={proof.id}>
+                                  <FileText size={14} /> Comprobante privado
+                                </span>
+                              ),
+                            )}
+                          </div>
+                        )}
+
+                        <div className="payment-card-actions">
+                          <PaymentStatusForm payment={payment} />
+                          <PaymentProofUploadForm payment={payment} />
+                        </div>
+                      </article>
+                    ))
+                  ) : (
+                    <div className="empty-state compact-empty">
+                      <h3>Aún no hay pagos registrados</h3>
+                      <p>
+                        Registra un adelanto o genera un enlace cuando el total
+                        del pedido esté confirmado.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+          </section>
+
           <section className="panel order-timeline-panel">
             <div className="customer-section-head">
               <div>
@@ -319,7 +522,7 @@ export default async function OrderDetailPage({
             <div className="order-side-money">
               <span>Total conocido</span>
               <strong>{money(order.total_cents)}</strong>
-              <span>Abonado</span>
+              <span>Abonado confirmado</span>
               <strong>{money(order.deposit_cents)}</strong>
               <span>Saldo</span>
               <strong>{money(order.total_cents - order.deposit_cents)}</strong>

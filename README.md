@@ -29,6 +29,9 @@ Primera versión de la tienda de **Repostería Yemape**, desarrollada con Next.j
 - **Notas internas:** contexto privado del cliente visible solo para Administración, protegido por RLS.
 - **Timeline de pedido:** auditoría de cambios de estado, cotización, total y adelantos con fecha/hora y actor.
 - **Búsqueda de pedidos:** localización rápida por código `YMP`, nombre o teléfono, combinable con filtros existentes.
+- **Pagos V2:** registro de Yape, Plin, transferencia, efectivo y otros métodos, con estado, referencia, comprobante privado y saldo derivado solo de pagos confirmados.
+- **Centro de pagos:** `/admin/pagos` reúne movimientos, filtros, búsquedas y trazabilidad por pedido.
+- **PagoKit + Mercado Pago:** arquitectura de checkout alojado, idempotencia, webhook HMAC, reconsulta autoritativa y conciliación transaccional preparada para activarse cuando existan precios oficiales.
 - Pedidos manuales: siguen disponibles para teléfono, Instagram o chats externos, usando el mismo flujo de estados y códigos.
 
 **Modo demostrativo:** `lib/demo-catalog.ts` sigue proporcionando tamaños y precios de ejemplo mientras un producto no tenga variantes reales. La tienda puede mostrarlos como referencia de interfaz, pero WhatsApp V2 los convierte en **Precio pendiente de confirmación** y el Dashboard no los cuenta como ventas.
@@ -82,6 +85,8 @@ La prueba de navegador está en `tests/storefront.spec.ts` y se ejecuta con `npm
 - `supabase/new-product-v4.sql`: permite el placeholder neutro y futuras imágenes locales sin mantener una lista rígida en la base de datos.
 - `supabase/orders-v2.sql`: activa códigos públicos, snapshot histórico, estados V2 y creación automática segura de solicitudes web.
 - `supabase/customers-v1.sql`: activa CRM de clientes, deduplicación por teléfono, notas internas y timeline auditado de pedidos.
+- `supabase/payments-v2.sql`: activa movimientos de pago, comprobantes privados, conciliación de saldo y webhook transaccional de Mercado Pago.
+- `docs/PAGOKIT_INTEGRATION.md`: arquitectura de seguridad adaptada de PagoKit y checklist de activación.
 - `docs/`: configuración, alcance y notas de verificación.
 
 ## Límites de esta primera versión
@@ -92,6 +97,8 @@ La prueba de navegador está en `tests/storefront.spec.ts` y se ejecuta con `npm
 - Cuentas y administración requieren Clerk, Supabase, la migración `supabase/clerk-auth.sql` y un Clerk User ID autorizado como administrador.
 - Las fotografías iniciales siguen sirviendo como respaldo. Tras activar Galería V3, las nuevas imágenes pueden administrarse desde el panel sin modificar GitHub.
 - El CRM no calcula gasto histórico del cliente mientras existan pedidos con precios demo o por cotizar; evita mostrar cifras comerciales falsas.
+- Mercado Pago permanece preparado pero no debe activarse con precios demo; el pedido exige cotización real antes de generar un enlace.
+- Pagos V2 registra cobros y saldos, pero no equivale a contabilidad ni utilidad empresarial.
 - Inventario de ingredientes, costos de recetas, egresos y reportes completos corresponden a una siguiente etapa; el saldo por cobrar no equivale a ganancia.
 - Antes de abrir ventas, el propietario debe confirmar precios, presentaciones, catálogo, horarios, recojo y condiciones de delivery.
 - Cada postre cuenta actualmente con una foto; las galerías con distintos ángulos requieren fotos adicionales.
