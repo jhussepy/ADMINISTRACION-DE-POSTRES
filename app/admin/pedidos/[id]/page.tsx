@@ -161,6 +161,18 @@ export default async function OrderDetailPage({
   );
   const yapeReady = Boolean(yapeConfiguration() && serviceDatabaseConfigured() && order.yape_payment_token);
   const yapeLink = yapeReady && !hasActiveMp ? siteUrl() + "/pagar/" + order.yape_payment_token : null;
+  const yapeUnavailableReason =
+    order.status === "Cancelado"
+      ? "El pedido está cancelado; no se ofrece un enlace de pago."
+      : order.quote_required
+        ? "Confirma el precio final antes de compartir un enlace de pago."
+        : order.total_cents <= order.deposit_cents
+          ? "Pedido pagado por completo. No hay saldo pendiente para cobrar por Yape."
+          : !yapeReady
+            ? "Para activarlo, configura YAPE_NUMBER, YAPE_HOLDER y SUPABASE_SERVICE_ROLE_KEY en Vercel y ejecuta supabase/yape-customer-v1.sql."
+            : hasActiveMp
+              ? "Hay un enlace Mercado Pago vigente. Espera a que venza antes de ofrecer Yape al cliente."
+              : "El enlace de Yape no está disponible para este pedido.";
   const items = (order.order_items ?? [])
     .slice()
     .sort((a, b) => a.position - b.position);
@@ -228,7 +240,11 @@ export default async function OrderDetailPage({
                         {item.quote_required ||
                         item.unit_price_cents === null ||
                         item.line_total_cents === null ? (
-                          <strong>Por cotizar</strong>
+                          <strong>
+                            {order.quote_required
+                              ? "Por cotizar"
+                              : "Incluido en el total acordado"}
+                          </strong>
                         ) : (
                           <>
                             <span>{money(item.unit_price_cents)} c/u</span>
@@ -246,7 +262,7 @@ export default async function OrderDetailPage({
 
             <div className="order-total-box">
               <span>
-                {order.quote_required ? "Subtotal conocido" : "Total registrado"}
+                {order.quote_required ? "Subtotal conocido" : "Total acordado"}
               </span>
               <strong>{money(order.total_cents)}</strong>
               {order.quote_required && <small>+ productos por cotizar</small>}
@@ -322,6 +338,17 @@ export default async function OrderDetailPage({
                     </strong>
                   </div>
                 </div>
+                {order.total_cents <= order.deposit_cents &&
+                  paymentTotals.pending > 0 && (
+                    <div className="admin-migration-notice" role="status">
+                      <strong>Hay un pago pendiente en un pedido ya cubierto.</strong>
+                      <p>
+                        Comprueba el movimiento real y marca el registro
+                        pendiente como rechazado si no corresponde. No se añadirá
+                        al dinero confirmado.
+                      </p>
+                    </div>
+                  )}
 
                 <div className="payment-progress" aria-label="Progreso de pago">
                   <span
@@ -341,7 +368,20 @@ export default async function OrderDetailPage({
                   <div className="payment-entry-box">
                     <span className="eyebrow">REGISTRO MANUAL</span>
                     <h3>Yape, Plin, transferencia o efectivo</h3>
-                    <PaymentRegisterForm order={order} />
+                    {order.status === "Cancelado" ? (
+                      <p className="subtle">
+                        El pedido está cancelado; no se pueden registrar nuevos pagos.
+                      </p>
+                    ) : order.quote_required ? (
+                      <p className="subtle">Confirma primero el precio final del pedido.</p>
+                    ) : order.total_cents <= order.deposit_cents ? (
+                      <p className="subtle">
+                        Pedido pagado por completo. Revisa o rechaza cualquier pago
+                        pendiente adicional.
+                      </p>
+                    ) : (
+                      <PaymentRegisterForm order={order} />
+                    )}
                   </div>
 
                   <div className="payment-entry-box pagokit-box">
@@ -395,13 +435,7 @@ export default async function OrderDetailPage({
                       )}
                     </>
                   ) : (
-                    <p className="subtle">
-                      {!yapeReady
-                        ? "Para activarlo, configura YAPE_NUMBER, YAPE_HOLDER y SUPABASE_SERVICE_ROLE_KEY en Vercel y ejecuta supabase/yape-customer-v1.sql."
-                        : hasActiveMp
-                          ? "Hay un enlace Mercado Pago vigente. Espera a que venza antes de ofrecer Yape al cliente."
-                          : "El enlace estará disponible cuando el precio final esté confirmado y exista saldo pendiente."}
-                    </p>
+                    <p className="subtle">{yapeUnavailableReason}</p>
                   )}
                 </div>
 

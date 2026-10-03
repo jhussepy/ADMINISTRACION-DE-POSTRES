@@ -4,7 +4,7 @@ El enlace privado de cada pedido muestra el saldo acordado, los datos de Yape y 
 
 ## Activación
 
-1. Ejecuta `supabase/yape-customer-v1.sql`, `supabase/yape-mp-exclusion-v1.sql` y `supabase/yape-mp-exclusion-v2.sql` en Supabase SQL Editor, en ese orden. La segunda migración impide ofrecer Yape y un enlace Mercado Pago vigente al mismo pedido; la tercera permite procesar avisos repetidos de pagos que ya estaban pendientes.
+1. Ejecuta `supabase/yape-customer-v1.sql`, `supabase/yape-mp-exclusion-v1.sql`, `supabase/yape-mp-exclusion-v2.sql` y `supabase/manual-payment-guard-v1.sql` en Supabase SQL Editor, en ese orden. La última migración impide crear nuevos pagos pendientes cuando el pedido ya está cubierto, exceder el saldo o registrar dos Yapes pendientes para un mismo pedido. Si las tres primeras ya están instaladas, ejecuta solo la última.
 2. Configura en Vercel para Production y Preview:
    - `YAPE_NUMBER`: número real de nueve dígitos que empieza por 9.
    - `YAPE_HOLDER`: nombre del destinatario que el cliente verá en Yape.
@@ -15,9 +15,13 @@ El enlace privado de cada pedido muestra el saldo acordado, los datos de Yape y 
 
 No copies datos de prueba a Production. Si faltan el número, el titular, el token de la migración o la clave de servicio, Administración no mostrará un enlace listo para compartir.
 
+El panel **Migraciones en esta base de datos** de `/admin` comprueba directamente las columnas de Pagos V2 y la marca de la última migración. **Disponible** significa que esa comprobación pasó; **Revisar** indica que debes verificar el SQL señalado en Supabase. Los archivos en GitHub por sí solos no actualizan la base de datos.
+
 ## Revisión
 
 En la ficha del pedido, la captura aparecerá en **Pagos y comprobantes** como Yape **Pendiente de verificación**. Revisa el movimiento recibido en tu propia cuenta de Yape, coteja importe y número de operación y recién entonces confírmalo. Una captura por sí sola no demuestra que el dinero haya llegado. Puedes rechazarla si no coincide.
+
+Si el pedido ya está cubierto pero existe un pago pendiente anterior a esta migración, la página lo señala. Comprueba primero los movimientos reales y rechaza el registro adicional que no corresponda. La migración no altera ni rechaza pagos históricos automáticamente.
 
 El enlace es una credencial del pedido: compártelo únicamente con ese cliente. No publiques capturas que contengan el enlace. Solo se permite un comprobante Yape pendiente por pedido y hasta cinco envíos por día; la captura se almacena en un bucket privado.
 

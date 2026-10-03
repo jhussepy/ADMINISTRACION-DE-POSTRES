@@ -885,6 +885,8 @@ export async function registerPayment(
   }
   if (amountCents <= 0)
     return { error: "El importe del pago debe ser mayor a cero." };
+  if (status === "confirmed" && val(d, "transfer_verified") !== "on")
+    return { error: "Verifica el ingreso en tu cuenta antes de confirmar el pago." };
 
   if (proof instanceof File && proof.size > 0) {
     const validation = validatePaymentProof(proof);
@@ -893,17 +895,33 @@ export async function registerPayment(
 
   const { data: order, error: orderError } = await db
     .from("orders")
-    .select("id,total_cents,deposit_cents")
+    .select("id,total_cents,deposit_cents,quote_required,status")
     .eq("id", orderId)
     .maybeSingle();
 
   if (orderError || !order) return { error: "No encontramos el pedido." };
+  if (order.status === "Cancelado" || order.quote_required)
+    return { error: "Confirma el precio y verifica que el pedido esté activo antes de registrar pagos." };
+  if (order.total_cents - order.deposit_cents <= 0)
+    return { error: "Este pedido ya no tiene saldo pendiente. Revisa los pagos existentes." };
+  if (amountCents > order.total_cents - order.deposit_cents)
+    return { error: "El importe supera el saldo pendiente del pedido." };
 
-  if (status === "confirmed" && order.deposit_cents + amountCents > order.total_cents)
-    return {
-      error:
-        "Este pago superaría el total del pedido. Revisa el importe o el total acordado.",
-    };
+  if (method === "yape" && status === "pending") {
+    const { data: pendingYape, error: pendingError } = await db
+      .from("payments")
+      .select("id")
+      .eq("order_id", orderId)
+      .eq("provider", "manual")
+      .eq("method", "yape")
+      .eq("status", "pending")
+      .limit(1);
+    if (pendingError)
+      return { error: "No pudimos revisar los pagos Yape pendientes." };
+    if (pendingYape?.length)
+      return { error: "Ya hay un Yape pendiente de verificación para este pedido." };
+  }
+
 
   if (status === "confirmed") {
     try {
@@ -940,6 +958,8 @@ export async function registerPayment(
   });
 
   if (insertError) {
+    if (insertError.code === "22023")
+      return { error: insertError.message };
     if (migrationMissing(insertError.code))
       return {
         error:
@@ -999,6 +1019,8 @@ export async function updatePaymentStatus(
     };
 
   if (status === "confirmed" && payment.status !== "confirmed") {
+    if (val(d, "transfer_verified") !== "on")
+      return { error: "Verifica el ingreso en tu cuenta antes de confirmar el pago." };
     const { data: order, error: orderError } = await db
       .from("orders")
       .select("total_cents,deposit_cents")

@@ -6016,3 +6016,55 @@ legend {
   .yape-account strong { text-align: left; margin-bottom: 10px; }
   .yape-copy { width: 100%; }
 }
+
+.payment-verification {
+  display: flex !important;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid #d9c4ae;
+  border-radius: 9px;
+  background: #fff8ed;
+  color: #5b3e33;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.payment-verification input {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  margin: 1px 0 0;
+  accent-color: var(--wine);
+}
+.payment-status-form .payment-verification { grid-column: 1 / -1; }
+.payment-readiness { display: grid; gap: 16px; }
+.payment-readiness h2 { margin: 5px 0; font-size: 20px; }
+.payment-readiness p { color: var(--muted); font-size: 12px; }
+.payment-readiness ul {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+.payment-readiness li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px 12px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.payment-readiness li > span { flex: 1 1 150px; }
+.payment-readiness li small {
+  flex-basis: 100%;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+.payment-readiness .schema-ready { color: #295338; }
+.payment-readiness .schema-pending { color: #8b562a; }
+@media (max-width: 620px) {
+  .payment-readiness ul { grid-template-columns: 1fr; }
+}

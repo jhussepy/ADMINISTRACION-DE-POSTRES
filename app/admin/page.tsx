@@ -44,6 +44,39 @@ export default async function AdminPage() {
     if (batch.length < batchSize) break;
   }
   const metrics = operationalOrderMetrics(orders, today);
+  const [paymentsCheck, yapeCheck, checkoutCheck, guardCheck] =
+    await Promise.all([
+      db.from("payments").select("id").limit(1),
+      db.from("orders").select("yape_payment_token").limit(1),
+      db.from("payments").select("provider_expires_at").limit(1),
+      db
+        .from("payment_schema_versions")
+        .select("version")
+        .eq("version", "manual-payment-guard-v1")
+        .maybeSingle(),
+    ]);
+  const schemaChecks = [
+    {
+      label: "Registro de pagos",
+      file: "payments-v2.sql",
+      state: paymentsCheck.error ? "pending" : "ready",
+    },
+    {
+      label: "Enlace Yape del cliente",
+      file: "yape-customer-v1.sql",
+      state: yapeCheck.error ? "pending" : "ready",
+    },
+    {
+      label: "Vencimiento Mercado Pago",
+      file: "payments-v2-hardening.sql",
+      state: checkoutCheck.error ? "pending" : "ready",
+    },
+    {
+      label: "Control de saldo y Yape pendiente",
+      file: "manual-payment-guard-v1.sql",
+      state: guardCheck.error || !guardCheck.data ? "pending" : "ready",
+    },
+  ];
   const activeOrders = orders
     .filter((order) =>
       ["Nuevo", "Por confirmar", "Confirmado", "En preparación", "Listo"].includes(
@@ -138,6 +171,37 @@ export default async function AdminPage() {
           <strong>{productsResult.count ?? 0}</strong>
           <small>Catálogo activo actualmente.</small>
         </div>
+      </section>
+
+      <section
+        className="panel payment-readiness"
+        aria-label="Estado técnico de cobros"
+      >
+        <div>
+          <span className="eyebrow">CONFIGURACIÓN DE COBROS</span>
+          <h2>Migraciones en esta base de datos</h2>
+          <p>
+            Esta revisión consulta Supabase. Subir un archivo SQL a GitHub no lo
+            ejecuta.
+          </p>
+        </div>
+        <ul>
+          {schemaChecks.map((check) => (
+            <li key={check.file}>
+              <span>{check.label}</span>
+              <strong
+                className={
+                  check.state === "ready" ? "schema-ready" : "schema-pending"
+                }
+              >
+                {check.state === "ready" ? "Disponible" : "Revisar"}
+              </strong>
+              {check.state !== "ready" && (
+                <small>Ejecuta o verifica supabase/{check.file}</small>
+              )}
+            </li>
+          ))}
+        </ul>
       </section>
 
       <div className="dashboard-main-grid">
