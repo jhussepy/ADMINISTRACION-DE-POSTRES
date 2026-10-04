@@ -12,12 +12,64 @@ test("curved gallery renders photos, supports drag and keyboard, and opens the s
 }, testInfo) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
+  const imageRequests: string[] = [];
+  page.on("request", (request) => {
+    if (new URL(request.url()).pathname === "/_next/image")
+      imageRequests.push(request.url());
+  });
+  await page.addInitScript(() => {
+    const original = WebGLRenderingContext.prototype.texImage2D;
+    WebGLRenderingContext.prototype.texImage2D = function (
+      this: WebGLRenderingContext,
+      ...args: unknown[]
+    ) {
+      const source = args[args.length - 1];
+      if (source instanceof HTMLImageElement) {
+        const canvas = this.canvas as HTMLCanvasElement;
+        const uploads = JSON.parse(canvas.dataset.textureSources ?? "[]");
+        uploads.push({
+          src: source.currentSrc,
+          reused: !!source.closest(".wave-static-list"),
+        });
+        canvas.dataset.textureSources = JSON.stringify(uploads);
+      }
+      return original.apply(this, args as Parameters<typeof original>);
+    } as typeof original;
+  });
   await page.goto("/");
   const gallery = page.locator(".wave-gallery");
   await gallery.scrollIntoViewIfNeeded();
   await expect(gallery).toHaveAttribute("data-mode", "webgl", {
     timeout: 20000,
   });
+  const sources = await gallery
+    .locator(".wave-static-list img")
+    .evaluateAll((images) =>
+      images.map((image) => (image as HTMLImageElement).currentSrc),
+    );
+  const uploads = JSON.parse(
+    (await gallery.locator("canvas").getAttribute("data-texture-sources"))!,
+  );
+  expect(uploads).toHaveLength(sources.length);
+  expect(uploads).toEqual(
+    expect.arrayContaining(sources.map((src) => ({ src, reused: true }))),
+  );
+  // Other home sections can also display a featured photo at their own size.
+  // Every requested variant must belong to an actual responsive DOM image.
+  const domSources = await page
+    .locator("img")
+    .evaluateAll((images) =>
+      images.map((image) => (image as HTMLImageElement).currentSrc),
+    );
+  for (const src of sources) {
+    const asset = new URL(src).searchParams.get("url");
+    if (!asset) continue;
+    const requests = imageRequests.filter(
+      (url) => new URL(url).searchParams.get("url") === asset,
+    );
+    expect(requests).toContain(src);
+    for (const url of requests) expect(domSources).toContain(url);
+  }
   const painted = await gallery.locator("canvas").evaluate(
     (element) =>
       new Promise<number>((resolve) => {
