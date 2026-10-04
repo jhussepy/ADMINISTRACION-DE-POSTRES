@@ -2,6 +2,11 @@ import { test, expect, type Locator } from "@playwright/test";
 
 async function expectImageLoaded(image: Locator) {
   await image.scrollIntoViewIfNeeded();
+  // This helper checks the image bytes, not Chromium's lazy-loading scheduler.
+  // A programmatic scroll can leave a lazy image pending in headless CI.
+  await image.evaluate((element) => {
+    (element as HTMLImageElement).loading = "eager";
+  });
   try {
     await expect
       .poll(
