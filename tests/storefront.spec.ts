@@ -270,7 +270,8 @@ test("public catalogue, cart persistence, guest checkout and WhatsApp handoff", 
   await expect(
     page.getByRole("heading", { name: /La vida sabe/ }),
   ).toBeVisible();
-  await expect(page.locator(".product-card")).toHaveCount(3);
+  await expect(page.locator(".wave-gallery")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Postre siguiente" })).toBeVisible();
   await page
     .getByRole("link", { name: "Ver toda la carta", exact: true })
     .click();
