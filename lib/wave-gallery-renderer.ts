@@ -1,5 +1,4 @@
 // A small, dependency-free renderer. Photos remain textures on curved cards.
-export type WavePhoto = { image: string };
 
 const vertexSource = `
 precision mediump float;
@@ -49,13 +48,12 @@ void main() {
 
 export function createWaveRenderer(
   canvas: HTMLCanvasElement,
-  photos: WavePhoto[],
+  photos: HTMLImageElement[],
 ) {
   const gl = canvas.getContext("webgl", { alpha: true, antialias: true });
   if (!gl) throw new Error("WebGL unavailable");
   const shaders: WebGLShader[] = [];
   const textures: WebGLTexture[] = [];
-  const images: HTMLImageElement[] = [];
   let disposed = false;
   let lastPosition = 0;
   let lastWidth = 1;
@@ -139,53 +137,25 @@ export function createWaveRenderer(
   };
   const aspects: number[] = [];
   const ready = Promise.all(
-    photos.map(
-      (photo, index) =>
-        new Promise<void>((resolve, reject) => {
-          const img = new window.Image();
-          images.push(img);
-          img.crossOrigin = "anonymous";
-          img.onload = () => {
-            if (disposed) return;
-            try {
-              const texture = gl.createTexture();
-              if (!texture) throw new Error("Texture unavailable");
-              textures[index] = texture;
-              aspects[index] = img.naturalWidth / img.naturalHeight;
-              gl.bindTexture(gl.TEXTURE_2D, texture);
-              gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-              gl.texImage2D(
-                gl.TEXTURE_2D,
-                0,
-                gl.RGBA,
-                gl.RGBA,
-                gl.UNSIGNED_BYTE,
-                img,
-              );
-              gl.texParameteri(
-                gl.TEXTURE_2D,
-                gl.TEXTURE_WRAP_S,
-                gl.CLAMP_TO_EDGE,
-              );
-              gl.texParameteri(
-                gl.TEXTURE_2D,
-                gl.TEXTURE_WRAP_T,
-                gl.CLAMP_TO_EDGE,
-              );
-              gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-              gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-              resolve();
-            } catch (error) {
-              reject(error);
-            }
-          };
-          img.onerror = () => reject(new Error("Photo unavailable"));
-          // Use the same Next optimizer as the catalogue, at a bounded texture size.
-          img.src = /\.svg(?:[?#]|$)/i.test(photo.image)
-            ? photo.image
-            : `/_next/image?url=${encodeURIComponent(photo.image)}&w=750&q=75`;
-        }),
-    ),
+    photos.map(async (img, index) => {
+      // Reuse the responsive DOM image and its decoded pixels. Only promote
+      // lazy images once the gallery is near the viewport; never create a
+      // second image or request a different optimizer size for the texture.
+      img.loading = "eager";
+      await img.decode();
+      if (disposed) return;
+      const texture = gl.createTexture();
+      if (!texture) throw new Error("Texture unavailable");
+      textures[index] = texture;
+      aspects[index] = img.naturalWidth / img.naturalHeight;
+      gl.bindTexture(gl.TEXTURE_2D, texture);
+      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    }),
   );
 
   return {
@@ -249,10 +219,6 @@ export function createWaveRenderer(
     },
     dispose() {
       disposed = true;
-      images.forEach((img) => {
-        img.onload = null;
-        img.onerror = null;
-      });
       textures.forEach((texture) => gl.deleteTexture(texture));
       shaders.forEach((item) => gl.deleteShader(item));
       gl.deleteBuffer(buffer);

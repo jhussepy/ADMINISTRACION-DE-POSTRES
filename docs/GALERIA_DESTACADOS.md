@@ -14,6 +14,7 @@ La galería es una implementación propia inspirada en el movimiento de una cint
 
 ## Rendimiento
 
-El renderizador se importa cuando la galería se acerca a la pantalla. Las texturas usan imágenes optimizadas a 750 px y el lienzo limita la densidad de píxeles. La animación se detiene fuera de pantalla, en pestañas ocultas y cuando queda pausada. Al desmontar el componente se liberan texturas, buffers, observadores y eventos.
+El renderizador se importa cuando la galería se acerca a la pantalla. Las texturas reutilizan los elementos de imagen de la lista estática y sus píxeles decodificados, con el tamaño adaptable elegido por Next.js. Al acercarse la galería se activan las cargas pendientes, sin pedir una segunda variante para WebGL. El lienzo limita la densidad de píxeles. La animación se detiene fuera de pantalla, en pestañas ocultas y cuando queda pausada. Al desmontar el componente se liberan texturas, buffers, observadores y eventos.
 
 Los nombres, descripciones y controles son HTML accesible fuera del lienzo. El catálogo completo mantiene sus filtros, favoritos y botones de compra.
+

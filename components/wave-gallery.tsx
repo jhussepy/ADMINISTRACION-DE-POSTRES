@@ -136,7 +136,12 @@ export function WaveGallery({
         const { createWaveRenderer } =
           await import("@/lib/wave-gallery-renderer");
         if (disposed) return;
-        scene = createWaveRenderer(surface!, products);
+        const photos = Array.from(
+          element!.querySelectorAll<HTMLImageElement>(".wave-static-list img"),
+        );
+        if (photos.length !== products.length)
+          throw new Error("Gallery photos unavailable");
+        scene = createWaveRenderer(surface!, photos);
         await scene.ready;
         if (disposed) return;
         renderer.current = scene;
@@ -389,6 +394,7 @@ export function WaveGallery({
                 <Image
                   src={product.image}
                   alt={product.name}
+                  crossOrigin="anonymous"
                   fill
                   sizes="(max-width: 620px) 70vw, 340px"
                 />
