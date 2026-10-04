@@ -232,7 +232,9 @@ test("two presentations stay separate in the cart and WhatsApp describes the exa
   const message = new URL(whatsapp).searchParams.get("text")!;
   expect(message).toContain("1 × Pie de limón");
   expect(message).toContain("Porción — Precio pendiente de confirmación");
-  expect(message).toContain("Entero · aprox. 10 porciones — Precio pendiente de confirmación");
+  expect(message).toContain(
+    "Entero · aprox. 10 porciones — Precio pendiente de confirmación",
+  );
   expect(message).toContain("Pendiente de cotización");
   expect(message).not.toContain("(ejemplo)");
 });
@@ -267,11 +269,11 @@ test("public catalogue, cart persistence, guest checkout and WhatsApp handoff", 
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("/");
-  await expect(
-    page.getByRole("heading", { name: /La vida sabe/ }),
-  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Un pequeño/ })).toBeVisible();
   await expect(page.locator(".wave-gallery")).toBeVisible();
-  await expect(page.getByRole("button", { name: "Postre siguiente" })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Postre siguiente" }),
+  ).toBeVisible();
   await page
     .getByRole("link", { name: "Ver toda la carta", exact: true })
     .click();
@@ -359,7 +361,9 @@ test("public catalogue, cart persistence, guest checkout and WhatsApp handoff", 
   expect(message).toContain("Ocasión: Cumpleaños");
   expect(message).toContain("Dedicatoria: Feliz día, María");
   expect(message).toContain("Precio pendiente de confirmación");
-  expect(message).toContain("Pendiente de confirmación de disponibilidad y pago");
+  expect(message).toContain(
+    "Pendiente de confirmación de disponibilidad y pago",
+  );
   expect(message).not.toContain("(ejemplo)");
   await page.goto("/catalogo");
   await expect(
@@ -498,7 +502,7 @@ test("photographic catalogue filters and new products reach the WhatsApp handoff
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto("/");
-  await expect(page.locator(".patisserie-cake img")).toHaveAttribute(
+  await expect(page.locator(".immersive-scene img")).toHaveAttribute(
     "alt",
     "Torta de chocolate",
   );
@@ -601,20 +605,25 @@ test("photographic catalogue filters and new products reach the WhatsApp handoff
   expect(errors).toEqual([]);
 });
 
-
-test("favorites persist, sorting works and hero motion remains available", async ({ page }) => {
+test("favorites persist, sorting works and hero motion remains available", async ({
+  page,
+}) => {
   await page.goto("/catalogo");
   const favorite = page.getByRole("button", {
     name: "Guardar Torta de chocolate en favoritos",
   });
   await favorite.click();
   await expect(
-    page.getByRole("button", { name: "Quitar Torta de chocolate de favoritos" }),
+    page.getByRole("button", {
+      name: "Quitar Torta de chocolate de favoritos",
+    }),
   ).toHaveAttribute("aria-pressed", "true");
 
   await page.reload();
   await expect(
-    page.getByRole("button", { name: "Quitar Torta de chocolate de favoritos" }),
+    page.getByRole("button", {
+      name: "Quitar Torta de chocolate de favoritos",
+    }),
   ).toHaveAttribute("aria-pressed", "true");
 
   await page.getByRole("button", { name: /Mis favoritos/ }).click();
@@ -636,7 +645,9 @@ test("favorites persist, sorting works and hero motion remains available", async
   ).toBeVisible();
 });
 
-test("product page can copy its share link when native sharing is unavailable", async ({ page }) => {
+test("product page can copy its share link when native sharing is unavailable", async ({
+  page,
+}) => {
   await page.addInitScript(() => {
     Object.defineProperty(navigator, "share", {
       configurable: true,
@@ -652,8 +663,9 @@ test("product page can copy its share link when native sharing is unavailable", 
   await expect(page.getByText("Enlace copiado")).toBeVisible();
 });
 
-
-test("account page advertises Google access when Clerk is not configured", async ({ page }) => {
+test("account page advertises Google access when Clerk is not configured", async ({
+  page,
+}) => {
   await page.goto("/cuenta");
   await expect(
     page.getByRole("heading", { name: "Entra con Google", exact: true }),

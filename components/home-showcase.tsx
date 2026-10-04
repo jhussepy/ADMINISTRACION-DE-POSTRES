@@ -12,6 +12,7 @@ import {
   Play,
 } from "lucide-react";
 import type { Product } from "@/lib/types";
+import { Dessert3D } from "./dessert-3d";
 
 type SelectProduct = (product: Product, trigger: HTMLButtonElement) => void;
 
@@ -87,23 +88,6 @@ function usesChocolateScene(product: Product) {
   );
 }
 
-function BotanicalMark({ className }: { className: string }) {
-  return (
-    <svg
-      className={className}
-      viewBox="0 0 100 140"
-      fill="none"
-      aria-hidden="true"
-    >
-      <path
-        d="M49 132C46 93 59 43 82 8M51 102C13 100 10 75 11 53C39 55 53 77 51 102ZM60 66C25 62 22 36 25 15C48 24 61 42 60 66ZM63 60C95 64 101 40 95 24C77 29 68 40 63 60ZM49 111C85 117 96 94 94 76C72 76 52 91 49 111Z"
-        stroke="currentColor"
-        strokeWidth="1.1"
-      />
-    </svg>
-  );
-}
-
 export function HomeHero({
   featured,
   paused,
@@ -116,109 +100,93 @@ export function HomeHero({
   onSelect: SelectProduct;
 }) {
   const root = useSceneMotion(paused);
-  const layered = featured && usesChocolateScene(featured);
+  const modeled = featured && usesChocolateScene(featured);
   return (
     <section
       ref={root}
-      className={`patisserie-hero ${featured ? "" : "without-dessert"}`}
+      className={`patisserie-hero immersive-hero ${featured ? "" : "without-dessert"}`}
       aria-labelledby="hero-title"
       data-motion="paused"
     >
+      <div className="hero-grain" aria-hidden="true" />
       <div className="patisserie-copy">
         <span className="patisserie-eyebrow">
-          <span /> REPOSTERÍA ARTESANAL · YEMAPE
+          <span /> EL ARTE DE COMPARTIR · YEMAPE
         </span>
         <h1 id="hero-title">
-          La vida sabe
+          Un pequeño
           <br />
-          mejor con <em>postre.</em>
+          <em>antojo.</em>
+          <br />
+          Un gran momento.
         </h1>
         <p>
-          Tortas, kekes y pequeños antojos que convierten cualquier día en un
-          buen momento.
+          Tortas, kekes y postres para convertir cualquier día en algo especial.
         </p>
         <div className="patisserie-actions">
           <Link href="/catalogo" className="button">
-            Ver catálogo <ArrowRight size={18} aria-hidden="true" />
+            Explorar la carta <ArrowRight size={18} aria-hidden="true" />
           </Link>
           <a href="#como-pedir" className="patisserie-text-link">
             Cómo hacer tu pedido <ArrowRight size={16} aria-hidden="true" />
           </a>
         </div>
         <div className="patisserie-personal-note">
-          <span className="patisserie-note-icon">
-            <MessageCircle size={19} aria-hidden="true" />
-          </span>
+          <MessageCircle size={18} aria-hidden="true" />
           <p>
-            <strong>Un antojo, una conversación.</strong>
+            Elige a tu ritmo.
             <br />
-            Elige a tu ritmo. Lo coordinamos por WhatsApp.
+            <strong>Lo coordinamos por WhatsApp.</strong>
           </p>
         </div>
       </div>
       {featured && (
         <div
-          className={`patisserie-scene ${layered ? "is-layered" : "is-photo"}`}
+          className={`patisserie-scene immersive-scene ${modeled ? "has-model" : "is-photo"}`}
         >
-          <div className="patisserie-arch" aria-hidden="true" />
-          <span className="patisserie-backword" aria-hidden="true">
-            Yemape
+          <span className="hero-scene-word" aria-hidden="true">
+            hecho
+            <br />
+            <em>con cariño</em>
           </span>
-          <BotanicalMark className="patisserie-botanical" />
-          <div className="patisserie-stamp" aria-hidden="true">
-            <span>HECHO PARA</span>
-            <strong>compartir</strong>
-            <span>BUENOS MOMENTOS</span>
-          </div>
-          <div className="patisserie-floor" aria-hidden="true" />
-          <div className="patisserie-cake scene-scroll">
-            <div className="scene-ambient">
+          <div className="hero-orbit orbit-one" aria-hidden="true" />
+          <div className="hero-orbit orbit-two" aria-hidden="true" />
+          <span className="hero-3d-note">
+            {modeled ? "CADA ÁNGULO, UN ANTOJO" : "EL ANTOJO DE HOY"}
+          </span>
+          {modeled ? (
+            <Dessert3D name={featured.name} paused={paused} />
+          ) : (
+            <div className="hero-custom-photo">
               <Image
-                src={
-                  layered
-                    ? "/images/torta-chocolate-cuerpo.webp"
-                    : featured.image
-                }
+                src={featured.image}
                 alt={featured.name}
                 fill
                 preload
-                sizes="(max-width: 700px) 90vw, (max-width: 1100px) 54vw, 650px"
-                className="patisserie-photo"
+                sizes="(max-width: 700px) 90vw, 650px"
               />
             </div>
-          </div>
-          {layered && (
-            <div className="patisserie-portion scene-scroll" aria-hidden="true">
-              <div className="scene-ambient">
-                <Image
-                  src="/images/torta-chocolate-porcion.webp"
-                  alt=""
-                  fill
-                  loading="eager"
-                  sizes="(max-width: 700px) 58vw, 350px"
-                  className="patisserie-photo"
-                />
-              </div>
-            </div>
           )}
-          <button
-            className="patisserie-motion-toggle"
-            type="button"
-            onClick={onPause}
-            aria-label={
-              paused
-                ? "Reanudar animación del postre"
-                : "Pausar animación del postre"
-            }
-            aria-pressed={paused}
-          >
-            {paused ? (
-              <Play size={15} aria-hidden="true" />
-            ) : (
-              <Pause size={15} aria-hidden="true" />
-            )}
-            <span>{paused ? "Reanudar" : "Pausar"}</span>
-          </button>
+          {modeled && (
+            <button
+              className="patisserie-motion-toggle"
+              type="button"
+              onClick={onPause}
+              aria-label={
+                paused
+                  ? "Reanudar animación del postre"
+                  : "Pausar animación del postre"
+              }
+              aria-pressed={paused}
+            >
+              {paused ? (
+                <Play size={15} aria-hidden="true" />
+              ) : (
+                <Pause size={15} aria-hidden="true" />
+              )}
+              <span>{paused ? "Reanudar" : "Pausar"}</span>
+            </button>
+          )}
           <div className="patisserie-caption">
             <div>
               <span>EL ANTOJO DE HOY</span>
@@ -237,6 +205,9 @@ export function HomeHero({
       <a className="patisserie-explore" href="#destacados">
         <ArrowDown size={16} aria-hidden="true" /> Sigue tu antojo
       </a>
+      <span className="hero-bottom-note">
+        REPOSTERÍA ARTESANAL · BUENOS MOMENTOS
+      </span>
     </section>
   );
 }
@@ -256,7 +227,7 @@ export function DessertSpotlight({
     <section
       id="hecho-con-carino"
       ref={root}
-      className="dessert-spotlight"
+      className="dessert-spotlight immersive-spotlight"
       aria-labelledby="spotlight-title"
       data-motion="paused"
     >
@@ -292,24 +263,22 @@ export function DessertSpotlight({
         <div
           className={`spotlight-dessert ${layered ? "is-layered" : "is-photo"}`}
         >
-          <div className="spotlight-ring" aria-hidden="true" />
-          <span className="spotlight-word" aria-hidden="true">
-            antojo
-          </span>
-          <div className="spotlight-photo scene-scroll">
-            <div className="scene-ambient">
+          {layered ? (
+            <Dessert3D
+              name={product.name}
+              paused={paused}
+              variant="spotlight"
+            />
+          ) : (
+            <div className="spotlight-photo">
               <Image
-                src={
-                  layered
-                    ? "/images/torta-chocolate-cuerpo.webp"
-                    : product.image
-                }
+                src={product.image}
                 alt={product.name}
                 fill
-                sizes="(max-width: 700px) 90vw, (max-width: 1100px) 52vw, 540px"
+                sizes="(max-width: 700px) 90vw, 540px"
               />
             </div>
-          </div>
+          )}
         </div>
         <article className="spotlight-feature feature-three">
           <span>03 / A TU RITMO</span>

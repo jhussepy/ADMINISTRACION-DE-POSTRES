@@ -116,6 +116,8 @@ export function Storefront({
     [notice, setNotice] = useState("");
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [heroMotionPaused, setHeroMotionPaused] = useState(false);
+  const sceneMotionPaused =
+    heroMotionPaused || cartOpen || selectedProduct !== null || menu;
   const [favorites, setFavorites] = useState<string[]>([]);
   const [favoritesReady, setFavoritesReady] = useState(false);
   const [favoriteOnly, setFavoriteOnly] = useState(false);
@@ -142,7 +144,8 @@ export function Storefront({
         setFavorites(
           saved.filter(
             (id): id is string =>
-              typeof id === "string" && products.some((product) => product.id === id),
+              typeof id === "string" &&
+              products.some((product) => product.id === id),
           ),
         );
       }
@@ -201,7 +204,9 @@ export function Storefront({
   const visible = products.filter(
     (p) =>
       (category === "Todos" || p.category === category) &&
-      normalize(`${p.name} ${p.description}`).includes(normalize(query.trim())) &&
+      normalize(`${p.name} ${p.description}`).includes(
+        normalize(query.trim()),
+      ) &&
       (!favoriteOnly || favorites.includes(p.id)),
   );
   const sortedVisible = [...visible].sort((a, b) => {
@@ -429,7 +434,7 @@ export function Storefront({
           <>
             <HomeHero
               featured={featured}
-              paused={heroMotionPaused}
+              paused={sceneMotionPaused}
               onPause={() => setHeroMotionPaused((paused) => !paused)}
               onSelect={(selected, trigger) => {
                 detailTrigger.current = trigger;
@@ -585,29 +590,29 @@ export function Storefront({
                   query ||
                   favoriteOnly ||
                   sort !== "recommended") && (
-                <div className="active-filters">
-                  <span>
-                    {category !== "Todos" ? category : "Toda la carta"}
-                    {query ? ` · “${query}”` : ""}
-                    {favoriteOnly ? " · Favoritos" : ""}
-                    {sort !== "recommended"
-                      ? ` · ${sort === "name" ? "A–Z" : sort === "price-asc" ? "Menor precio" : "Mayor precio"}`
-                      : ""}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setCategory("Todos");
-                      setQuery("");
-                      setFavoriteOnly(false);
-                      setSort("recommended");
-                      updateCatalogUrl("Todos", "", "push", "recommended");
-                    }}
-                  >
-                    Limpiar filtros <X size={15} aria-hidden="true" />
-                  </button>
-                </div>
-              )}
+                  <div className="active-filters">
+                    <span>
+                      {category !== "Todos" ? category : "Toda la carta"}
+                      {query ? ` · “${query}”` : ""}
+                      {favoriteOnly ? " · Favoritos" : ""}
+                      {sort !== "recommended"
+                        ? ` · ${sort === "name" ? "A–Z" : sort === "price-asc" ? "Menor precio" : "Mayor precio"}`
+                        : ""}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCategory("Todos");
+                        setQuery("");
+                        setFavoriteOnly(false);
+                        setSort("recommended");
+                        updateCatalogUrl("Todos", "", "push", "recommended");
+                      }}
+                    >
+                      Limpiar filtros <X size={15} aria-hidden="true" />
+                    </button>
+                  </div>
+                )}
               {view === "catalog" && (
                 <div className="mobile-search">
                   <Search size={19} />
@@ -657,7 +662,9 @@ export function Storefront({
                     <select
                       aria-label="Ordenar catálogo"
                       value={sort}
-                      onChange={(e) => changeSort(e.target.value as CatalogSort)}
+                      onChange={(e) =>
+                        changeSort(e.target.value as CatalogSort)
+                      }
                     >
                       <option value="recommended">Recomendados</option>
                       <option value="price-asc">Precio: menor a mayor</option>
@@ -700,7 +707,9 @@ export function Storefront({
                         >
                           <Heart
                             size={18}
-                            fill={favorites.includes(p.id) ? "currentColor" : "none"}
+                            fill={
+                              favorites.includes(p.id) ? "currentColor" : "none"
+                            }
                             aria-hidden="true"
                           />
                         </button>
@@ -808,7 +817,7 @@ export function Storefront({
         {view === "home" && featured && (
           <DessertSpotlight
             product={featured}
-            paused={heroMotionPaused}
+            paused={sceneMotionPaused}
             onSelect={(selected, trigger) => {
               detailTrigger.current = trigger;
               setSelectedProduct(selected);
@@ -1372,7 +1381,8 @@ function CartDialog({
                     onChange={(e) => update("phone", e.target.value)}
                   />
                   <small>
-                    Lo usaremos para identificar tu solicitud y coordinar por WhatsApp.
+                    Lo usaremos para identificar tu solicitud y coordinar por
+                    WhatsApp.
                   </small>
                 </label>
                 <fieldset>
@@ -1616,4 +1626,3 @@ function CartDialog({
     </dialog>
   );
 }
-
