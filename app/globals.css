@@ -6068,3 +6068,95 @@ legend {
 @media (max-width: 620px) {
   .payment-readiness ul { grid-template-columns: 1fr; }
 }
+
+.orders-list-shell { max-width: 1080px; margin: 0 auto; }
+.orders-intro-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+.orders-intro-actions .button { display: inline-flex; align-items: center; gap: 7px; }
+.orders-filter a[aria-current="page"] {
+  background: var(--wine);
+  border-color: var(--wine);
+  color: white;
+}
+.order-advance-form { display: grid; gap: 5px; }
+.order-advance-form small { color: #8a5d18; font-size: 11px; }
+.order-advance-form .form-error,
+.order-advance-form .form-success { max-width: 260px; font-size: 11px; }
+.manual-order-page { display: grid; gap: 18px; max-width: 700px; margin: 0 auto; }
+.manual-order-page .text-link { width: fit-content; }
+.manual-order-page .panel > p { margin: 0 0 22px; }
+.order-tracking-share { display: grid; gap: 7px; margin: 17px 0; }
+.order-tracking-share label { font-weight: 700; font-size: 12px; }
+.order-tracking-share input { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.order-tracking-share small { color: var(--muted); line-height: 1.5; }
+
+.tracking-page {
+  min-height: 100vh;
+  padding: clamp(22px, 5vw, 64px) 16px 72px;
+  background: linear-gradient(150deg, #fbf4ef 0%, #fffdfa 58%, #f7ece9 100%);
+}
+.tracking-shell { width: min(100%, 740px); margin: 0 auto; display: grid; gap: 20px; }
+.tracking-shell > .text-link { width: fit-content; }
+.tracking-intro { padding: clamp(24px, 5vw, 40px); }
+.tracking-intro h1 {
+  margin: 7px 0 8px;
+  color: var(--wine);
+  font-family: var(--font-serif);
+  font-size: clamp(32px, 6vw, 48px);
+  font-weight: 500;
+}
+.tracking-intro > p { color: var(--muted); line-height: 1.6; }
+.tracking-current {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin: 24px 0;
+  padding: 20px;
+  border-radius: 15px;
+  background: #f8ede8;
+  color: var(--wine);
+}
+.tracking-current > svg { flex: 0 0 auto; margin-top: 3px; }
+.tracking-current > div { display: grid; gap: 5px; }
+.tracking-current span { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; }
+.tracking-current strong { font-family: var(--font-serif); font-size: 27px; font-weight: 500; }
+.tracking-current p { color: #5e4c47; line-height: 1.5; }
+.tracking-intro .tracking-quote {
+  padding: 13px 16px;
+  border: 1px solid #e3c6a7;
+  border-radius: 10px;
+  background: #fff8ed;
+  color: #6a4529;
+}
+.tracking-intro .tracking-delivery {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 18px;
+  color: #564843;
+}
+.tracking-stages h2 { margin-bottom: 22px; font-family: var(--font-serif); }
+.tracking-stages ol { display: grid; gap: 0; padding: 0; margin: 0 0 20px; list-style: none; }
+.tracking-stages li { display: flex; align-items: center; gap: 13px; min-height: 58px; color: #8b817b; }
+.tracking-stages li + li { border-top: 1px solid #eee5df; }
+.tracking-stages li.is-done { color: #526f56; }
+.tracking-stages li.is-current { color: var(--wine); font-weight: 800; }
+.tracking-stage-icon {
+  width: 30px;
+  height: 30px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  font-size: 12px;
+}
+.tracking-stages .subtle { line-height: 1.6; }
+@media (max-width: 620px) {
+  .orders-v2-intro { align-items: flex-start; flex-direction: column; }
+  .orders-intro-actions { width: 100%; justify-content: space-between; }
+  .orders-intro-actions .button { min-height: 44px; }
+  .order-v2-actions .button,
+  .order-advance-form { width: 100%; }
+  .order-v2-actions .button { justify-content: center; }
+}

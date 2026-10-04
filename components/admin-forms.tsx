@@ -1,6 +1,7 @@
 "use client";
 import { useActionState, useState } from "react";
 import {
+  advanceOrderStatus,
   deleteCustomerNote,
   deleteProductImage,
   deleteVariant,
@@ -29,6 +30,7 @@ import {
   type ActionState,
 } from "@/lib/types";
 import { paymentMethodLabels, paymentStatusLabels } from "@/lib/payments";
+import { nextStatusAction } from "@/lib/order-progress";
 function Feedback({ state }: { state: ActionState }) {
   return (
     <>
@@ -698,6 +700,38 @@ export function OrderUpdateForm({ order }: { order: Order }) {
       <button className="button secondary" disabled={pending}>
         {pending ? "Guardando…" : "Actualizar pedido"}
       </button>
+    </form>
+  );
+}
+
+export function OrderAdvanceForm({
+  order,
+}: {
+  order: Pick<Order, "id" | "status" | "quote_required">;
+}) {
+  const [state, action, pending] = useActionState(advanceOrderStatus, {});
+  const label = nextStatusAction(order.status);
+  if (!label) return null;
+
+  return (
+    <form action={action} className="order-advance-form">
+      <input type="hidden" name="id" value={order.id} />
+      <input type="hidden" name="expected_status" value={order.status} />
+      <button
+        className="button"
+        disabled={pending || (order.status === "Por confirmar" && order.quote_required)}
+        title={
+          order.status === "Por confirmar" && order.quote_required
+            ? "Confirma primero el precio final en el detalle del pedido"
+            : undefined
+        }
+      >
+        {pending ? "Actualizando…" : label}
+      </button>
+      {order.status === "Por confirmar" && order.quote_required && (
+        <small>Confirma el precio para avanzar.</small>
+      )}
+      <Feedback state={state} />
     </form>
   );
 }

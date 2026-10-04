@@ -14,7 +14,10 @@ import {
 } from "lucide-react";
 import { requireAdmin } from "@/lib/data";
 import { money } from "@/lib/cart";
-import { normalizeCustomerPhone } from "@/lib/crm";
+import {
+  customerWhatsappNumber,
+  orderStatusWhatsappMessage,
+} from "@/lib/order-progress";
 import type { Order, OrderEvent, Payment } from "@/lib/types";
 import {
   paymentMethodLabel,
@@ -177,9 +180,10 @@ export default async function OrderDetailPage({
     .slice()
     .sort((a, b) => a.position - b.position);
 
-  const normalizedPhone = normalizeCustomerPhone(order.customer_phone);
-  const digits =
-    normalizedPhone.length === 9 ? "51" + normalizedPhone : normalizedPhone;
+  const digits = customerWhatsappNumber(order.customer_phone) ?? "";
+  const trackingUrl = order.tracking_token
+    ? siteUrl() + "/seguimiento/" + order.tracking_token
+    : null;
   const yapeMessage = yapeLink
     ? encodeURIComponent(
         "Hola " + order.customer_name + ", tu pedido " + order.public_code +
@@ -187,11 +191,11 @@ export default async function OrderDetailPage({
       )
     : "";
   const whatsappText = encodeURIComponent(
-    "Hola " +
-      order.customer_name +
-      ", te escribimos de Repostería Yemape por tu pedido " +
-      order.public_code +
-      ".",
+    orderStatusWhatsappMessage(
+      order.public_code,
+      order.status,
+      trackingUrl ?? undefined,
+    ),
   );
 
   return (
@@ -586,6 +590,17 @@ export default async function OrderDetailPage({
             <p className="order-detail-icon-line">
               <UserRound size={17} /> {order.customer_phone}
             </p>
+            {trackingUrl ? (
+              <div className="order-tracking-share">
+                <label htmlFor="tracking-link">Enlace privado de seguimiento</label>
+                <input id="tracking-link" readOnly value={trackingUrl} />
+                <small>Compártelo solo con este cliente. Muestra el estado actualizado al abrirlo.</small>
+              </div>
+            ) : (
+              <p className="subtle">
+                Para compartir el seguimiento ejecuta supabase/order-tracking-v1.sql.
+              </p>
+            )}
             {order.customer_user_id && (
               <p className="subtle">Pedido vinculado a una cuenta de cliente.</p>
             )}
@@ -604,7 +619,7 @@ export default async function OrderDetailPage({
                 target="_blank"
                 rel="noreferrer"
               >
-                <MessageCircle size={18} /> Escribir por WhatsApp
+                <MessageCircle size={18} /> Avisar estado por WhatsApp
               </a>
             )}
           </section>

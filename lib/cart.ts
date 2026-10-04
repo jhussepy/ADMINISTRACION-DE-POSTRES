@@ -113,6 +113,7 @@ export function whatsappUrl(
   products: Product[],
   details: CheckoutDetails,
   orderCode?: string,
+  trackingUrl?: string,
 ) {
   const hasCustomCake = cart.some((item) => item.id === "torta-personalizada");
   const error = checkoutError(details, limaToday(), hasCustomCake);
@@ -197,6 +198,8 @@ export function whatsappUrl(
       ? `✅ Solicitud registrada con código ${orderCode}.`
       : "Solicitud preparada para coordinación.",
     "Pendiente de confirmación de disponibilidad y pago.",
+    trackingUrl ? "" : undefined,
+    trackingUrl ? `Consulta el estado del pedido: ${trackingUrl}` : undefined,
   ]
     .filter((value) => value !== undefined)
     .join("\n");

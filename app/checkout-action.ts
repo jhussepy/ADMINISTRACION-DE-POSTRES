@@ -9,6 +9,8 @@ import {
   whatsappUrl,
 } from "@/lib/cart";
 import { presentation } from "@/lib/demo-catalog";
+import { serviceSupabase } from "@/lib/supabase/service";
+import { siteUrl } from "@/lib/site-url";
 import type { CheckoutDetails } from "@/lib/types";
 
 const UUID_RE =
@@ -143,9 +145,23 @@ export async function prepareCheckout(
           "El pedido fue procesado sin código. Inténtalo nuevamente antes de abrir WhatsApp.",
       };
 
+    let trackingUrl: string | undefined;
+    if (result.id && UUID_RE.test(result.id)) {
+      const service = serviceSupabase();
+      if (service) {
+        const { data: tracking } = await service
+          .from("orders")
+          .select("tracking_token")
+          .eq("id", result.id)
+          .maybeSingle();
+        if (tracking?.tracking_token)
+          trackingUrl = siteUrl() + "/seguimiento/" + tracking.tracking_token;
+      }
+    }
+
     return {
       orderCode: result.public_code,
-      url: whatsappUrl(clean, products, details, result.public_code),
+      url: whatsappUrl(clean, products, details, result.public_code, trackingUrl),
     };
   } catch (error) {
     return {

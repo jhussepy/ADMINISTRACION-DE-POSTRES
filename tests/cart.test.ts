@@ -122,6 +122,21 @@ test("WhatsApp includes the Yemape order code after automatic registration", () 
   assert.match(message, /Pedido YMP-2099-0001/);
   assert.match(message, /Solicitud registrada con código YMP-2099-0001/);
 });
+
+test("registered checkout message carries its private tracking link", () => {
+  const trackingUrl = "https://yemape.example/seguimiento/private-token";
+  const message = new URL(
+    whatsappUrl(
+      [{ id: "pie-manzana", quantity: 1 }],
+      initialProducts,
+      details,
+      "YMP-2026-0008",
+      trackingUrl,
+    ),
+  ).searchParams.get("text")!;
+  assert.match(message, /YMP-2026-0008/);
+  assert.ok(message.includes(trackingUrl));
+});
 test("separate presentations survive cart normalization and cannot be forged", () => {
   const cart = normalizeCart(
     [
