@@ -6152,6 +6152,128 @@ legend {
   font-size: 12px;
 }
 .tracking-stages .subtle { line-height: 1.6; }
+
+/* The home showcase uses curved photographs; the shopping catalogue stays flat. */
+.wave-gallery {
+  --wave-paper: #fff9f3;
+  --wave-blush: #f3e4de;
+  border: 1px solid var(--border);
+  border-radius: 26px;
+  background: linear-gradient(150deg, var(--wave-paper), var(--cream) 55%, var(--pink));
+  overflow: hidden;
+  isolation: isolate;
+}
+.wave-stage {
+  position: relative;
+  height: clamp(320px, 32vw, 420px);
+  overflow: hidden;
+  touch-action: pan-y;
+  background: radial-gradient(ellipse at 50% 38%, var(--cream) 12%, transparent 68%);
+}
+.wave-gallery[data-mode="webgl"] .wave-stage { cursor: grab; }
+.wave-gallery[data-mode="webgl"] .wave-stage:active { cursor: grabbing; }
+.wave-stage:focus-visible { outline-offset: -5px; }
+.wave-canvas { display: block; width: 100%; height: 100%; }
+.wave-stage-shadow {
+  position: absolute;
+  bottom: 5%;
+  left: 15%;
+  width: 70%;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--wine);
+  opacity: 0.09;
+  filter: blur(18px);
+  pointer-events: none;
+}
+.wave-static-list {
+  position: relative;
+  display: flex;
+  height: 100%;
+  gap: 20px;
+  padding: 26px 28px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: thin;
+  scrollbar-color: var(--wine) var(--pink);
+}
+.wave-static-card { flex: 0 0 min(72%, 320px); scroll-snap-align: start; }
+.wave-static-card button {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  overflow: hidden;
+  background: var(--cream);
+}
+.wave-static-card img { object-fit: contain; padding: 10px 10px 46px; }
+.wave-static-card button > span {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--cream);
+  padding: 10px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.wave-gallery [hidden] { display: none; }
+.wave-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 0 28px 18px;
+}
+.wave-hint { font-size: 12px; color: var(--muted); }
+.wave-controls { display: flex; gap: 8px; flex-shrink: 0; }
+.wave-control {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--cream);
+  color: var(--wine);
+  transition: background 160ms, border-color 160ms;
+}
+.wave-control:hover:not(:disabled) { background: var(--pink); border-color: var(--wine); }
+.wave-selection {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 26px;
+  padding: 22px 28px 16px;
+  min-height: 170px;
+  border-top: 1px solid var(--border);
+  background: var(--cream);
+}
+.wave-selection > div { min-width: 0; max-width: 550px; }
+.wave-selection .eyebrow { font-size: 10px; }
+.wave-selection h3 { font-family: var(--font-serif); font-size: 28px; line-height: 1.25; margin: 8px 0; }
+.wave-selection p { color: var(--muted); font-size: 13px; line-height: 1.65; }
+.wave-selection .button { flex-shrink: 0; font-size: 13px; min-height: 44px; }
+.wave-pagination { display: flex; justify-content: center; gap: 2px; padding: 0 12px 12px; background: var(--cream); }
+.wave-pagination button { width: 44px; height: 44px; display: grid; place-items: center; border: 0; padding: 0; background: transparent; }
+.wave-pagination span { width: 7px; height: 7px; border-radius: 8px; background: var(--muted); opacity: 0.45; transition: width 200ms, opacity 200ms; }
+.wave-pagination .is-active span { width: 24px; opacity: 1; background: var(--wine); }
+@media (max-width: 620px) {
+  .wave-gallery { border-radius: 20px; }
+  .wave-stage { height: 320px; }
+  .wave-toolbar { padding: 0 16px 16px; gap: 8px; }
+  .wave-hint { max-width: 145px; line-height: 1.5; }
+  .wave-controls { gap: 6px; }
+  .wave-selection { padding: 20px; flex-direction: column; align-items: flex-start; gap: 16px; min-height: 255px; }
+  .wave-selection h3 { font-size: 25px; }
+  .wave-selection .button { width: 100%; justify-content: center; }
+  .wave-static-list { padding: 24px 18px; gap: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wave-gallery *, .wave-gallery *::before, .wave-gallery *::after { transition: none !important; }
+}
 @media (max-width: 620px) {
   .orders-v2-intro { align-items: flex-start; flex-direction: column; }
   .orders-intro-actions { width: 100%; justify-content: space-between; }

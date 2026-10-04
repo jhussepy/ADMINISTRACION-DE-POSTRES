@@ -49,6 +49,7 @@ import {
 import { ProductDetails } from "./product-details";
 import { ProductPage } from "./product-page";
 import { StoreFaq } from "./store-faq";
+import { WaveGallery } from "./wave-gallery";
 type Account = {
   name: string;
   email: string;
@@ -760,7 +761,15 @@ export function Storefront({
                   </label>
                 </div>
               )}
-              {displayed.length ? (
+              {view === "home" && products.length ? (
+                <WaveGallery
+                  products={products.slice(0, 6)}
+                  onSelect={(selected, trigger) => {
+                    detailTrigger.current = trigger;
+                    setSelectedProduct(selected);
+                  }}
+                />
+              ) : displayed.length ? (
                 <div className="product-grid">
                   {displayed.map((p, i) => {
                     const count = cart
