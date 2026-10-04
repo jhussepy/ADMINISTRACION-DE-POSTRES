@@ -498,7 +498,7 @@ test("photographic catalogue filters and new products reach the WhatsApp handoff
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto("/");
-  await expect(page.locator(".hero-image")).toHaveAttribute(
+  await expect(page.locator(".patisserie-cake img")).toHaveAttribute(
     "alt",
     "Torta de chocolate",
   );

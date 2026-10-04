@@ -1,0 +1,997 @@
+/* Yemape's photographic home. Catalogue/admin styles keep their own scope. */
+.yemape-home {
+  --patisserie-paper: #f5eee5;
+  --patisserie-sand: #e8d7c4;
+  --patisserie-cocoa: #392820;
+  --patisserie-light: #fff5e7;
+}
+.patisserie-hero {
+  --scene-shift: 0;
+  position: relative;
+  max-width: 1400px;
+  width: calc(100% - 64px);
+  margin: 28px auto 0;
+  display: grid;
+  grid-template-columns: 0.95fr 1.05fr;
+  align-items: center;
+  min-height: 680px;
+  border-radius: 24px;
+  background: var(--patisserie-paper);
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+.patisserie-copy {
+  position: relative;
+  z-index: 3;
+  padding: 66px 0 80px clamp(28px, 4.5vw, 70px);
+}
+.patisserie-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--wine-dark);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.6px;
+  line-height: 1.6;
+}
+.patisserie-eyebrow > span {
+  width: 23px;
+  height: 1px;
+  background: currentColor;
+}
+.patisserie-copy h1 {
+  font-size: clamp(48px, 5.5vw, 82px);
+  line-height: 1.07;
+  letter-spacing: -0.05em;
+  margin: 24px 0;
+}
+.patisserie-copy h1 em {
+  display: inline;
+  color: var(--wine);
+}
+.patisserie-copy > p {
+  max-width: 355px;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1.8;
+}
+.patisserie-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 20px;
+  margin-top: 30px;
+}
+.patisserie-actions .button {
+  border-radius: 7px;
+  padding: 16px 24px;
+  min-height: 54px;
+}
+.patisserie-text-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  font-size: 13px;
+  font-weight: 600;
+  border-bottom: 1px solid var(--border);
+  transition: color 180ms;
+}
+.patisserie-text-link:hover {
+  color: var(--wine);
+}
+.patisserie-personal-note {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 38px;
+}
+.patisserie-personal-note p {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+.patisserie-personal-note strong {
+  font-weight: 500;
+  color: var(--ink);
+}
+.patisserie-note-icon {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  color: var(--wine);
+}
+.patisserie-scene {
+  position: relative;
+  align-self: stretch;
+  min-width: 0;
+  min-height: 680px;
+  isolation: isolate;
+}
+.patisserie-arch {
+  position: absolute;
+  inset: 52px 28px 83px 28px;
+  border: 1px solid #d8c4b0;
+  border-radius: 48% 48% 4px 4px;
+  background: linear-gradient(180deg, #e7d1bc 0%, #efe0cf 75%, #f5eee500);
+}
+.patisserie-backword {
+  position: absolute;
+  left: -15px;
+  right: 0;
+  top: 42px;
+  text-align: center;
+  color: var(--wine-dark);
+  opacity: 0.1;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: clamp(70px, 10vw, 150px);
+  line-height: 1;
+}
+.patisserie-botanical {
+  position: absolute;
+  color: var(--wine-dark);
+  opacity: 0.32;
+  width: 100px;
+  left: -18px;
+  bottom: 150px;
+  transform: rotate(-16deg);
+}
+.patisserie-stamp {
+  position: absolute;
+  z-index: 4;
+  right: 25px;
+  top: 125px;
+  width: 118px;
+  height: 118px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 3px;
+  background: var(--patisserie-paper);
+  border: 1px solid var(--wine);
+  outline: 5px solid var(--patisserie-paper);
+  border-radius: 50%;
+  color: var(--wine-dark);
+  transform: rotate(10deg);
+}
+.patisserie-stamp span {
+  font-size: 8px;
+  letter-spacing: 1px;
+}
+.patisserie-stamp strong {
+  font-family: var(--font-serif);
+  font-size: 20px;
+  font-style: italic;
+  font-weight: 500;
+}
+.patisserie-floor {
+  position: absolute;
+  width: 75%;
+  left: 12%;
+  height: 28px;
+  bottom: 102px;
+  background: var(--patisserie-cocoa);
+  opacity: 0.17;
+  border-radius: 50%;
+  filter: blur(18px);
+}
+.patisserie-cake {
+  position: absolute;
+  width: 82%;
+  height: 560px;
+  top: 35px;
+  left: 3%;
+  z-index: 2;
+  transform: translate3d(
+      calc(var(--scene-shift) * -44px),
+      calc(var(--scene-shift) * 28px),
+      0
+    )
+    rotate(-4deg);
+}
+.scene-ambient {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  animation: patisserie-sway 11s ease-in-out infinite;
+  animation-play-state: paused;
+}
+[data-motion="active"] .scene-ambient {
+  animation-play-state: running;
+}
+.patisserie-photo {
+  object-fit: contain;
+  filter: drop-shadow(0 20px 16px #3928201c);
+}
+.patisserie-scene.is-layered .patisserie-cake img {
+  height: auto !important;
+  bottom: auto !important;
+  object-position: center top;
+}
+.patisserie-portion {
+  position: absolute;
+  z-index: 3;
+  width: 260px;
+  height: 366px;
+  right: 8px;
+  top: 185px;
+  overflow: hidden;
+  transform: translate3d(
+      calc(var(--scene-shift) * 34px),
+      calc(var(--scene-shift) * -24px),
+      0
+    )
+    rotate(7deg);
+}
+.patisserie-portion .scene-ambient {
+  animation-delay: -4s;
+}
+.patisserie-portion img {
+  width: 160% !important;
+  height: auto !important;
+  left: -59% !important;
+  top: -43% !important;
+  right: auto !important;
+  bottom: auto !important;
+}
+.patisserie-scene.is-photo .patisserie-cake {
+  inset: 110px 38px 130px;
+  width: auto;
+  height: auto;
+  transform: translate3d(0, calc(var(--scene-shift) * -32px), 0) rotate(-2deg);
+}
+.patisserie-scene.is-photo .patisserie-photo {
+  border-radius: 16px;
+}
+.patisserie-motion-toggle {
+  position: absolute;
+  z-index: 5;
+  top: 20px;
+  right: 22px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 13px;
+  background: var(--cream);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 12px;
+  color: var(--wine-dark);
+}
+.patisserie-motion-toggle:hover {
+  border-color: var(--wine);
+}
+.patisserie-caption {
+  position: absolute;
+  z-index: 5;
+  left: 24px;
+  right: 24px;
+  bottom: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 0;
+  border-top: 1px solid #c9b49e;
+  background: var(--patisserie-paper);
+}
+.patisserie-caption > div {
+  display: grid;
+  gap: 4px;
+}
+.patisserie-caption span {
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  color: var(--muted);
+}
+.patisserie-caption strong {
+  font-family: var(--font-serif);
+  font-size: 24px;
+  font-weight: 500;
+}
+.patisserie-caption button {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--wine);
+  border-radius: 50%;
+  background: var(--wine);
+  color: white;
+  transition: background 180ms;
+}
+.patisserie-caption button:hover {
+  background: var(--wine-dark);
+}
+.patisserie-explore {
+  position: absolute;
+  z-index: 4;
+  bottom: 24px;
+  left: clamp(28px, 4.5vw, 70px);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: var(--muted);
+}
+.patisserie-hero.without-dessert {
+  grid-template-columns: 1fr;
+  min-height: 580px;
+}
+.yemape-home .shopping-benefits {
+  border-bottom: 1px solid var(--border);
+  padding: 27px 24px;
+  margin: 0 auto;
+  max-width: 1260px;
+  gap: 36px;
+  background: transparent;
+  font-size: 12px;
+}
+.yemape-home .home-discovery {
+  display: flex;
+  flex-direction: column;
+  gap: 34px;
+  padding-top: 42px;
+}
+.yemape-home .home-discovery .category-section {
+  width: 100%;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  height: auto;
+}
+.yemape-home .home-discovery .category-list {
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 12px;
+  padding: 0 0 8px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+.yemape-home .home-discovery .category {
+  flex: 1 0 auto;
+  flex-direction: row;
+  gap: 9px;
+  justify-content: center;
+  padding: 10px 15px;
+  min-height: 56px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+}
+.yemape-home .home-discovery .category-icon {
+  width: 28px;
+  height: 28px;
+  background: transparent;
+}
+.yemape-home .home-discovery .category-icon svg {
+  width: 21px;
+  height: 21px;
+}
+.yemape-home .featured-catalog {
+  width: 100%;
+}
+.yemape-home .featured-catalog .section-heading h2 {
+  font-size: clamp(34px, 4vw, 48px);
+}
+.yemape-home .wave-gallery {
+  border-radius: 18px;
+}
+.yemape-home .wave-stage {
+  height: clamp(320px, 34vw, 460px);
+}
+.yemape-home .featured-cta {
+  border-radius: 7px;
+}
+.dessert-spotlight {
+  --scene-shift: 0;
+  position: relative;
+  background: var(--patisserie-cocoa);
+  color: var(--patisserie-light);
+  padding: 74px max(30px, calc((100vw - 1240px) / 2)) 66px;
+  margin: 16px 0 26px;
+  overflow: hidden;
+}
+.spotlight-intro {
+  text-align: center;
+  max-width: 650px;
+  margin: 0 auto;
+}
+.spotlight-intro .patisserie-eyebrow {
+  justify-content: center;
+  color: #e5cbb0;
+}
+.spotlight-intro h2 {
+  font-size: clamp(38px, 4.8vw, 62px);
+  margin: 18px 0;
+  line-height: 1.15;
+}
+.spotlight-intro h2 em {
+  color: #e4b3a5;
+}
+.spotlight-intro > p {
+  max-width: 500px;
+  font-size: 14px;
+  color: #dfcfc4;
+  line-height: 1.9;
+  margin: 0 auto;
+}
+.spotlight-composition {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(160px, 1fr) minmax(350px, 1.75fr) minmax(
+      160px,
+      1fr
+    );
+  grid-template-rows: 1fr 1fr;
+  gap: 30px;
+  align-items: center;
+  margin: 24px auto 10px;
+  max-width: 1240px;
+  min-height: 500px;
+}
+.spotlight-feature {
+  max-width: 240px;
+  position: relative;
+  z-index: 2;
+}
+.spotlight-feature > span {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 1.1px;
+  color: #dab89f;
+  margin-bottom: 14px;
+}
+.spotlight-feature h3 {
+  font-family: var(--font-serif);
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 1.3;
+  margin-bottom: 12px;
+}
+.spotlight-feature p {
+  font-size: 13px;
+  line-height: 1.9;
+  color: #dfcfc4;
+}
+.feature-one {
+  grid-column: 1;
+  grid-row: 1;
+}
+.feature-three {
+  grid-column: 1;
+  grid-row: 2;
+}
+.feature-two {
+  grid-column: 3;
+  grid-row: 1;
+  text-align: right;
+  justify-self: end;
+}
+.feature-four {
+  grid-column: 3;
+  grid-row: 2;
+  text-align: right;
+  justify-self: end;
+}
+.spotlight-dessert {
+  position: relative;
+  grid-column: 2;
+  grid-row: 1 / 3;
+  height: 500px;
+  min-width: 0;
+}
+.spotlight-ring {
+  position: absolute;
+  width: 95%;
+  aspect-ratio: 1;
+  top: 10%;
+  left: 2.5%;
+  border-radius: 50%;
+  border: 1px solid #f5d6b52b;
+}
+.spotlight-ring::after {
+  content: "";
+  position: absolute;
+  inset: 24px;
+  border: 1px solid #f5d6b51a;
+  border-radius: 50%;
+}
+.spotlight-word {
+  position: absolute;
+  left: -17%;
+  right: -17%;
+  top: 22%;
+  font-family: var(--font-serif);
+  font-style: italic;
+  color: #f5d6b5;
+  opacity: 0.075;
+  font-size: clamp(80px, 12vw, 160px);
+  text-align: center;
+}
+.spotlight-photo {
+  position: absolute;
+  inset: 0;
+  transform: translate3d(0, calc(var(--scene-shift) * -70px), 0) rotate(2deg);
+}
+.spotlight-photo img {
+  object-fit: contain;
+  filter: drop-shadow(0 24px 22px #00000035);
+}
+.spotlight-dessert.is-layered .spotlight-photo img {
+  height: auto !important;
+  top: -6% !important;
+  bottom: auto !important;
+}
+.spotlight-dessert.is-photo .spotlight-photo {
+  inset: 30px 0;
+}
+.spotlight-dessert.is-photo img {
+  border-radius: 20px;
+}
+.spotlight-choice {
+  position: relative;
+  z-index: 3;
+  max-width: 580px;
+  text-align: center;
+  margin: 0 auto;
+}
+.spotlight-category {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: #e5cbb0;
+}
+.spotlight-choice h3 {
+  font-family: var(--font-serif);
+  font-size: 32px;
+  font-weight: 500;
+  margin: 10px 0 14px;
+}
+.spotlight-choice p {
+  font-size: 14px;
+  line-height: 1.8;
+  color: #dfcfc4;
+}
+.spotlight-choice .button {
+  color: var(--patisserie-cocoa);
+  background: var(--patisserie-light);
+  border-color: var(--patisserie-light);
+  border-radius: 7px;
+  margin-top: 24px;
+}
+.spotlight-choice .button:hover {
+  background: #e4b3a5;
+  border-color: #e4b3a5;
+}
+.spotlight-choice small {
+  display: block;
+  color: #dfcfc4;
+  font-size: 11px;
+  margin-top: 14px;
+}
+.dessert-spotlight :focus-visible {
+  outline-color: var(--patisserie-light);
+}
+.yemape-home .occasion-section {
+  padding-top: 54px;
+  padding-bottom: 72px;
+}
+.yemape-home .occasion-card {
+  border-radius: 14px;
+}
+.yemape-home .occasion-card img {
+  transition: transform 400ms ease-out;
+}
+.yemape-home .occasion-card:hover img {
+  transform: scale(1.025);
+}
+.yemape-home .how-section {
+  border-top: 1px solid var(--border);
+}
+.yemape-home .steps article {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.yemape-home .delivery-sample {
+  border-radius: 14px;
+}
+.yemape-home .contact-band {
+  background: var(--patisserie-paper);
+  border-top: 1px solid var(--border);
+}
+.yemape-home .contact-band .button {
+  border-radius: 7px;
+}
+@keyframes patisserie-sway {
+  0%,
+  100% {
+    transform: rotate(-1deg);
+  }
+  50% {
+    transform: rotate(1.2deg);
+  }
+}
+[data-motion="reduced"] .scene-ambient {
+  animation: none;
+}
+[data-motion="reduced"] .scene-scroll {
+  transform: none;
+}
+@media (max-width: 1100px) {
+  .patisserie-hero {
+    width: calc(100% - 40px);
+    min-height: 610px;
+    grid-template-columns: 1fr 1fr;
+  }
+  .patisserie-copy {
+    padding: 45px 0 70px 32px;
+  }
+  .patisserie-copy h1 {
+    font-size: clamp(48px, 6vw, 64px);
+  }
+  .patisserie-actions {
+    gap: 10px 18px;
+  }
+  .patisserie-scene {
+    min-height: 610px;
+  }
+  .patisserie-cake {
+    top: 75px;
+  }
+  .patisserie-portion {
+    width: 210px;
+    height: 295px;
+    top: 240px;
+  }
+  .patisserie-stamp {
+    width: 95px;
+    height: 95px;
+    right: 16px;
+    top: 146px;
+  }
+  .patisserie-stamp span {
+    font-size: 7px;
+  }
+  .patisserie-stamp strong {
+    font-size: 17px;
+  }
+  .patisserie-caption {
+    left: 18px;
+    right: 18px;
+  }
+  .patisserie-caption strong {
+    font-size: 21px;
+  }
+  .patisserie-explore {
+    left: 32px;
+  }
+  .spotlight-composition {
+    grid-template-columns: minmax(140px, 1fr) minmax(300px, 1.6fr) minmax(
+        140px,
+        1fr
+      );
+    gap: 20px;
+  }
+  .spotlight-feature h3 {
+    font-size: 22px;
+  }
+  .spotlight-dessert {
+    height: 440px;
+  }
+}
+@media (max-width: 850px) and (min-width: 701px) {
+  .patisserie-copy h1 {
+    font-size: 49px;
+  }
+  .patisserie-copy > p {
+    font-size: 14px;
+    max-width: 270px;
+  }
+  .patisserie-stamp {
+    top: 110px;
+    right: 10px;
+  }
+  .patisserie-cake {
+    top: 142px;
+    width: 96%;
+    left: 0;
+  }
+  .patisserie-portion {
+    top: 275px;
+    width: 170px;
+    height: 239px;
+    right: 0;
+  }
+  .patisserie-caption strong {
+    font-size: 18px;
+  }
+  .patisserie-caption span {
+    font-size: 9px;
+  }
+  .spotlight-composition {
+    grid-template-columns: minmax(0, 1fr) minmax(250px, 1.5fr) minmax(0, 1fr);
+    gap: 15px;
+  }
+  .spotlight-feature h3 {
+    font-size: 20px;
+  }
+  .spotlight-feature p {
+    font-size: 12px;
+  }
+  .spotlight-dessert {
+    height: 370px;
+  }
+}
+@media (max-width: 700px) {
+  .patisserie-hero {
+    width: calc(100% - 24px);
+    margin-top: 12px;
+    grid-template-columns: 1fr;
+    border-radius: 18px;
+  }
+  .patisserie-copy {
+    padding: 34px 25px 12px;
+  }
+  .patisserie-eyebrow {
+    font-size: 9px;
+    letter-spacing: 1.15px;
+  }
+  .patisserie-copy h1 {
+    font-size: clamp(43px, 11.7vw, 70px);
+    margin: 20px 0 18px;
+  }
+  .patisserie-copy > p {
+    font-size: 14px;
+    max-width: 400px;
+  }
+  .patisserie-actions {
+    gap: 12px 16px;
+    margin-top: 22px;
+  }
+  .patisserie-actions .button {
+    min-height: 50px;
+    font-size: 13px;
+    padding: 13px 19px;
+  }
+  .patisserie-text-link {
+    font-size: 12px;
+  }
+  .patisserie-personal-note {
+    margin-top: 20px;
+    gap: 10px;
+  }
+  .patisserie-personal-note p {
+    font-size: 11px;
+  }
+  .patisserie-note-icon {
+    width: 36px;
+    height: 36px;
+  }
+  .patisserie-scene {
+    min-height: 490px;
+    max-width: 560px;
+    width: 100%;
+    margin: 0 auto;
+  }
+  .patisserie-arch {
+    inset: 26px 20px 76px;
+  }
+  .patisserie-backword {
+    top: 20px;
+    font-size: 98px;
+    left: 0;
+  }
+  .patisserie-cake {
+    width: 96%;
+    top: 50px;
+    left: 0;
+    height: 360px;
+  }
+  .patisserie-portion {
+    width: 180px;
+    height: 253px;
+    top: 160px;
+    right: 8px;
+  }
+  .patisserie-stamp {
+    width: 91px;
+    height: 91px;
+    top: 79px;
+    right: 20px;
+  }
+  .patisserie-botanical {
+    width: 64px;
+    left: 10px;
+    bottom: 115px;
+  }
+  .patisserie-floor {
+    bottom: 77px;
+  }
+  .patisserie-motion-toggle {
+    top: 15px;
+    right: 18px;
+    min-height: 44px;
+  }
+  .patisserie-caption {
+    left: 22px;
+    right: 22px;
+    bottom: 10px;
+    padding: 15px 0;
+  }
+  .patisserie-caption strong {
+    font-size: 21px;
+  }
+  .patisserie-scene.is-photo .patisserie-cake {
+    inset: 80px 28px 94px;
+  }
+  .patisserie-explore {
+    display: none;
+  }
+  .patisserie-hero.without-dessert {
+    min-height: 0;
+  }
+  .patisserie-hero.without-dessert .patisserie-copy {
+    padding-bottom: 34px;
+  }
+  .yemape-home .shopping-benefits {
+    display: grid;
+    grid-template-columns: 1fr;
+    justify-items: center;
+    gap: 12px;
+    margin: 0 22px;
+    padding: 24px 4px;
+    font-size: 11px;
+  }
+  .yemape-home .home-discovery {
+    padding: 28px 20px 42px;
+    gap: 26px;
+  }
+  .yemape-home .home-discovery .category-list {
+    gap: 8px;
+  }
+  .yemape-home .home-discovery .category {
+    min-width: 126px;
+    min-height: 50px;
+    padding: 9px 12px;
+    font-size: 12px;
+  }
+  .yemape-home .wave-stage {
+    height: 320px;
+  }
+  .yemape-home .featured-catalog .section-heading {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+  .yemape-home .featured-catalog .section-heading h2 {
+    font-size: 34px;
+  }
+  .dessert-spotlight {
+    margin: 0 0 10px;
+    padding: 50px 22px 46px;
+  }
+  .spotlight-intro h2 {
+    font-size: 38px;
+  }
+  .spotlight-intro > p {
+    font-size: 13px;
+  }
+  .spotlight-composition {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto;
+    gap: 28px 20px;
+    min-height: 0;
+    margin-top: 15px;
+  }
+  .spotlight-dessert {
+    grid-column: 1 / 3;
+    grid-row: 1;
+    height: min(95vw, 480px);
+    width: 100%;
+    max-width: 480px;
+    justify-self: center;
+  }
+  .spotlight-word {
+    left: 0;
+    right: 0;
+    font-size: 100px;
+  }
+  .spotlight-feature {
+    max-width: none;
+    text-align: left;
+    justify-self: stretch;
+    align-self: start;
+  }
+  .feature-one {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  .feature-two {
+    grid-column: 2;
+    grid-row: 2;
+  }
+  .feature-three {
+    grid-column: 1;
+    grid-row: 3;
+  }
+  .feature-four {
+    grid-column: 2;
+    grid-row: 3;
+  }
+  .spotlight-feature > span {
+    font-size: 9px;
+    letter-spacing: 0.8px;
+    margin-bottom: 9px;
+  }
+  .spotlight-feature h3 {
+    font-size: 21px;
+  }
+  .spotlight-feature p {
+    font-size: 12px;
+    line-height: 1.8;
+  }
+  .spotlight-choice {
+    margin-top: 36px;
+    border-top: 1px solid #f5d6b533;
+    padding-top: 25px;
+  }
+  .spotlight-choice h3 {
+    font-size: 29px;
+  }
+  .spotlight-choice p {
+    font-size: 13px;
+  }
+  .spotlight-choice .button {
+    width: 100%;
+    font-size: 14px;
+  }
+  .yemape-home .occasion-section {
+    padding: 42px 22px;
+  }
+}
+@media (min-width: 450px) and (max-width: 700px) {
+  .patisserie-scene {
+    min-height: 590px;
+  }
+  .patisserie-cake {
+    top: 25px;
+  }
+  .patisserie-portion {
+    width: 230px;
+    height: 324px;
+    top: 180px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .yemape-home .scene-ambient {
+    animation: none;
+  }
+  .yemape-home .scene-scroll {
+    transform: none;
+  }
+  .yemape-home .patisserie-motion-toggle {
+    display: none;
+  }
+  .yemape-home .occasion-card img {
+    transition: none;
+  }
+  .yemape-home .occasion-card:hover img {
+    transform: none;
+  }
+}

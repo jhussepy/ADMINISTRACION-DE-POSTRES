@@ -15,8 +15,6 @@ import {
   MessageCircle,
   Minus,
   Plus,
-  Play,
-  Pause,
   Search,
   ShoppingBag,
   Truck,
@@ -50,6 +48,7 @@ import { ProductDetails } from "./product-details";
 import { ProductPage } from "./product-page";
 import { StoreFaq } from "./store-faq";
 import { WaveGallery } from "./wave-gallery";
+import { HomeHero, DessertSpotlight } from "./home-showcase";
 type Account = {
   name: string;
   email: string;
@@ -425,111 +424,18 @@ export function Storefront({
           {account?.isAdmin && <Link href="/admin">Administración</Link>}
         </nav>
       </header>
-      <main>
+      <main className={view === "home" ? "yemape-home" : undefined}>
         {view === "home" && (
           <>
-            <section
-              className={`hero photo-hero ${featured ? "" : "hero-without-product"}`}
-              aria-labelledby="hero-title"
-            >
-              <div className="hero-copy">
-                <span className="eyebrow">
-                  <span className="little-line" /> REPOSTERÍA YEMAPE · HECHA CON
-                  CARIÑO
-                </span>
-                <h1 id="hero-title">
-                  La vida sabe
-                  <br />
-                  mejor con <em>postre.</em>
-                </h1>
-                <p>
-                  Tortas, kekes y pequeños antojos para compartir. Elige tu
-                  favorito y coordinamos cada detalle por WhatsApp.
-                </p>
-                <Link href="/catalogo" className="button">
-                  Ver catálogo <ArrowRight size={18} />
-                </Link>
-                <div className="hero-note">
-                  <Heart size={17} />
-                  <span>Elige a tu ritmo. Coordinamos por WhatsApp.</span>
-                </div>
-              </div>
-              {featured && (
-                <div
-                  className={`hero-visual ${featured.id === "torta-chocolate" ? "hero-dessert-scene" : ""} ${heroMotionPaused ? "is-motion-paused" : ""}`}
-                >
-                  {featured.id === "torta-chocolate" ? (
-                    <>
-                      <div className="hero-dessert-halo" aria-hidden="true" />
-                      <div className="hero-dessert-shadow" aria-hidden="true" />
-                      <div
-                        className="hero-dessert-slice-shadow"
-                        aria-hidden="true"
-                      />
-                      <div className="hero-dessert-frame">
-                        <Image
-                          src="/images/torta-chocolate-cuerpo.webp"
-                          alt={featured.name}
-                          fill
-                          preload
-                          sizes="(max-width: 620px) 90vw, (max-width: 1440px) 52vw, 700px"
-                          className="hero-image hero-dessert-image hero-dessert-cake"
-                        />
-                        <Image
-                          src="/images/torta-chocolate-porcion.webp"
-                          alt=""
-                          fill
-                          loading="eager"
-                          sizes="(max-width: 620px) 90vw, (max-width: 1440px) 52vw, 700px"
-                          className="hero-dessert-image hero-dessert-slice"
-                        />
-                      </div>
-                      <button
-                        className="hero-motion-toggle"
-                        type="button"
-                        onClick={() => setHeroMotionPaused((paused) => !paused)}
-                        aria-label={
-                          heroMotionPaused
-                            ? "Reanudar animación del postre"
-                            : "Pausar animación del postre"
-                        }
-                        aria-pressed={heroMotionPaused}
-                      >
-                        {heroMotionPaused ? (
-                          <Play size={15} />
-                        ) : (
-                          <Pause size={15} />
-                        )}
-                        <span>{heroMotionPaused ? "Reanudar" : "Pausar"}</span>
-                      </button>
-                    </>
-                  ) : (
-                    <Image
-                      src={featured.image}
-                      alt={featured.name}
-                      fill
-                      preload
-                      sizes="(max-width: 620px) 100vw, (max-width: 1440px) 55vw, 790px"
-                      className="hero-image"
-                    />
-                  )}
-                  <div className="hero-caption">
-                    <span>UN MOMENTO PARA DISFRUTAR</span>
-                    <strong>{featured.name}</strong>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        detailTrigger.current = e.currentTarget;
-                        setSelectedProduct(featured);
-                      }}
-                      aria-label={`Descubrir ${featured.name}`}
-                    >
-                      <ArrowRight />
-                    </button>
-                  </div>
-                </div>
-              )}
-            </section>
+            <HomeHero
+              featured={featured}
+              paused={heroMotionPaused}
+              onPause={() => setHeroMotionPaused((paused) => !paused)}
+              onSelect={(selected, trigger) => {
+                detailTrigger.current = trigger;
+                setSelectedProduct(selected);
+              }}
+            />
             <div
               className="shopping-benefits"
               aria-label="Cómo comprar en Yemape"
@@ -586,7 +492,7 @@ export function Storefront({
           <div
             className={
               view === "home"
-                ? "discovery-layout section-wrap"
+                ? "discovery-layout home-discovery section-wrap"
                 : "catalog-layout"
             }
           >
@@ -899,6 +805,16 @@ export function Storefront({
             </section>
           </div>
         )}
+        {view === "home" && featured && (
+          <DessertSpotlight
+            product={featured}
+            paused={heroMotionPaused}
+            onSelect={(selected, trigger) => {
+              detailTrigger.current = trigger;
+              setSelectedProduct(selected);
+            }}
+          />
+        )}
         {view === "home" && (
           <>
             <section
@@ -948,40 +864,6 @@ export function Storefront({
                     </span>
                   </Link>
                 ))}
-              </div>
-            </section>
-            <section
-              id="hecho-con-carino"
-              className="brand-section section-wrap"
-            >
-              <div className="brand-art">
-                <Image
-                  src="/images/emblema.webp"
-                  alt="Emblema de Repostería Artesanal Yemape"
-                  width={300}
-                  height={300}
-                />
-              </div>
-              <div className="brand-story">
-                <span className="eyebrow">EL TOQUE YEMAPE</span>
-                <h2>
-                  No solo hacemos postres.
-                  <br />
-                  <em>Acompañamos tus momentos.</em>
-                </h2>
-                <p>
-                  Ese cumpleaños que esperabas, una tarde en familia o un
-                  detalle para alguien especial. Nos encanta ser parte de lo que
-                  celebras.
-                </p>
-                {customCakeAvailable && (
-                  <Link
-                    className="text-link"
-                    href="/postres/torta-personalizada"
-                  >
-                    Diseñemos tu torta <ArrowRight size={18} />
-                  </Link>
-                )}
               </div>
             </section>
             <section id="como-pedir" className="how-section section-wrap">
@@ -1734,3 +1616,4 @@ function CartDialog({
     </dialog>
   );
 }
+
