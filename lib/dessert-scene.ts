@@ -278,11 +278,19 @@ export async function createDessertScene(
     antialias: true,
     powerPreference: "low-power",
   });
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+  const gl = renderer.getContext();
+  const debug = gl.getExtension("WEBGL_debug_renderer_info");
+  const gpu = debug
+    ? String(gl.getParameter(debug.UNMASKED_RENDERER_WEBGL))
+    : "";
+  const software =
+    /SwiftShader|llvmpipe|softpipe|Software|Microsoft Basic Render/i.test(gpu);
+  const frameInterval = 1000 / (software ? 15 : 30);
+  renderer.setPixelRatio(Math.min(devicePixelRatio, software ? 1 : 1.5));
   renderer.setClearColor(0x000000, 0);
   renderer.toneMapping = ACESFilmicToneMapping;
   renderer.toneMappingExposure = 0.88;
-  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.enabled = !software;
   renderer.shadowMap.type = PCFShadowMap;
   const asset = acquire(host.querySelector("img"));
   let original: Group;
@@ -384,11 +392,11 @@ export async function createDessertScene(
   function paint(now: number) {
     frame = 0;
     if (disposed) return;
-    if (isActive() && last && now - last < 1000 / 30) {
+    if (isActive() && last && now - last < frameInterval) {
       frame = requestAnimationFrame(paint);
       return;
     }
-    const delta = last ? Math.min((now - last) / 1000, 0.05) : 0;
+    const delta = last ? Math.min((now - last) / 1000, 0.1) : 0;
     last = now;
     if (isActive()) {
       time += delta;

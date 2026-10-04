@@ -24,7 +24,7 @@ Three.js se carga mediante importación dinámica al acercarse la escena a la pa
 
 En la web se reutiliza la fotografía ya decodificada para las texturas de miga y fruta, sin solicitar otra variante. Se corrigen las coordenadas de material sobre las superficies unidas del GLB, incluidas las caras independientes de las frutas. Una sombra de 512 px refuerza el volumen sin añadir otro recurso descargable.
 
-El renderizado se limita a 30 fps y la resolución a 1,5 veces el tamaño CSS. Se liberan contextos, observadores, listeners, geometrías, materiales y texturas al salir. Las fotografías aparecen desde el servidor y permanecen disponibles si falla la carga o se pierde el contexto WebGL.
+El renderizado se limita a 30 fps y la resolución a 1,5 veces el tamaño CSS. En renderizadores por software (SwiftShader, llvmpipe y similares), usa 15 fps, resolución 1 y prescinde del pase de sombras para mantener la interacción. Se liberan contextos, observadores, listeners, geometrías, materiales y texturas al salir. Las fotografías aparecen desde el servidor y permanecen disponibles si falla la carga o se pierde el contexto WebGL.
 
 Optimización reproducible, sobre el GLB exportado original:
 
@@ -37,3 +37,5 @@ npx @gltf-transform/cli@4.3.0 optimize original.glb public/models/yemape-chocola
 Se actualiza el mismo PR #35. Integrarlo y esperar Vercel; no requiere SQL ni variables nuevas. Se añaden `three` y sus tipos, con versiones fijadas en el lockfile.
 
 Las pruebas verifican que el frente y la parte posterior produzcan imágenes distintas, completan un giro con los controles, comprueban pausa y preferencias activas, cuentan una sola petición de modelo para ambas escenas y agregan productos desde las dos secciones. También cubren el respaldo fotográfico y cinco anchos de pantalla, junto con la suite existente de la tienda.
+
+En CI se ejecuta un navegador a la vez: los contextos WebGL por software comparten la CPU del runner. Se mantienen las mismas pruebas y límites de tiempo; las verificaciones no se omiten.
