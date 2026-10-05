@@ -75,7 +75,7 @@ test("curved gallery renders photos, supports drag and keyboard, and opens the s
       }),
       { timeout: 20000 },
     )
-    .toMatchObject({ mode: "webgl" });
+    .toMatchObject({ mode: "webgl", error: null });
   const sources = await gallery
     .locator(".wave-static-list img")
     .evaluateAll((images) =>
@@ -90,11 +90,8 @@ test("curved gallery renders photos, supports drag and keyboard, and opens the s
   );
   // Other home sections can also display a featured photo at their own size.
   // Every requested variant must belong to an actual responsive DOM image.
-  const domSources = await page
-    .locator("img")
-    .evaluateAll((images) =>
-      images.map((image) => (image as HTMLImageElement).currentSrc),
-    );
+  // A responsive image can start its request before currentSrc is available.
+  // Wait for those DOM loads before checking that textures add no variants.
   for (const src of sources) {
     const asset = new URL(src).searchParams.get("url");
     if (!asset) continue;
@@ -102,7 +99,16 @@ test("curved gallery renders photos, supports drag and keyboard, and opens the s
       (url) => new URL(url).searchParams.get("url") === asset,
     );
     expect(requests).toContain(src);
-    for (const url of requests) expect(domSources).toContain(url);
+    await expect
+      .poll(async () => {
+        const domSources = await page
+          .locator("img")
+          .evaluateAll((images) =>
+            images.map((image) => (image as HTMLImageElement).currentSrc),
+          );
+        return requests.filter((url) => !domSources.includes(url));
+      })
+      .toEqual([]);
   }
   await expect
     .poll(async () =>
