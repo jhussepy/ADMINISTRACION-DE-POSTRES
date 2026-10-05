@@ -26,6 +26,7 @@ test("curved gallery renders photos, supports drag and keyboard, and opens the s
       draw.apply(this, args);
       const canvas = this.canvas as HTMLCanvasElement;
       if (canvas.dataset.paintedAlpha !== undefined) return;
+      if (this.drawingBufferWidth < 16 || this.drawingBufferHeight < 16) return;
       // Read the actual draw before the compositor clears a non-preserved
       // drawing buffer. Capped animation need not draw on every browser frame.
       const pixels = new Uint8Array(16 * 16 * 4);
@@ -38,9 +39,10 @@ test("curved gallery renders photos, supports drag and keyboard, and opens the s
         this.UNSIGNED_BYTE,
         pixels,
       );
-      canvas.dataset.paintedAlpha = String(
-        pixels.filter((_, i) => i % 4 === 3).reduce((sum, v) => sum + v, 0),
-      );
+      const alpha = pixels
+        .filter((_, i) => i % 4 === 3)
+        .reduce((sum, v) => sum + v, 0);
+      if (alpha > 0) canvas.dataset.paintedAlpha = String(alpha);
     };
     const original = WebGLRenderingContext.prototype.texImage2D;
     WebGLRenderingContext.prototype.texImage2D = function (

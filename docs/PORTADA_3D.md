@@ -38,6 +38,6 @@ Se actualiza el mismo PR #35. Integrarlo y esperar Vercel; no requiere SQL ni va
 
 Las pruebas verifican que el frente y la parte posterior produzcan imágenes distintas, completan un giro con los controles, comprueban pausa y preferencias activas, cuentan una sola petición de modelo para ambas escenas y agregan productos desde las dos secciones. También cubren el respaldo fotográfico y cinco anchos de pantalla, junto con la suite existente de la tienda.
 
-En CI se ejecuta un navegador a la vez: los contextos WebGL por software comparten la CPU del runner. Se mantienen las mismas pruebas y límites de tiempo; las verificaciones no se omiten.
+En CI se ejecuta un navegador a la vez: los contextos WebGL por software comparten la CPU del runner. Se mantienen las mismas pruebas y los límites de las comprobaciones individuales; las verificaciones no se omiten.
 
 La galería solo inicia el renderizado al entrar en pantalla, a 30 fps (15 en software). La torta anima cuando al menos el 25 % de su escena está visible. Las pruebas siguen usando movimiento normal para verificar la compra. Los recorridos largos disponen de 60 segundos, con los mismos límites de comprobación por paso. El trace conserva DOM, pasos y red; se evitan capturas continuas del framebuffer para no saturar WebGL por software. Las capturas de verificación se toman explícitamente.
