@@ -506,7 +506,7 @@ test("photographic catalogue filters and new products reach the WhatsApp handoff
   await page.goto("/");
   await expect(page.locator(".immersive-scene img")).toHaveAttribute(
     "alt",
-    "Torta de chocolate",
+    /^Torta de chocolate/,
   );
   for (const img of await page.locator(".product-photo img").all())
     await expectImageLoaded(img);
@@ -642,8 +642,9 @@ test("favorites persist, sorting works and hero motion remains available", async
   );
 
   await page.goto("/");
+  await page.locator(".dessert-film").scrollIntoViewIfNeeded();
   await expect(
-    page.getByRole("button", { name: "Pausar animación del postre" }),
+    page.getByRole("button", { name: "Pausar video de la torta" }),
   ).toBeVisible();
 });
 

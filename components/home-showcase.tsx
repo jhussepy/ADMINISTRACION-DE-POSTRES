@@ -1,86 +1,14 @@
 "use client";
 
-import { useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import {
-  ArrowDown,
-  ArrowRight,
-  CakeSlice,
-  MessageCircle,
-  Pause,
-  Play,
-} from "lucide-react";
+import { ArrowDown, ArrowRight, CakeSlice, MessageCircle } from "lucide-react";
 import type { Product } from "@/lib/types";
-import { Dessert3D } from "./dessert-3d";
+import { DessertFilm } from "./dessert-film";
 
 type SelectProduct = (product: Product, trigger: HTMLButtonElement) => void;
 
-// Keep the scene in the native document flow. Only visible scenes respond to
-// scroll, with one frame per event; no scroll interception or render loop.
-function useSceneMotion(paused: boolean) {
-  const root = useRef<HTMLElement>(null);
-  useEffect(() => {
-    const element = root.current;
-    if (!element) return;
-    const preference = matchMedia("(prefers-reduced-motion: reduce)");
-    let visible = false;
-    let frame = 0;
-    function draw() {
-      frame = 0;
-      const reduced = preference.matches;
-      const active = visible && !document.hidden && !paused && !reduced;
-      element!.dataset.motion = reduced
-        ? "reduced"
-        : active
-          ? "active"
-          : "paused";
-      if (reduced) element!.style.setProperty("--scene-shift", "0");
-      if (!active) return;
-      const bounds = element!.getBoundingClientRect();
-      const progress =
-        (innerHeight - bounds.top) / (innerHeight + bounds.height) - 0.5;
-      element!.style.setProperty(
-        "--scene-shift",
-        String(Math.max(-0.5, Math.min(0.5, progress))),
-      );
-    }
-    function schedule() {
-      if (!frame) frame = requestAnimationFrame(draw);
-    }
-    const observer = new IntersectionObserver(([entry]) => {
-      visible = entry.isIntersecting;
-      schedule();
-    });
-    observer.observe(element);
-    function scroll() {
-      if (visible && !paused && !preference.matches) schedule();
-    }
-    function visibility() {
-      if (document.hidden) {
-        cancelAnimationFrame(frame);
-        frame = 0;
-        draw();
-      } else schedule();
-    }
-    window.addEventListener("scroll", scroll, { passive: true });
-    window.addEventListener("resize", schedule);
-    document.addEventListener("visibilitychange", visibility);
-    preference.addEventListener("change", schedule);
-    schedule();
-    return () => {
-      observer.disconnect();
-      cancelAnimationFrame(frame);
-      window.removeEventListener("scroll", scroll);
-      window.removeEventListener("resize", schedule);
-      document.removeEventListener("visibilitychange", visibility);
-      preference.removeEventListener("change", schedule);
-    };
-  }, [paused]);
-  return root;
-}
-
-function usesChocolateScene(product: Product) {
+function usesChocolateFilm(product: Product) {
   // If the administrator replaces the cover, use that real photo everywhere.
   return (
     product.id === "torta-chocolate" &&
@@ -91,22 +19,17 @@ function usesChocolateScene(product: Product) {
 export function HomeHero({
   featured,
   paused,
-  onPause,
   onSelect,
 }: {
   featured?: Product;
   paused: boolean;
-  onPause: () => void;
   onSelect: SelectProduct;
 }) {
-  const root = useSceneMotion(paused);
-  const modeled = featured && usesChocolateScene(featured);
+  const hasFilm = featured && usesChocolateFilm(featured);
   return (
     <section
-      ref={root}
       className={`patisserie-hero immersive-hero ${featured ? "" : "without-dessert"}`}
       aria-labelledby="hero-title"
-      data-motion="paused"
     >
       <div className="hero-grain" aria-hidden="true" />
       <div className="patisserie-copy">
@@ -142,20 +65,10 @@ export function HomeHero({
       </div>
       {featured && (
         <div
-          className={`patisserie-scene immersive-scene ${modeled ? "has-model" : "is-photo"}`}
+          className={`patisserie-scene immersive-scene ${hasFilm ? "has-film" : "is-photo"}`}
         >
-          <span className="hero-scene-word" aria-hidden="true">
-            hecho
-            <br />
-            <em>con cariño</em>
-          </span>
-          <div className="hero-orbit orbit-one" aria-hidden="true" />
-          <div className="hero-orbit orbit-two" aria-hidden="true" />
-          <span className="hero-3d-note">
-            {modeled ? "CADA ÁNGULO, UN ANTOJO" : "EL ANTOJO DE HOY"}
-          </span>
-          {modeled ? (
-            <Dessert3D name={featured.name} paused={paused} />
+          {hasFilm ? (
+            <DessertFilm name={featured.name} paused={paused} />
           ) : (
             <div className="hero-custom-photo">
               <Image
@@ -166,26 +79,6 @@ export function HomeHero({
                 sizes="(max-width: 700px) 90vw, 650px"
               />
             </div>
-          )}
-          {modeled && (
-            <button
-              className="patisserie-motion-toggle"
-              type="button"
-              onClick={onPause}
-              aria-label={
-                paused
-                  ? "Reanudar animación del postre"
-                  : "Pausar animación del postre"
-              }
-              aria-pressed={paused}
-            >
-              {paused ? (
-                <Play size={15} aria-hidden="true" />
-              ) : (
-                <Pause size={15} aria-hidden="true" />
-              )}
-              <span>{paused ? "Reanudar" : "Pausar"}</span>
-            </button>
           )}
           <div className="patisserie-caption">
             <div>
@@ -214,22 +107,16 @@ export function HomeHero({
 
 export function DessertSpotlight({
   product,
-  paused,
   onSelect,
 }: {
   product: Product;
-  paused: boolean;
   onSelect: SelectProduct;
 }) {
-  const root = useSceneMotion(paused);
-  const layered = usesChocolateScene(product);
   return (
     <section
       id="hecho-con-carino"
-      ref={root}
       className="dessert-spotlight immersive-spotlight"
       aria-labelledby="spotlight-title"
-      data-motion="paused"
     >
       <div className="spotlight-intro">
         <span className="patisserie-eyebrow">EL TOQUE YEMAPE</span>
@@ -260,25 +147,15 @@ export function DessertSpotlight({
             disponibilidad contigo.
           </p>
         </article>
-        <div
-          className={`spotlight-dessert ${layered ? "is-layered" : "is-photo"}`}
-        >
-          {layered ? (
-            <Dessert3D
-              name={product.name}
-              paused={paused}
-              variant="spotlight"
+        <div className="spotlight-dessert is-photo">
+          <div className="spotlight-photo">
+            <Image
+              src={product.image}
+              alt={product.name}
+              fill
+              sizes="(max-width: 700px) 90vw, 540px"
             />
-          ) : (
-            <div className="spotlight-photo">
-              <Image
-                src={product.image}
-                alt={product.name}
-                fill
-                sizes="(max-width: 700px) 90vw, 540px"
-              />
-            </div>
-          )}
+          </div>
         </div>
         <article className="spotlight-feature feature-three">
           <span>03 / A TU RITMO</span>

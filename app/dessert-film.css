@@ -1,0 +1,256 @@
+/* The uploaded film supplies the cake's appearance and camera movement. */
+.yemape-home .immersive-hero {
+  width: calc(100% - 48px);
+  max-width: 1560px;
+  min-height: 680px;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  gap: 36px;
+  margin-top: 22px;
+  background: #f4eee6;
+  border: 1px solid #39282012;
+  border-radius: 24px;
+  color: #392820;
+}
+.immersive-hero .patisserie-copy {
+  padding: 64px 0 76px clamp(28px, 4.5vw, 70px);
+}
+.immersive-hero .patisserie-copy h1 {
+  font-size: clamp(54px, 5.3vw, 82px);
+  font-weight: 500;
+  line-height: 1.05;
+  letter-spacing: -0.05em;
+  margin: 26px 0;
+}
+.immersive-hero .patisserie-copy h1 em {
+  color: var(--wine);
+}
+.immersive-hero .patisserie-copy > p {
+  max-width: 330px;
+}
+.immersive-hero .patisserie-actions {
+  gap: 12px 20px;
+}
+.immersive-hero .patisserie-actions .button {
+  border-radius: 100px;
+}
+.immersive-hero .immersive-scene {
+  position: relative;
+  align-self: center;
+  min-height: 0;
+  height: auto;
+  padding: 0 32px 0 0;
+  margin: 0;
+  transform: none;
+}
+.dessert-film-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: 20px;
+  background: #e8e3db;
+  box-shadow: 0 20px 55px #39282012;
+}
+.dessert-film-frame > img,
+.dessert-film-frame video {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.dessert-film-frame video {
+  opacity: 0;
+}
+.dessert-film-frame video.has-frame {
+  opacity: 1;
+}
+.dessert-film-toggle {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 106px;
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 1px solid #ffffff80;
+  border-radius: 100px;
+  background: #fff9ef;
+  color: #392820;
+  font-size: 12px;
+  font-weight: 600;
+  box-shadow: 0 3px 16px #3928201a;
+  z-index: 2;
+  transition: background 160ms;
+}
+.dessert-film-toggle:hover {
+  background: #eedbcb;
+}
+.dessert-film-toggle:focus-visible {
+  outline: 3px solid var(--wine);
+  outline-offset: 3px;
+}
+.immersive-hero .patisserie-caption {
+  position: static;
+  background: transparent;
+  border-color: #39282026;
+  margin-top: 22px;
+  padding-top: 20px;
+}
+.immersive-hero .patisserie-caption span {
+  color: #79614f;
+  letter-spacing: 1.8px;
+}
+.immersive-hero .patisserie-caption strong {
+  color: #392820;
+  font-size: 27px;
+}
+.immersive-hero .patisserie-caption button {
+  background: #fff9ef;
+  color: #392820;
+  border: 1px solid #39282026;
+  width: 48px;
+  height: 48px;
+}
+.immersive-hero .patisserie-caption button:hover {
+  background: #eedbcb;
+}
+.immersive-hero .patisserie-explore {
+  bottom: 24px;
+  left: clamp(28px, 4.5vw, 70px);
+}
+.hero-grain,
+.hero-bottom-note {
+  display: none;
+}
+.hero-custom-photo {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: 20px;
+  background: #fff9ef;
+}
+.hero-custom-photo img {
+  object-fit: contain;
+}
+.immersive-hero.without-dessert {
+  grid-template-columns: 1fr;
+}
+.immersive-spotlight .spotlight-photo img {
+  object-fit: contain;
+}
+@media (max-width: 1100px) {
+  .yemape-home .immersive-hero {
+    gap: 24px;
+    min-height: 620px;
+  }
+  .immersive-hero .patisserie-copy {
+    padding-left: 32px;
+  }
+  .immersive-hero .patisserie-copy h1 {
+    font-size: clamp(48px, 5.5vw, 64px);
+  }
+  .immersive-hero .immersive-scene {
+    padding-right: 24px;
+  }
+}
+@media (max-width: 950px) {
+  .yemape-home .immersive-hero {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .immersive-hero .patisserie-copy {
+    padding: 42px 36px 28px;
+  }
+  .immersive-hero .patisserie-copy h1 {
+    max-width: 700px;
+    font-size: 62px;
+  }
+  .immersive-hero .patisserie-copy > p {
+    max-width: 470px;
+  }
+  .immersive-hero .patisserie-personal-note {
+    display: none;
+  }
+  .immersive-hero .immersive-scene {
+    padding: 8px 36px 72px;
+  }
+  .immersive-hero .patisserie-explore {
+    left: 36px;
+  }
+}
+@media (max-width: 700px) {
+  .yemape-home .immersive-hero {
+    width: calc(100% - 20px);
+    margin-top: 10px;
+    border-radius: 16px;
+  }
+  .immersive-hero .patisserie-copy {
+    padding: 32px 24px 20px;
+  }
+  .immersive-hero .patisserie-copy h1 {
+    font-size: clamp(48px, 10vw, 62px);
+    margin: 20px 0;
+  }
+  .immersive-hero .patisserie-eyebrow {
+    font-size: 9px;
+    letter-spacing: 1.4px;
+  }
+  .immersive-hero .patisserie-copy > p {
+    font-size: 14px;
+  }
+  .immersive-hero .patisserie-actions {
+    margin-top: 22px;
+    gap: 10px 16px;
+  }
+  .immersive-hero .patisserie-actions .button {
+    padding: 13px 20px;
+    min-height: 50px;
+  }
+  .immersive-hero .patisserie-text-link {
+    font-size: 12px;
+  }
+  .immersive-hero .immersive-scene {
+    padding: 8px 18px 64px;
+  }
+  .dessert-film-frame {
+    border-radius: 12px;
+  }
+  .dessert-film-toggle {
+    right: 8px;
+    bottom: 8px;
+    padding: 8px 12px;
+  }
+  .immersive-hero .patisserie-caption {
+    margin: 18px 6px 0;
+    padding-top: 16px;
+  }
+  .immersive-hero .patisserie-caption strong {
+    font-size: 24px;
+  }
+  .immersive-hero .patisserie-explore {
+    left: 24px;
+    bottom: 22px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dessert-film-toggle {
+    transition: none;
+  }
+}
+
+.dessert-film .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}

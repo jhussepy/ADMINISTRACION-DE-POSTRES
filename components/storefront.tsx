@@ -115,9 +115,7 @@ export function Storefront({
     [cartOpen, setCartOpen] = useState(false),
     [notice, setNotice] = useState("");
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [heroMotionPaused, setHeroMotionPaused] = useState(false);
-  const sceneMotionPaused =
-    heroMotionPaused || cartOpen || selectedProduct !== null || menu;
+  const sceneMotionPaused = cartOpen || selectedProduct !== null || menu;
   const [favorites, setFavorites] = useState<string[]>([]);
   const [favoritesReady, setFavoritesReady] = useState(false);
   const [favoriteOnly, setFavoriteOnly] = useState(false);
@@ -435,7 +433,6 @@ export function Storefront({
             <HomeHero
               featured={featured}
               paused={sceneMotionPaused}
-              onPause={() => setHeroMotionPaused((paused) => !paused)}
               onSelect={(selected, trigger) => {
                 detailTrigger.current = trigger;
                 setSelectedProduct(selected);
@@ -817,7 +814,6 @@ export function Storefront({
         {view === "home" && featured && (
           <DessertSpotlight
             product={featured}
-            paused={sceneMotionPaused}
             onSelect={(selected, trigger) => {
               detailTrigger.current = trigger;
               setSelectedProduct(selected);
