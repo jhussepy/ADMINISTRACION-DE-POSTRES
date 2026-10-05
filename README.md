@@ -4,7 +4,7 @@ Primera versión de la tienda de **Repostería Yemape**, desarrollada con Next.j
 
 ## Qué está implementado
 
-- Página principal responsive, con identidad propia, portada fotográfica y fotografías de Yemape optimizadas en WebP.
+- Página principal responsive, con identidad propia, portada con el video de la torta enviado por el propietario y fotografías de Yemape optimizadas en WebP.
 - Catálogo inicial de once productos, incluidos pies de limón, maracuyá y manzana, y brownie de chocolate, con buscador y categorías.
 - Ficha ampliada de cada postre con imagen completa, presentaciones seleccionables y selector de cantidad.
 - Catálogo de dos columnas en celulares desde 360 px y acceso fijo al carrito cuando contiene productos.
@@ -92,6 +92,7 @@ La prueba de navegador está en `tests/storefront.spec.ts` y se ejecuta con `npm
 - `supabase/yape-mp-exclusion-v1.sql`: impide usar Yape y un enlace Mercado Pago vigente en el mismo pedido, incluso con solicitudes concurrentes.
 - `supabase/yape-mp-exclusion-v2.sql`: mantiene la exclusión sin bloquear avisos repetidos de Mercado Pago para pagos ya pendientes.
 - `docs/PAGOKIT_INTEGRATION.md`: arquitectura de seguridad adaptada de PagoKit y checklist de activación.
+- `docs/PORTADA_VIDEO.md`: video, reproducción, rendimiento y verificación de la portada.
 - `docs/`: configuración, alcance y notas de verificación.
 
 ## Límites de esta primera versión
@@ -112,4 +113,5 @@ Referencia de estructura aportada por el propietario: María Almenara. No se han
 
 ## Capturas de la versión verificada
 
-[Vista de computadora](docs/preview-desktop.webp) · [Vista de celular](docs/preview-mobile.webp) · [Ficha de producto](docs/preview-product.webp)
+[Portada en computadora](docs/preview-desktop.webp) · [Portada en celular](docs/preview-mobile.webp) · [Ficha de producto](docs/preview-product.webp)
+

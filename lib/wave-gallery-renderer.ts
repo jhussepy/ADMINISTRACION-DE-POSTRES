@@ -52,6 +52,12 @@ export function createWaveRenderer(
 ) {
   const gl = canvas.getContext("webgl", { alpha: true, antialias: true });
   if (!gl) throw new Error("WebGL unavailable");
+  const debug = gl.getExtension("WEBGL_debug_renderer_info");
+  const gpu = debug
+    ? String(gl.getParameter(debug.UNMASKED_RENDERER_WEBGL))
+    : "";
+  const software =
+    /SwiftShader|llvmpipe|softpipe|Software|Microsoft Basic Render/i.test(gpu);
   const shaders: WebGLShader[] = [];
   const textures: WebGLTexture[] = [];
   let disposed = false;
@@ -159,13 +165,14 @@ export function createWaveRenderer(
   );
 
   return {
+    frameInterval: 1000 / (software ? 15 : 30),
     ready,
     draw(position: number, time: number) {
       if (disposed || gl.isContextLost()) return;
       lastPosition = position;
       lastWidth = canvas.clientWidth;
       lastHeight = canvas.clientHeight;
-      const ratio = Math.min(window.devicePixelRatio || 1, 1.75);
+      const ratio = Math.min(window.devicePixelRatio || 1, software ? 1 : 1.75);
       const width = Math.max(1, Math.round(lastWidth * ratio));
       const height = Math.max(1, Math.round(lastHeight * ratio));
       if (canvas.width !== width || canvas.height !== height) {

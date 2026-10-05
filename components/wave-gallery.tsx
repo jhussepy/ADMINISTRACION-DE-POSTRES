@@ -93,7 +93,11 @@ export function WaveGallery({
         previousTime = 0;
         return;
       }
-      const dt = previousTime ? Math.min((now - previousTime) / 1000, 0.05) : 0;
+      const dt = previousTime ? Math.min((now - previousTime) / 1000, 0.1) : 0;
+      if (previousTime && now - previousTime < scene.frameInterval) {
+        schedule();
+        return;
+      }
       previousTime = now;
       const conditions = interaction.current;
       const auto =
@@ -167,7 +171,7 @@ export function WaveGallery({
           previousTime = 0;
         }
       },
-      { rootMargin: "160px" },
+      { rootMargin: "0px" },
     );
     observer.observe(element);
     const resize = new ResizeObserver(schedule);
