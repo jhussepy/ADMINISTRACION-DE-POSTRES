@@ -6,7 +6,10 @@ export default defineConfig({
   // Software WebGL shares the runner CPU; isolate these browser suites in CI.
   workers: process.env.CI ? 1 : undefined,
   timeout: 30000,
-  use: { baseURL: "http://localhost:3000", trace: "retain-on-failure" },
+  use: {
+    baseURL: "http://localhost:3000",
+    trace: { mode: "retain-on-failure", snapshots: true, screenshots: false },
+  },
   projects: [
     {
       name: "desktop",

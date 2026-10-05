@@ -371,6 +371,7 @@ export async function createDessertScene(
   let reduced = preference.matches;
   let paused = options.paused;
   let visible = false;
+  let mostlyVisible = false;
   let disposed = false;
   let failed = false;
   let painted = false;
@@ -387,7 +388,13 @@ export async function createDessertScene(
   let dragTilt = tilt;
   function isActive() {
     return (
-      visible && !failed && !paused && !reduced && !document.hidden && !dragging
+      visible &&
+      mostlyVisible &&
+      !failed &&
+      !paused &&
+      !reduced &&
+      !document.hidden &&
+      !dragging
     );
   }
   function paint(now: number) {
@@ -449,10 +456,14 @@ export async function createDessertScene(
   }
   const resizeObserver = new ResizeObserver(resize);
   resizeObserver.observe(host);
-  const observer = new IntersectionObserver(([entry]) => {
-    visible = entry.isIntersecting;
-    sync();
-  });
+  const observer = new IntersectionObserver(
+    ([entry]) => {
+      visible = entry.isIntersecting;
+      mostlyVisible = entry.intersectionRatio >= 0.25;
+      sync();
+    },
+    { threshold: [0, 0.25] },
+  );
   observer.observe(host);
   function preferenceChange() {
     reduced = preference.matches;

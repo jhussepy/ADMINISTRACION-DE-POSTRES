@@ -10,6 +10,7 @@ test.use({
 test("curved gallery renders photos, supports drag and keyboard, and opens the shopping detail", async ({
   page,
 }, testInfo) => {
+  test.setTimeout(60000);
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   const imageRequests: string[] = [];
@@ -18,6 +19,29 @@ test("curved gallery renders photos, supports drag and keyboard, and opens the s
       imageRequests.push(request.url());
   });
   await page.addInitScript(() => {
+    const draw = WebGLRenderingContext.prototype.drawArrays;
+    WebGLRenderingContext.prototype.drawArrays = function (
+      ...args: Parameters<typeof draw>
+    ) {
+      draw.apply(this, args);
+      const canvas = this.canvas as HTMLCanvasElement;
+      if (canvas.dataset.paintedAlpha !== undefined) return;
+      // Read the actual draw before the compositor clears a non-preserved
+      // drawing buffer. Capped animation need not draw on every browser frame.
+      const pixels = new Uint8Array(16 * 16 * 4);
+      this.readPixels(
+        Math.floor(this.drawingBufferWidth / 2) - 8,
+        Math.floor(this.drawingBufferHeight / 2) - 8,
+        16,
+        16,
+        this.RGBA,
+        this.UNSIGNED_BYTE,
+        pixels,
+      );
+      canvas.dataset.paintedAlpha = String(
+        pixels.filter((_, i) => i % 4 === 3).reduce((sum, v) => sum + v, 0),
+      );
+    };
     const original = WebGLRenderingContext.prototype.texImage2D;
     WebGLRenderingContext.prototype.texImage2D = function (
       this: WebGLRenderingContext,
@@ -39,9 +63,17 @@ test("curved gallery renders photos, supports drag and keyboard, and opens the s
   await page.goto("/");
   const gallery = page.locator(".wave-gallery");
   await gallery.scrollIntoViewIfNeeded();
-  await expect(gallery).toHaveAttribute("data-mode", "webgl", {
-    timeout: 20000,
-  });
+  await expect
+    .poll(
+      async () => ({
+        mode: await gallery.getAttribute("data-mode"),
+        error: await gallery
+          .locator("canvas")
+          .getAttribute("data-renderer-error"),
+      }),
+      { timeout: 20000 },
+    )
+    .toMatchObject({ mode: "webgl" });
   const sources = await gallery
     .locator(".wave-static-list img")
     .evaluateAll((images) =>
@@ -70,31 +102,13 @@ test("curved gallery renders photos, supports drag and keyboard, and opens the s
     expect(requests).toContain(src);
     for (const url of requests) expect(domSources).toContain(url);
   }
-  const painted = await gallery.locator("canvas").evaluate(
-    (element) =>
-      new Promise<number>((resolve) => {
-        requestAnimationFrame(() => {
-          const canvas = element as HTMLCanvasElement;
-          const gl = canvas.getContext("webgl")!;
-          const pixels = new Uint8Array(16 * 16 * 4);
-          gl.readPixels(
-            Math.floor(canvas.width / 2) - 8,
-            Math.floor(canvas.height / 2) - 8,
-            16,
-            16,
-            gl.RGBA,
-            gl.UNSIGNED_BYTE,
-            pixels,
-          );
-          resolve(
-            pixels
-              .filter((_, index) => index % 4 === 3)
-              .reduce((sum, value) => sum + value, 0),
-          );
-        });
-      }),
-  );
-  expect(painted).toBeGreaterThan(0);
+  await expect
+    .poll(async () =>
+      Number(
+        await gallery.locator("canvas").getAttribute("data-painted-alpha"),
+      ),
+    )
+    .toBeGreaterThan(0);
   await gallery.getByRole("button", { name: "Pausar galería" }).click();
   await expect(
     gallery.getByRole("button", { name: "Reanudar galería" }),

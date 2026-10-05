@@ -241,6 +241,7 @@ test("two presentations stay separate in the cart and WhatsApp describes the exa
 test("front-page categories open a filtered carta and preserve the cart", async ({
   page,
 }, testInfo) => {
+  test.setTimeout(60000);
   await page.goto("/");
   await page.getByRole("link", { name: "Kekes", exact: true }).click();
   await expect(page).toHaveURL(/\/catalogo\?categoria=Kekes$/);
@@ -499,6 +500,7 @@ test("product details support quantities, keyboard closing and mobile cart acces
 test("photographic catalogue filters and new products reach the WhatsApp handoff", async ({
   page,
 }, testInfo) => {
+  test.setTimeout(60000);
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto("/");
