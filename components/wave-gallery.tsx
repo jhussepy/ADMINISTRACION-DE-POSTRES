@@ -21,6 +21,7 @@ export function WaveGallery({
   const renderer = useRef<WaveRenderer | null>(null);
   const wake = useRef(() => {});
   const motion = useRef({ current: 0, target: 0 });
+  const staticScrollIsManual = useRef(false);
   const interaction = useRef({
     paused: products.length < 5,
     hover: false,
@@ -219,6 +220,10 @@ export function WaveGallery({
       ((Math.round(target) % products.length) + products.length) %
       products.length;
     if (mode === "static") {
+      // A wide list cannot align its last cards to the leading edge. Keep the
+      // requested product selected while scrollTo moves to that clamped position.
+      staticScrollIsManual.current = false;
+      motion.current.current = target;
       setActive(next);
       const card = stage.current?.querySelector<HTMLElement>(
         `[data-wave-card="${next}"]`,
@@ -363,8 +368,15 @@ export function WaveGallery({
           className="wave-static-list"
           role="list"
           hidden={mode === "webgl" && !reduced}
+          onPointerDown={() => {
+            staticScrollIsManual.current = true;
+          }}
+          onWheel={() => {
+            staticScrollIsManual.current = true;
+          }}
           onScroll={(event) => {
-            if (mode === "webgl" && !reduced) return;
+            if ((mode === "webgl" && !reduced) || !staticScrollIsManual.current)
+              return;
             const list = event.currentTarget;
             const cards = Array.from(
               list.querySelectorAll<HTMLElement>("[data-wave-card]"),

@@ -236,6 +236,23 @@ test("WebGL unavailability leaves a usable photographic gallery", async ({
   await gallery
     .getByRole("button", { name: "Mostrar Cheesecake de maracumango" })
     .click();
+  // Wait for the real scroll destination: desktop clamps the last cards to the
+  // end of the list, which must not replace the explicitly chosen dessert.
+  const list = gallery.locator(".wave-static-list");
+  await expect
+    .poll(() =>
+      list.evaluate((element) => {
+        const card = element.querySelector<HTMLElement>(
+          '[data-wave-card="4"]',
+        )!;
+        const destination = Math.min(
+          card.offsetLeft - (element as HTMLElement).offsetLeft,
+          element.scrollWidth - element.clientWidth,
+        );
+        return Math.abs(element.scrollLeft - destination);
+      }),
+    )
+    .toBeLessThanOrEqual(1);
   await expect(gallery).toHaveAttribute(
     "data-selected",
     "cheesecake-maracumango",
@@ -251,5 +268,22 @@ test("WebGL unavailability leaves a usable photographic gallery", async ({
       name: "Cheesecake de maracumango",
       exact: true,
     }),
+  ).toBeVisible();
+  await page.keyboard.press("Escape");
+  await list.hover();
+  await page.mouse.wheel(-5000, 0);
+  await expect(gallery).toHaveAttribute("data-selected", "torta-chocolate");
+  await gallery
+    .getByRole("button", { name: "Postre siguiente", exact: true })
+    .click();
+  await expect(gallery).toHaveAttribute("data-selected", "terremoto-lucuma");
+  await gallery
+    .getByRole("button", {
+      name: "Descubrir Terremoto de lúcuma en destacados",
+      exact: true,
+    })
+    .click();
+  await expect(
+    page.getByRole("dialog", { name: "Terremoto de lúcuma", exact: true }),
   ).toBeVisible();
 });

@@ -1,0 +1,318 @@
+/* The photographic storefront palette, scoped away from the admin and account. */
+.yemape-store,
+.commerce-dialog,
+.commerce-product-dialog {
+  --store-paper: #f5eee5;
+  --store-cocoa: #392820;
+  color: var(--store-cocoa);
+}
+.yemape-store .catalog-intro {
+  width: calc(100% - 64px);
+  max-width: 1260px;
+  margin: 28px auto 32px;
+  padding: clamp(24px, 4vw, 48px);
+  background: var(--store-paper);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+}
+.yemape-store .catalog-intro h1 {
+  max-width: 780px;
+  line-height: 1.12;
+  letter-spacing: -0.04em;
+  text-wrap: balance;
+}
+.yemape-store .catalog-intro .demo-disclaimer {
+  background: var(--cream);
+}
+.yemape-store .product-card {
+  border-radius: 22px;
+  box-shadow: none;
+}
+.yemape-store .product-photo {
+  background: var(--store-paper);
+}
+.yemape-store .product-info h3 {
+  font-size: 22px;
+  line-height: 1.3;
+}
+.yemape-store .product-info > p:not(.product-presentation) {
+  font-size: 14px;
+  line-height: 1.65;
+}
+.yemape-store .category.selected {
+  background: var(--store-paper);
+  box-shadow: inset 3px 0 var(--wine);
+}
+.yemape-store .button,
+.commerce-dialog .button,
+.commerce-product-dialog .button {
+  border-radius: 999px;
+  min-height: 48px;
+}
+.yemape-store .product-page-copy h1 {
+  letter-spacing: -0.04em;
+  line-height: 1.12;
+  text-wrap: balance;
+}
+.yemape-store .product-page-image,
+.commerce-product-dialog .detail-image {
+  background: var(--store-paper);
+}
+.yemape-store .product-page-price {
+  padding: 20px;
+  background: var(--store-paper);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+}
+.yemape-store .product-share-button {
+  min-height: 44px;
+}
+.yemape-store .presentation-options label,
+.commerce-product-dialog .presentation-options label {
+  min-height: 56px;
+  border-radius: 12px;
+}
+.yemape-store .presentation-options label.is-selected,
+.commerce-product-dialog .presentation-options label.is-selected {
+  background: var(--store-paper);
+}
+.yemape-store .presentation-options input,
+.commerce-product-dialog .presentation-options input {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  padding: 0;
+}
+.yemape-store .presentation-options span,
+.commerce-product-dialog .presentation-options span {
+  min-width: 0;
+  font-size: 14px;
+}
+.yemape-store .presentation-options strong,
+.commerce-product-dialog .presentation-options strong {
+  flex: 0 0 auto;
+}
+.commerce-product-dialog {
+  border-radius: 24px;
+}
+.commerce-product-dialog .detail-copy h2 {
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  text-wrap: balance;
+}
+.commerce-product-dialog .detail-copy > .button {
+  flex-wrap: wrap;
+  gap: 6px 10px;
+}
+.commerce-dialog {
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  max-width: calc(100vw - 16px);
+}
+.commerce-dialog .cart-content {
+  padding: clamp(20px, 3vw, 32px);
+}
+.commerce-dialog .cart-heading h2 {
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+}
+.commerce-dialog .cart-item-info {
+  min-width: 0;
+}
+.commerce-dialog .cart-item h3 {
+  font-size: 17px;
+  padding-right: 16px;
+}
+.commerce-dialog .cart-presentation select {
+  min-height: 44px;
+  font-size: 16px;
+}
+.commerce-dialog .cart-total {
+  background: var(--store-paper);
+  padding: 18px;
+  border-radius: 14px;
+}
+.checkout-dialog .checkout-fields,
+.checkout-dialog .checkout-contact,
+.checkout-dialog .checkout-aside {
+  display: grid;
+  gap: 20px;
+  min-width: 0;
+}
+.checkout-dialog .checkout-section-heading h3 {
+  font-family: var(--font-sans);
+  font-size: 17px;
+}
+.checkout-dialog .checkout-section-heading p,
+.checkout-dialog .checkout-form small {
+  font-size: 12px;
+  line-height: 1.6;
+  color: #6c5a59;
+}
+.checkout-dialog
+  .checkout-fields
+  > .checkout-section-heading:not(:first-child) {
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+.checkout-dialog .checkout-form input,
+.checkout-dialog .checkout-form textarea {
+  font-size: 16px;
+  scroll-margin-block: 24px;
+}
+.checkout-dialog .checkout-fields > *,
+.checkout-dialog .checkout-contact > *,
+.checkout-dialog .checkout-form fieldset {
+  min-width: 0;
+}
+.checkout-dialog .delivery-options {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.checkout-dialog .delivery-options label {
+  gap: 6px;
+  font-size: 14px;
+}
+.checkout-dialog .checkout-extra,
+.checkout-dialog .gift-request {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 0 16px;
+}
+.checkout-dialog summary {
+  min-height: 48px;
+  padding-block: 14px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--wine-dark);
+  cursor: pointer;
+}
+.checkout-dialog summary:focus-visible {
+  outline: 3px solid var(--wine);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+.checkout-dialog .checkout-extra[open] > label,
+.checkout-dialog .gift-request[open] > p {
+  margin-bottom: 16px;
+}
+.checkout-dialog .gift-request[open] {
+  gap: 16px;
+}
+.checkout-dialog .checkout-aside {
+  align-content: start;
+}
+.checkout-dialog .checkout-review {
+  background: var(--store-paper);
+  border-radius: 18px;
+  padding: 22px;
+}
+.checkout-dialog .checkout-review h3 {
+  font-family: var(--font-sans);
+  font-size: 17px;
+}
+.checkout-dialog .checkout-review ul {
+  margin-top: 16px;
+}
+.checkout-dialog .checkout-review li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+}
+.checkout-dialog .checkout-review li > span {
+  max-width: none;
+}
+.checkout-dialog .checkout-review li > strong {
+  max-width: 125px;
+}
+.checkout-dialog .review-total {
+  font-variant-numeric: tabular-nums;
+  flex-wrap: wrap;
+}
+.checkout-coordination {
+  display: grid;
+  gap: 12px;
+  margin: 18px 0 0;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+.checkout-coordination dt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #6c5a59;
+}
+.checkout-coordination dd {
+  margin: 3px 0 0;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+.checkout-dialog .order-notice {
+  font-size: 13px;
+}
+.checkout-dialog .checkout-aside .full,
+.checkout-dialog .form-privacy {
+  margin: 0;
+}
+.checkout-dialog .form-error:focus {
+  outline: 3px solid var(--wine);
+  outline-offset: 4px;
+}
+@media (min-width: 901px) and (min-height: 700px) {
+  .checkout-dialog {
+    width: min(1000px, calc(100vw - 48px));
+  }
+  .checkout-dialog .checkout-form {
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    gap: 24px 36px;
+    align-items: start;
+  }
+  .checkout-dialog .back-button {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+  .checkout-dialog .checkout-aside {
+    position: sticky;
+    top: 24px;
+  }
+}
+@media (max-width: 680px) {
+  .yemape-store .catalog-intro {
+    width: calc(100% - 32px);
+    margin: 16px auto 24px;
+    padding: 26px 22px;
+    border-radius: 20px;
+  }
+  .yemape-store .catalog-intro h1 {
+    font-size: clamp(32px, 8.5vw, 42px);
+  }
+  .yemape-store .product-info h3 {
+    font-size: 18px;
+  }
+  .yemape-store .product-page-price {
+    padding: 18px;
+  }
+  .commerce-dialog {
+    width: calc(100vw - 16px);
+    max-height: calc(100dvh - 24px);
+    border-radius: 20px;
+  }
+  .commerce-dialog .cart-content {
+    padding: 22px 18px calc(22px + env(safe-area-inset-bottom));
+  }
+  .commerce-dialog .cart-heading h2 {
+    font-size: 28px;
+  }
+  .commerce-dialog .cart-progress {
+    gap: 16px;
+    font-size: 12px;
+  }
+  .checkout-dialog .checkout-review {
+    padding: 18px;
+  }
+  .checkout-dialog .checkout-review li > strong {
+    max-width: 112px;
+  }
+}

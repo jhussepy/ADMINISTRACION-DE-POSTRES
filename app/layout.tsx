@@ -5,6 +5,7 @@ import { clerkConfigured } from "@/lib/clerk-auth";
 import "./globals.css";
 import "./home.css";
 import "./dessert-film.css";
+import "./commerce.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl()),

@@ -6167,10 +6167,10 @@ legend {
   position: relative;
   height: clamp(320px, 32vw, 420px);
   overflow: hidden;
-  touch-action: pan-y;
+  touch-action: auto;
   background: radial-gradient(ellipse at 50% 38%, var(--cream) 12%, transparent 68%);
 }
-.wave-gallery[data-mode="webgl"] .wave-stage { cursor: grab; }
+.wave-gallery[data-mode="webgl"] .wave-stage { cursor: grab; touch-action: pan-y; }
 .wave-gallery[data-mode="webgl"] .wave-stage:active { cursor: grabbing; }
 .wave-stage:focus-visible { outline-offset: -5px; }
 .wave-canvas { display: block; width: 100%; height: 100%; }
