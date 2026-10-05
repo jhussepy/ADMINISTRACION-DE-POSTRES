@@ -36,6 +36,7 @@ export function PresentationPicker({
               {option.priceCents === null
                 ? "Por cotizar"
                 : money(option.priceCents)}
+              {option.example && <small>Ejemplo</small>}
             </strong>
           </label>
         ))}

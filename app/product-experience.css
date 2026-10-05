@@ -1,0 +1,721 @@
+/* Shared public product experience. Administration keeps its own styles. */
+.yemape-public .product-page {
+  gap: clamp(30px, 5vw, 72px);
+  padding-bottom: 64px;
+}
+.yemape-public .product-page-media {
+  gap: 12px;
+}
+.yemape-public .product-page-image {
+  aspect-ratio: 1;
+  border: 1px solid #e9dfd5;
+  border-radius: 30px;
+  background: #f6f0e9;
+  isolation: isolate;
+}
+.yemape-public .product-gallery-open {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  cursor: zoom-in;
+}
+.yemape-public .product-gallery-frame {
+  position: absolute;
+  inset: 0;
+  animation: product-photo-enter 180ms ease-out;
+}
+.yemape-public .product-page-image img {
+  width: 100%;
+  height: 100%;
+  max-height: none;
+  aspect-ratio: auto;
+  object-fit: contain;
+  padding: clamp(12px, 2vw, 28px);
+  border-radius: 0;
+}
+.yemape-public .product-gallery-expand {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 13px;
+  border: 1px solid #e4d7ca;
+  border-radius: 999px;
+  background: #fffdf9f5;
+  color: var(--wine);
+  font-size: 12px;
+  font-weight: 600;
+}
+.yemape-public .product-gallery-caption {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  min-height: 30px;
+  padding: 0 4px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.product-gallery-navigation {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.product-gallery-navigation output {
+  min-width: 42px;
+  text-align: center;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.product-gallery-navigation .icon-button {
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--border);
+  background: transparent;
+}
+.yemape-public .product-gallery-thumbs {
+  grid-template-columns: repeat(auto-fill, minmax(60px, 84px));
+}
+.yemape-public .product-gallery-thumbs img {
+  object-fit: contain;
+  padding: 5px;
+}
+.yemape-public .product-gallery-thumbs button {
+  opacity: 1;
+  border: 1px solid var(--border);
+}
+.yemape-public .product-gallery-thumbs button.is-active {
+  border: 2px solid var(--wine);
+}
+.yemape-public .product-page-copy {
+  padding: 6px 0 0;
+}
+.yemape-public .product-page-copy h1 {
+  margin: 24px 0 18px;
+  font-size: clamp(38px, 4.3vw, 64px);
+  line-height: 1.04;
+  letter-spacing: -0.045em;
+}
+.yemape-public .product-page-lead {
+  font-size: 16px;
+  line-height: 1.8;
+}
+.yemape-public .product-share-button {
+  min-height: 44px;
+}
+.yemape-public .product-page-price {
+  background: transparent;
+  border: 0;
+  border-top: 1px solid var(--border);
+  border-radius: 0;
+  margin-top: 24px;
+  padding: 24px 0;
+}
+.yemape-public .product-page-price strong {
+  font-size: clamp(24px, 2.2vw, 30px);
+}
+.yemape-public .presentation-picker {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+.yemape-public .presentation-picker legend {
+  margin-bottom: 14px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.yemape-public .presentation-options {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+.yemape-public .presentation-options label {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 70px;
+  padding: 14px 16px;
+  background: #fffdf9;
+  border: 1px solid #dfd2c6;
+  border-radius: 16px;
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease;
+}
+.yemape-public .presentation-options label.is-selected {
+  background: #f9eee9;
+  border-color: var(--wine);
+  box-shadow: inset 0 0 0 1px var(--wine);
+}
+.yemape-public .presentation-options input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--wine);
+}
+.yemape-public .presentation-options span {
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.yemape-public .presentation-options strong {
+  display: grid;
+  gap: 3px;
+  text-align: right;
+  font-size: 17px;
+  color: var(--wine);
+}
+.yemape-public .presentation-options strong small {
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--muted);
+}
+.yemape-public .presentation-picker > p {
+  font-size: 12px;
+  line-height: 1.6;
+  margin: 12px 0 0;
+}
+.yemape-public .product-page-actions {
+  gap: 18px;
+  margin-top: 26px;
+}
+.yemape-public .product-page-quantity {
+  padding: 0;
+}
+.yemape-public .product-page-add {
+  min-height: 54px;
+}
+.yemape-public .product-page-assurance {
+  font-size: 12px;
+  line-height: 1.7;
+  border-top: 1px solid var(--border);
+  padding-top: 20px;
+  margin-top: 24px;
+}
+.yemape-public .related-grid {
+  gap: 22px;
+}
+.yemape-public .related-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding: 0 0 18px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  gap: 18px 12px;
+}
+.yemape-public .related-image {
+  grid-column: 1 / -1;
+  width: 100%;
+  aspect-ratio: 1.1;
+  height: auto;
+  border-radius: 22px;
+  background: #f6f0e9;
+  border: 1px solid #e9dfd5;
+}
+.yemape-public .related-image img {
+  object-fit: contain;
+  padding: 14px;
+}
+.yemape-public .related-copy {
+  min-width: 0;
+  gap: 6px;
+}
+.yemape-public .related-copy strong {
+  font-family: var(--font-serif);
+  font-size: 23px;
+  font-weight: 400;
+}
+.yemape-public .related-card > svg {
+  align-self: center;
+}
+.product-purchase-dock {
+  display: none;
+}
+
+/* A second native dialog keeps the quick view open underneath the photograph. */
+.photo-lightbox {
+  width: min(1160px, calc(100vw - 40px));
+  height: min(900px, calc(100dvh - 40px));
+  max-width: none;
+  max-height: none;
+  margin: auto;
+  padding: 20px;
+  border: 1px solid #eadfd4;
+  border-radius: 24px;
+  background: #fffcf7;
+  color: var(--ink);
+  overflow: hidden;
+  box-shadow: 0 30px 100px #25171030;
+}
+.photo-lightbox[open] {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.photo-lightbox::backdrop {
+  background: #251710ba;
+  backdrop-filter: blur(6px);
+}
+.photo-lightbox-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  flex-shrink: 0;
+}
+.photo-lightbox-heading h2 {
+  font-size: clamp(20px, 2vw, 30px);
+  margin: 5px 0 0;
+  line-height: 1.2;
+}
+.photo-lightbox-heading .eyebrow {
+  font-size: 10px;
+}
+.photo-lightbox-heading .icon-button {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+}
+.photo-lightbox-viewport {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  border-radius: 16px;
+  background: #f6f0e9;
+}
+.photo-lightbox-image {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+.photo-lightbox-image.is-zoomed {
+  width: 200%;
+  height: 200%;
+}
+.photo-lightbox-image img {
+  object-fit: contain;
+  padding: 12px;
+}
+.photo-lightbox-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-shrink: 0;
+}
+.photo-zoom-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--wine);
+  font-size: 12px;
+}
+
+/* Quick view retains a reachable close action while its contents scroll. */
+.yemape-public .commerce-product-dialog {
+  width: min(1060px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+}
+.yemape-public .product-detail-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 24px;
+  border-bottom: 1px solid var(--border);
+  background: #fffcf7;
+}
+.yemape-public .detail-close {
+  position: static;
+  width: 44px;
+  height: 44px;
+}
+.yemape-public .product-detail-layout {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 28px;
+  padding: 28px;
+}
+.yemape-public .compact-product-gallery {
+  align-self: start;
+}
+.yemape-public .detail-image {
+  display: block;
+  padding: 0;
+}
+.yemape-public .detail-copy {
+  padding: 6px 0 0;
+  gap: 18px;
+  min-width: 0;
+}
+.yemape-public .detail-copy h2 {
+  font-size: clamp(30px, 3vw, 44px);
+  line-height: 1.1;
+  letter-spacing: -0.035em;
+}
+.yemape-public .detail-specs {
+  border-bottom: 0;
+  padding: 18px 0 0;
+}
+.yemape-public .commerce-product-dialog :is(button, input, a) {
+  scroll-margin-top: 85px;
+}
+
+/* Desktop cart drawer: products scroll, selection total stays in view. */
+.yemape-public .commerce-dialog:not(.checkout-dialog) {
+  width: min(520px, 100vw);
+  height: 100dvh;
+  max-height: none;
+  max-width: none;
+  margin: 0 0 0 auto;
+  padding: 0;
+  border-radius: 24px 0 0 24px;
+  overflow: hidden;
+}
+.yemape-public .commerce-dialog:not(.checkout-dialog)[open] {
+  animation: cart-drawer-enter 220ms ease-out;
+}
+.yemape-public .commerce-dialog:not(.checkout-dialog) .cart-content {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 24px 28px 0;
+}
+.yemape-public .commerce-dialog:not(.checkout-dialog) .cart-heading {
+  flex-shrink: 0;
+  margin-bottom: 22px;
+}
+.yemape-public .commerce-dialog:not(.checkout-dialog) .cart-heading h2 {
+  font-size: 36px;
+}
+.yemape-public .commerce-dialog:not(.checkout-dialog) .cart-progress {
+  flex-shrink: 0;
+  margin-bottom: 10px;
+}
+.yemape-public .cart-selection {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 0 4px 20px 0;
+}
+.yemape-public .cart-items {
+  margin: 0;
+}
+.yemape-public .cart-item {
+  grid-template-columns: 82px minmax(0, 1fr) 44px;
+  gap: 14px;
+  padding: 20px 0;
+  align-items: start;
+}
+.yemape-public .cart-item > img {
+  width: 82px;
+  height: 96px;
+  object-fit: contain;
+  border: 1px solid var(--border);
+  background: #f6f0e9;
+  border-radius: 14px;
+}
+.yemape-public .cart-item-info {
+  min-width: 0;
+}
+.yemape-public .cart-item h3 {
+  margin: 0 0 8px;
+  font-size: 19px;
+  line-height: 1.25;
+}
+.yemape-public .cart-presentation {
+  font-size: 11px;
+}
+.yemape-public .cart-presentation select {
+  width: 100%;
+  min-height: 44px;
+  margin-top: 5px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+}
+.yemape-public .cart-item-info > strong {
+  display: block;
+  margin: 10px 0;
+  font-size: 14px;
+}
+.yemape-public .cart-item .quantity {
+  width: fit-content;
+}
+.yemape-public .remove-button {
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 50%;
+}
+.yemape-public .cart-summary {
+  flex-shrink: 0;
+  padding: 18px 0 max(18px, env(safe-area-inset-bottom));
+  border-top: 1px solid var(--border);
+  background: #fffcf7;
+}
+.yemape-public .cart-summary .cart-total {
+  border: 0;
+  margin: 0 0 18px;
+  padding: 0;
+  gap: 14px;
+  align-items: baseline;
+}
+.yemape-public .cart-summary .cart-total span {
+  font-size: 13px;
+}
+.yemape-public .cart-summary .cart-total strong {
+  font-size: 28px;
+}
+.yemape-public .cart-summary .account-prompt {
+  margin: 12px 0 4px;
+  font-size: 12px;
+  text-align: center;
+}
+.yemape-public .cart-summary > .text-button {
+  display: block;
+  min-height: 44px;
+  margin: 0 auto;
+}
+.yemape-public .commerce-dialog:not(.checkout-dialog) .empty-state {
+  overflow: auto;
+  margin: auto 0;
+}
+
+@keyframes product-photo-enter {
+  from {
+    opacity: 0.35;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes cart-drawer-enter {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (max-width: 760px) {
+  .yemape-public .product-page {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 26px;
+    padding-bottom: 44px;
+  }
+  .yemape-public .product-page-image {
+    border-radius: 24px;
+  }
+  .yemape-public .product-page-copy h1 {
+    font-size: clamp(36px, 9vw, 52px);
+    margin-top: 18px;
+  }
+  .yemape-public .product-page-lead {
+    font-size: 14px;
+  }
+  .yemape-public .product-page-heading-row {
+    flex-wrap: wrap;
+  }
+  .yemape-public .product-page-price {
+    margin-top: 20px;
+    padding: 20px 0;
+  }
+  .yemape-public .presentation-options label {
+    padding: 13px 12px;
+    gap: 10px;
+  }
+  .yemape-public .product-page :is(button, input) {
+    scroll-margin-bottom: 120px;
+  }
+  .yemape-public .related-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px 14px;
+  }
+  .yemape-public .related-copy strong {
+    font-size: 20px;
+  }
+  .yemape-public .related-image {
+    border-radius: 16px;
+  }
+  .yemape-public .product-purchase-dock {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 35;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px max(12px, env(safe-area-inset-right))
+      max(12px, env(safe-area-inset-bottom))
+      max(12px, env(safe-area-inset-left));
+    border-top: 1px solid #dfd2c6;
+    background: #fffcf7;
+    box-shadow: 0 -8px 28px #40271f08;
+  }
+  .product-purchase-price {
+    display: grid;
+    gap: 3px;
+    min-width: 0;
+    flex: 1;
+  }
+  .product-purchase-price > span {
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .product-purchase-price > strong {
+    font-family: var(--font-serif);
+    font-size: 22px;
+    color: var(--wine);
+  }
+  .product-purchase-price > small {
+    font-size: 10px;
+    color: var(--muted);
+  }
+  .yemape-public .product-purchase-dock .button {
+    flex-shrink: 0;
+    min-height: 48px;
+    gap: 6px;
+    padding: 12px 16px;
+    font-size: 12px;
+  }
+  .yemape-public .product-purchase-cart {
+    position: relative;
+    width: 44px;
+    height: 48px;
+    flex-shrink: 0;
+    border: 1px solid var(--border);
+  }
+  .product-purchase-cart > span {
+    position: absolute;
+    right: -3px;
+    top: -5px;
+    min-width: 18px;
+    height: 18px;
+    padding: 2px;
+    border-radius: 999px;
+    background: var(--wine);
+    color: white;
+    font-size: 10px;
+  }
+  .yemape-public[data-store-view="product"] .site-footer {
+    padding-bottom: 150px;
+  }
+  .photo-lightbox {
+    width: 100vw;
+    height: 100dvh;
+    padding: 16px 12px max(16px, env(safe-area-inset-bottom));
+    border: 0;
+    border-radius: 0;
+  }
+  .photo-lightbox-heading h2 {
+    font-size: 21px;
+  }
+  .photo-lightbox-toolbar {
+    flex-wrap: wrap;
+  }
+  .yemape-public .commerce-product-dialog {
+    width: calc(100vw - 16px);
+    max-height: calc(100dvh - 16px);
+  }
+  .yemape-public .product-detail-toolbar {
+    padding: 10px 16px;
+  }
+  .yemape-public .product-detail-layout {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 16px;
+    gap: 22px;
+  }
+  .yemape-public .detail-copy {
+    padding: 0 2px 12px;
+  }
+  .yemape-public .detail-copy h2 {
+    font-size: 34px;
+  }
+  .yemape-public .commerce-dialog:not(.checkout-dialog) {
+    width: 100vw;
+    border-radius: 0;
+  }
+  .yemape-public .commerce-dialog:not(.checkout-dialog) .cart-content {
+    padding: 20px 18px 0;
+  }
+  .yemape-public .commerce-dialog:not(.checkout-dialog) .cart-heading h2 {
+    font-size: 32px;
+  }
+  .yemape-public .cart-item {
+    grid-template-columns: 72px minmax(0, 1fr) 44px;
+    gap: 10px;
+  }
+  .yemape-public .cart-item > img {
+    width: 72px;
+    height: 88px;
+  }
+  .yemape-public .cart-item h3 {
+    font-size: 18px;
+  }
+  .yemape-public .commerce-dialog.checkout-dialog {
+    width: 100vw;
+    height: 100dvh;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    border-radius: 0;
+  }
+}
+@media (max-height: 520px) {
+  .yemape-public .commerce-dialog:not(.checkout-dialog) {
+    overflow: auto;
+  }
+  .yemape-public .commerce-dialog:not(.checkout-dialog) .cart-content {
+    height: auto;
+    min-height: 100%;
+  }
+  .yemape-public .cart-selection {
+    flex: none;
+    overflow: visible;
+  }
+  .photo-lightbox {
+    gap: 8px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+  .photo-lightbox-heading .eyebrow {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .yemape-public .product-gallery-frame,
+  .yemape-public .commerce-dialog:not(.checkout-dialog)[open] {
+    animation: none;
+  }
+  .yemape-public .presentation-options label {
+    transition: none;
+  }
+}

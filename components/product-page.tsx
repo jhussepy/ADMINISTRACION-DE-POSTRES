@@ -17,15 +17,16 @@ import {
   UsersRound,
 } from "lucide-react";
 import { MAX_QUANTITY, money } from "@/lib/cart";
-import { productImages } from "@/lib/products";
 import { presentation, presentations } from "@/lib/demo-catalog";
 import { PresentationPicker } from "./presentation-picker";
+import { ProductGallery } from "./product-gallery";
 import type { Product } from "@/lib/types";
 
 export function ProductPage({
   product,
   products,
   inCart,
+  cartCount,
   ready,
   onAdd,
   onOrder,
@@ -34,6 +35,7 @@ export function ProductPage({
   product: Product;
   products: Product[];
   inCart: number;
+  cartCount: number;
   ready: boolean;
   onAdd: (amount: number, variant: string) => void;
   onOrder: (amount: number, variant: string) => void;
@@ -46,29 +48,6 @@ export function ProductPage({
   const remaining = Math.max(0, MAX_QUANTITY - inCart);
   const selected = Math.min(quantity, remaining);
   const custom = product.id === "torta-personalizada";
-  const gallery =
-    product.gallery && product.gallery.length > 0
-      ? product.gallery
-      : [
-          {
-            id: "legacy",
-            product_id: product.id,
-            storage_path: product.image,
-            alt_text: `Presentación referencial de ${product.name}`,
-            is_cover: true,
-            active: true,
-            sort_order: 0,
-            url: product.image,
-          },
-        ];
-  const initialImage =
-    gallery.find((image) => image.is_cover) ?? gallery[0];
-  const [activeImageId, setActiveImageId] = useState(initialImage.id);
-  const activeImage =
-    gallery.find((image) => image.id === activeImageId) ?? initialImage;
-  const imageSize = productImages.find(
-    (image) => image.path === activeImage.url,
-  );
   async function shareProduct() {
     const url = window.location.href;
     try {
@@ -115,46 +94,7 @@ export function ProductPage({
         <span aria-current="page">{product.name}</span>
       </div>
       <article id="ficha-postre" className="product-page section-wrap">
-        <div className="product-page-media">
-          <div className="product-page-image">
-            <Image
-              src={activeImage.url}
-              alt={
-                activeImage.alt_text ||
-                `Presentación referencial de ${product.name}`
-              }
-              width={imageSize?.width ?? 800}
-              height={imageSize?.height ?? 1000}
-              sizes="(max-width: 760px) 100vw, (max-width: 1440px) 50vw, 620px"
-              preload
-            />
-            <span>Fotografía referencial</span>
-          </div>
-          {gallery.length > 1 && (
-            <div
-              className="product-gallery-thumbs"
-              aria-label={`Galería de ${product.name}`}
-            >
-              {gallery.map((image, index) => (
-                <button
-                  type="button"
-                  key={image.id}
-                  className={image.id === activeImage.id ? "is-active" : ""}
-                  aria-label={`Ver foto ${index + 1} de ${gallery.length} de ${product.name}`}
-                  aria-pressed={image.id === activeImage.id}
-                  onClick={() => setActiveImageId(image.id)}
-                >
-                  <Image
-                    src={image.url}
-                    alt=""
-                    fill
-                    sizes="84px"
-                  />
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+        <ProductGallery product={product} />
         <div className="product-page-copy">
           <div className="product-page-heading-row">
             <span className="eyebrow">
@@ -348,6 +288,47 @@ export function ProductPage({
           </Link>
         </section>
       )}
+      <div
+        className="product-purchase-dock"
+        aria-label="Compra rápida del producto"
+      >
+        <div className="product-purchase-price">
+          <span>{offer.label}</span>
+          <strong>
+            {offer.priceCents === null
+              ? "Por cotizar"
+              : money(offer.priceCents * Math.max(1, selected))}
+          </strong>
+          {offer.example && <small>Importe de ejemplo</small>}
+        </div>
+        <button
+          type="button"
+          className="button"
+          disabled={!ready || remaining === 0}
+          aria-label={`${custom ? "Preparar pedido" : `Agregar ${selected} de ${product.name}`} desde la barra de compra`}
+          onClick={() =>
+            custom ? onOrder(selected, variant) : onAdd(selected, variant)
+          }
+        >
+          <ShoppingBag size={18} aria-hidden="true" />
+          {remaining === 0
+            ? "Límite alcanzado"
+            : custom
+              ? "Preparar pedido"
+              : `Agregar ${selected}`}
+        </button>
+        {cartCount > 0 && (
+          <button
+            type="button"
+            className="icon-button product-purchase-cart"
+            onClick={onViewCart}
+            aria-label={`Ver carrito desde la ficha, ${cartCount} productos`}
+          >
+            <ShoppingBag size={21} aria-hidden="true" />
+            <span aria-hidden="true">{cartCount}</span>
+          </button>
+        )}
+      </div>
     </>
   );
 }
