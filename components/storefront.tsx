@@ -34,6 +34,7 @@ import {
   limaToday,
   money,
   normalizeCart,
+  validDate,
 } from "@/lib/cart";
 import { prepareCheckout } from "@/app/checkout-action";
 import type { CartItem, CheckoutDetails, Product, Profile } from "@/lib/types";
@@ -427,7 +428,7 @@ export function Storefront({
           {account?.isAdmin && <Link href="/admin">Administración</Link>}
         </nav>
       </header>
-      <main className={view === "home" ? "yemape-home" : undefined}>
+      <main className={view === "home" ? "yemape-home" : "yemape-store"}>
         {view === "home" && (
           <>
             <HomeHero
@@ -1116,6 +1117,7 @@ function CartDialog({
   remove: (id: string, variant: string) => void;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
+  const errorRef = useRef<HTMLParagraphElement>(null);
   const checkoutKey = useRef("");
   const [step, setStep] = useState<"cart" | "details">("cart");
   const [error, setError] = useState("");
@@ -1152,6 +1154,17 @@ function CartDialog({
   useEffect(() => {
     if (open) ref.current?.scrollTo({ top: 0, behavior: "instant" });
   }, [step, open]);
+  useEffect(() => {
+    if (error) errorRef.current?.focus();
+  }, [error]);
+  const requestedDate = validDate(details.date)
+    ? new Intl.DateTimeFormat("es-PE", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+        timeZone: "America/Lima",
+      }).format(new Date(`${details.date}T12:00:00Z`))
+    : "Elige una fecha";
   const update = <K extends keyof CheckoutDetails>(
     key: K,
     value: CheckoutDetails[K],
@@ -1186,7 +1199,7 @@ function CartDialog({
   return (
     <dialog
       ref={ref}
-      className="cart-dialog"
+      className={`cart-dialog commerce-dialog${step === "details" && count ? " checkout-dialog" : ""}`}
       aria-labelledby="cart-title"
       onCancel={close}
       onClick={(e) => {
@@ -1221,10 +1234,16 @@ function CartDialog({
         ) : (
           <>
             <div className="cart-progress">
-              <span className={step === "cart" ? "active" : ""}>
+              <span
+                className={step === "cart" ? "active" : ""}
+                aria-current={step === "cart" ? "step" : undefined}
+              >
                 01 · Tu selección
               </span>
-              <span className={step === "details" ? "active" : ""}>
+              <span
+                className={step === "details" ? "active" : ""}
+                aria-current={step === "details" ? "step" : undefined}
+              >
                 02 · Coordinar pedido
               </span>
             </div>
@@ -1352,268 +1371,314 @@ function CartDialog({
                 >
                   ← Revisar mi carrito ({count})
                 </button>
-                <label>
-                  Tu nombre
-                  <input
-                    autoComplete="name"
-                    required
-                    minLength={2}
-                    maxLength={100}
-                    value={details.name}
-                    onChange={(e) => update("name", e.target.value)}
-                  />
-                </label>
-                <label>
-                  Teléfono para coordinar
-                  <input
-                    type="tel"
-                    inputMode="tel"
-                    autoComplete="tel"
-                    required
-                    minLength={7}
-                    maxLength={20}
-                    placeholder="Ej.: 934 219 749"
-                    value={details.phone}
-                    onChange={(e) => update("phone", e.target.value)}
-                  />
-                  <small>
-                    Lo usaremos para identificar tu solicitud y coordinar por
-                    WhatsApp.
-                  </small>
-                </label>
-                <fieldset>
-                  <legend>¿Cómo prefieres recibirlo?</legend>
-                  <div className="delivery-options">
-                    <label
-                      className={details.delivery === "recojo" ? "chosen" : ""}
-                    >
+                <div className="checkout-fields">
+                  <div className="checkout-section-heading">
+                    <h3>Tu contacto</h3>
+                    <p>
+                      Nombre, teléfono y fecha son obligatorios para coordinar.
+                    </p>
+                  </div>
+                  <div className="checkout-contact">
+                    <label>
+                      Tu nombre
                       <input
-                        type="radio"
-                        name="delivery"
-                        value="recojo"
-                        checked={details.delivery === "recojo"}
-                        onChange={() => update("delivery", "recojo")}
+                        autoComplete="name"
+                        required
+                        minLength={2}
+                        maxLength={100}
+                        value={details.name}
+                        onChange={(e) => update("name", e.target.value)}
                       />
-                      <ShoppingBag size={18} /> Recojo
                     </label>
-                    <label
-                      className={
-                        details.delivery === "delivery" ? "chosen" : ""
-                      }
-                    >
+                    <label>
+                      Teléfono para coordinar
                       <input
-                        type="radio"
-                        name="delivery"
-                        value="delivery"
-                        checked={details.delivery === "delivery"}
-                        onChange={() => update("delivery", "delivery")}
+                        type="tel"
+                        inputMode="tel"
+                        autoComplete="tel"
+                        required
+                        minLength={7}
+                        maxLength={20}
+                        placeholder="Ej.: 934 219 749"
+                        value={details.phone}
+                        onChange={(e) => update("phone", e.target.value)}
                       />
-                      <Truck size={18} /> Delivery
+                      <small>
+                        Lo usaremos para identificar tu solicitud y coordinar
+                        por WhatsApp.
+                      </small>
                     </label>
                   </div>
-                  {DEMO_MODE && (
+                  <div className="checkout-section-heading">
+                    <h3>Entrega y fecha</h3>
+                  </div>
+                  <fieldset>
+                    <legend>¿Cómo prefieres recibirlo?</legend>
+                    <div className="delivery-options">
+                      <label
+                        className={
+                          details.delivery === "recojo" ? "chosen" : ""
+                        }
+                      >
+                        <input
+                          type="radio"
+                          name="delivery"
+                          value="recojo"
+                          checked={details.delivery === "recojo"}
+                          onChange={() => update("delivery", "recojo")}
+                        />
+                        <ShoppingBag size={18} /> Recojo
+                      </label>
+                      <label
+                        className={
+                          details.delivery === "delivery" ? "chosen" : ""
+                        }
+                      >
+                        <input
+                          type="radio"
+                          name="delivery"
+                          value="delivery"
+                          checked={details.delivery === "delivery"}
+                          onChange={() => update("delivery", "delivery")}
+                        />
+                        <Truck size={18} /> Delivery
+                      </label>
+                    </div>
+                  </fieldset>
+                  {details.delivery === "delivery" ? (
+                    <label>
+                      Distrito y dirección
+                      <input
+                        autoComplete="street-address"
+                        required
+                        minLength={8}
+                        maxLength={250}
+                        value={details.address}
+                        onChange={(e) => update("address", e.target.value)}
+                      />
+                      <small>
+                        Confirmaremos cobertura y costo de envío por WhatsApp.
+                      </small>
+                    </label>
+                  ) : (
                     <p className="helper">
-                      {details.delivery === "delivery"
-                        ? `${exampleDelivery.coverage}. ${exampleDelivery.cost}`
-                        : exampleDelivery.pickup}
+                      <MapPin size={15} /> Coordinaremos contigo el punto y
+                      horario de recojo.
                     </p>
                   )}
-                </fieldset>
-                {details.delivery === "delivery" ? (
                   <label>
-                    Distrito y dirección
+                    Fecha deseada
                     <input
-                      autoComplete="street-address"
+                      type="date"
                       required
-                      minLength={8}
-                      maxLength={250}
-                      value={details.address}
-                      onChange={(e) => update("address", e.target.value)}
+                      min={today}
+                      value={details.date}
+                      onChange={(e) => update("date", e.target.value)}
                     />
-                    <small>
-                      Confirmaremos cobertura y costo de envío por WhatsApp.
-                    </small>
+                    <small>La fecha está sujeta a disponibilidad.</small>
                   </label>
-                ) : (
-                  <p className="helper">
-                    <MapPin size={15} /> Coordinaremos contigo el punto y
-                    horario de recojo.
-                  </p>
-                )}
-                <label>
-                  Fecha deseada
-                  <input
-                    type="date"
-                    required
-                    min={today}
-                    value={details.date}
-                    onChange={(e) => update("date", e.target.value)}
-                  />
-                  <small>La fecha está sujeta a disponibilidad.</small>
-                </label>
-                {hasCustomCake && (
-                  <fieldset className="cake-request">
-                    <legend>Detalles de tu torta personalizada</legend>
-                    <p>
-                      Estos datos nos ayudan a preparar tu cotización. Si tienes
-                      una foto de referencia, envíanosla por WhatsApp después.
-                    </p>
+                  {hasCustomCake && (
+                    <fieldset className="cake-request">
+                      <legend>Detalles de tu torta personalizada</legend>
+                      <p>
+                        Estos datos nos ayudan a preparar tu cotización. Si
+                        tienes una foto de referencia, envíanosla por WhatsApp
+                        después.
+                      </p>
+                      <label>
+                        ¿Para cuántas personas?
+                        <input
+                          type="number"
+                          inputMode="numeric"
+                          min={1}
+                          max={500}
+                          required
+                          value={details.cakeGuests ?? ""}
+                          onChange={(e) => update("cakeGuests", e.target.value)}
+                        />
+                      </label>
+                      <label>
+                        Sabor que te gustaría <small>(opcional)</small>
+                        <input
+                          maxLength={80}
+                          placeholder="Si aún no lo sabes, lo coordinamos"
+                          value={details.cakeFlavor ?? ""}
+                          onChange={(e) => update("cakeFlavor", e.target.value)}
+                        />
+                      </label>
+                      <label>
+                        Temática, colores o idea <small>(opcional)</small>
+                        <textarea
+                          maxLength={300}
+                          rows={3}
+                          placeholder="Cuéntanos cómo la imaginas"
+                          value={details.cakeDesign ?? ""}
+                          onChange={(e) => update("cakeDesign", e.target.value)}
+                        />
+                      </label>
+                    </fieldset>
+                  )}
+                  <details className="checkout-extra">
+                    <summary>Añadir una indicación (opcional)</summary>
                     <label>
-                      ¿Para cuántas personas?
-                      <input
-                        type="number"
-                        inputMode="numeric"
-                        min={1}
-                        max={500}
-                        required
-                        value={details.cakeGuests ?? ""}
-                        onChange={(e) => update("cakeGuests", e.target.value)}
+                      ¿Algo que debamos saber? <small>(opcional)</small>
+                      <textarea
+                        maxLength={500}
+                        rows={3}
+                        placeholder="Alguna indicación para los demás productos…"
+                        value={details.notes}
+                        onChange={(e) => update("notes", e.target.value)}
                       />
                     </label>
+                  </details>
+                  <details className="gift-request">
+                    <summary>
+                      ¿Es para regalo o celebración? Añade una dedicatoria
+                    </summary>
                     <label>
-                      Sabor que te gustaría <small>(opcional)</small>
+                      Ocasión <small>(opcional)</small>
                       <input
                         maxLength={80}
-                        placeholder="Si aún no lo sabes, lo coordinamos"
-                        value={details.cakeFlavor ?? ""}
-                        onChange={(e) => update("cakeFlavor", e.target.value)}
+                        placeholder="Por ejemplo, cumpleaños"
+                        value={details.occasion ?? ""}
+                        onChange={(e) => update("occasion", e.target.value)}
                       />
                     </label>
                     <label>
-                      Temática, colores o idea <small>(opcional)</small>
+                      Dedicatoria solicitada <small>(opcional)</small>
                       <textarea
-                        maxLength={300}
-                        rows={3}
-                        placeholder="Cuéntanos cómo la imaginas"
-                        value={details.cakeDesign ?? ""}
-                        onChange={(e) => update("cakeDesign", e.target.value)}
+                        maxLength={180}
+                        rows={2}
+                        placeholder="Mensaje que te gustaría incluir"
+                        value={details.giftNote ?? ""}
+                        onChange={(e) => update("giftNote", e.target.value)}
                       />
                     </label>
-                  </fieldset>
-                )}
-                <label>
-                  ¿Algo que debamos saber? <small>(opcional)</small>
-                  <textarea
-                    maxLength={500}
-                    rows={3}
-                    placeholder="Alguna indicación para los demás productos…"
-                    value={details.notes}
-                    onChange={(e) => update("notes", e.target.value)}
-                  />
-                </label>
-                <details className="gift-request">
-                  <summary>
-                    ¿Es para regalo o celebración? Añade una dedicatoria
-                  </summary>
-                  <label>
-                    Ocasión <small>(opcional)</small>
-                    <input
-                      maxLength={80}
-                      placeholder="Por ejemplo, cumpleaños"
-                      value={details.occasion ?? ""}
-                      onChange={(e) => update("occasion", e.target.value)}
-                    />
-                  </label>
-                  <label>
-                    Dedicatoria solicitada <small>(opcional)</small>
-                    <textarea
-                      maxLength={180}
-                      rows={2}
-                      placeholder="Mensaje que te gustaría incluir"
-                      value={details.giftNote ?? ""}
-                      onChange={(e) => update("giftNote", e.target.value)}
-                    />
-                  </label>
-                  <p>
-                    Confirmaremos por WhatsApp si podemos incluir la
-                    dedicatoria.
-                  </p>
-                </details>
-                <section
-                  className="checkout-review"
-                  aria-labelledby="checkout-review-title"
-                >
-                  <div className="checkout-review-heading">
-                    <h3 id="checkout-review-title">Revisa tu selección</h3>
-                    <button
-                      type="button"
-                      className="text-button"
-                      onClick={() => setStep("cart")}
+                    <p>
+                      Confirmaremos por WhatsApp si podemos incluir la
+                      dedicatoria.
+                    </p>
+                  </details>
+                </div>
+                <div className="checkout-aside">
+                  <section
+                    className="checkout-review"
+                    aria-labelledby="checkout-review-title"
+                  >
+                    <div className="checkout-review-heading">
+                      <h3 id="checkout-review-title">Revisa tu selección</h3>
+                      <button
+                        type="button"
+                        className="text-button"
+                        onClick={() => setStep("cart")}
+                      >
+                        Editar
+                      </button>
+                    </div>
+                    <ul>
+                      {lines.map((line) => (
+                        <li key={`${line.id}:${line.variant}`}>
+                          <span>
+                            {line.quantity} × {line.product.name}
+                            <small>{line.offer.label}</small>
+                          </span>
+                          <strong>
+                            {line.offer.priceCents === null
+                              ? "Por cotizar"
+                              : `${money(line.offer.priceCents * line.quantity)}${line.offer.example ? " · ejemplo" : ""}`}
+                          </strong>
+                        </li>
+                      ))}
+                    </ul>
+                    <div className="review-total">
+                      <span>
+                        {examples
+                          ? "Estimado de muestra"
+                          : unpriced
+                            ? "Importe de productos"
+                            : "Subtotal de productos"}
+                      </span>
+                      <strong>
+                        {unpriced
+                          ? subtotal > 0
+                            ? `${money(subtotal)} + por cotizar`
+                            : "Por cotizar"
+                          : money(subtotal)}
+                      </strong>
+                    </div>
+                    {examples && (
+                      <p className="demo-disclaimer">
+                        Estimación ficticia para mostrar el flujo. El importe
+                        definitivo se confirma por WhatsApp.
+                      </p>
+                    )}
+                    <dl className="checkout-coordination">
+                      <div>
+                        <dt>
+                          <CalendarDays size={16} aria-hidden="true" /> Fecha
+                          solicitada
+                        </dt>
+                        <dd>{requestedDate}</dd>
+                      </div>
+                      <div>
+                        <dt>
+                          <MapPin size={16} aria-hidden="true" /> Entrega
+                        </dt>
+                        <dd>
+                          {details.delivery === "delivery"
+                            ? "Delivery"
+                            : "Recojo"}
+                        </dd>
+                      </div>
+                      {details.delivery === "delivery" && (
+                        <div>
+                          <dt>Dirección solicitada</dt>
+                          <dd>
+                            {details.address.trim() ||
+                              "Completa distrito y dirección"}
+                          </dd>
+                        </div>
+                      )}
+                    </dl>
+                    <p>
+                      {details.delivery === "delivery"
+                        ? "Costo de delivery pendiente de confirmar."
+                        : "Punto y horario de recojo por coordinar."}
+                    </p>
+                  </section>
+                  <div className="order-notice">
+                    <MessageCircle size={20} />
+                    <p>
+                      Abriremos WhatsApp con tu solicitud lista para enviar.
+                      Confirmaremos disponibilidad, importe y pago contigo antes
+                      de aceptar el pedido.
+                    </p>
+                  </div>
+                  {error && (
+                    <p
+                      ref={errorRef}
+                      className="form-error"
+                      role="alert"
+                      tabIndex={-1}
                     >
-                      Editar
-                    </button>
-                  </div>
-                  <ul>
-                    {lines.map((line) => (
-                      <li key={`${line.id}:${line.variant}`}>
-                        <span>
-                          {line.quantity} × {line.product.name}
-                          <small>{line.offer.label}</small>
-                        </span>
-                        <strong>
-                          {line.offer.priceCents === null
-                            ? "Por cotizar"
-                            : `${money(line.offer.priceCents * line.quantity)}${line.offer.example ? " · ejemplo" : ""}`}
-                        </strong>
-                      </li>
-                    ))}
-                  </ul>
-                  <div className="review-total">
-                    <span>
-                      {examples
-                        ? "Estimado de muestra"
-                        : unpriced
-                          ? "Importe de productos"
-                          : "Subtotal de productos"}
-                    </span>
-                    <strong>
-                      {unpriced
-                        ? subtotal > 0
-                          ? `${money(subtotal)} + por cotizar`
-                          : "Por cotizar"
-                        : money(subtotal)}
-                    </strong>
-                  </div>
-                  {examples && (
-                    <p className="demo-disclaimer">
-                      Estimación ficticia para mostrar el flujo. El importe
-                      definitivo se confirma por WhatsApp.
+                      {error}
                     </p>
                   )}
-                  <p>
-                    {details.delivery === "delivery"
-                      ? "Costo de delivery pendiente de confirmar."
-                      : "Punto y horario de recojo por coordinar."}
-                  </p>
-                </section>
-                <div className="order-notice">
-                  <MessageCircle size={20} />
-                  <p>
-                    Primero registraremos tu solicitud con un código Yemape y
-                    después abriremos WhatsApp con el pedido listo para enviar.
-                    La solicitud no queda confirmada hasta que coordinemos
-                    disponibilidad y pago contigo.
+                  <button
+                    disabled={pending}
+                    className="button whatsapp-button full"
+                    type="submit"
+                  >
+                    <MessageCircle size={19} />
+                    {pending
+                      ? "Preparando tu pedido…"
+                      : "Finalizar pedido por WhatsApp"}
+                  </button>
+                  <p className="form-privacy">
+                    Usaremos estos datos para coordinar tu pedido.{" "}
+                    <Link href="/privacidad">Ver privacidad</Link>.
                   </p>
                 </div>
-                {error && (
-                  <p className="form-error" role="alert">
-                    {error}
-                  </p>
-                )}
-                <button
-                  disabled={pending}
-                  className="button whatsapp-button full"
-                  type="submit"
-                >
-                  <MessageCircle size={19} />
-                  {pending
-                    ? "Preparando tu pedido…"
-                    : "Finalizar pedido por WhatsApp"}
-                </button>
-                <p className="form-privacy">
-                  Usaremos estos datos para coordinar tu pedido.{" "}
-                  <Link href="/privacidad">Ver privacidad</Link>.
-                </p>
               </form>
             )}
           </>

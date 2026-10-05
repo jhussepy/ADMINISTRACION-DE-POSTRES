@@ -96,6 +96,7 @@ test("custom cake page leads to guest WhatsApp order with customer details", asy
   await cart
     .getByLabel("Temática, colores o idea")
     .fill("Flores en tonos pastel");
+  await cart.getByText("Añadir una indicación (opcional)").click();
   await cart
     .getByLabel("¿Algo que debamos saber?")
     .fill("Dedicatoria para María");
@@ -329,6 +330,7 @@ test("public catalogue, cart persistence, guest checkout and WhatsApp handoff", 
   await dialog.getByLabel("Distrito y dirección").fill("Ventanilla, calle 123");
   await dialog.getByLabel("Teléfono para coordinar").fill("934 219 749");
   await dialog.getByLabel("Fecha deseada").fill("2099-09-30");
+  await dialog.getByText("Añadir una indicación (opcional)").click();
   await dialog
     .getByLabel("¿Algo que debamos saber?")
     .fill("Celebración + fresas");

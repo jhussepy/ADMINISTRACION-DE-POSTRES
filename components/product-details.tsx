@@ -42,7 +42,7 @@ export function ProductDetails({
   return (
     <dialog
       ref={dialog}
-      className="product-dialog"
+      className="product-dialog commerce-product-dialog"
       aria-labelledby="product-detail-title"
       onCancel={onClose}
       onClick={(e) => {
