@@ -6,6 +6,8 @@ import { ArrowDown, ArrowRight, MessageCircle } from "lucide-react";
 import type { Product } from "@/lib/types";
 import { categories } from "@/lib/types";
 import { DessertFilm } from "./dessert-film";
+import { ProductFilm } from "./product-film";
+import { productFilm } from "@/lib/product-media";
 
 type SelectProduct = (product: Product, trigger: HTMLButtonElement) => void;
 
@@ -163,10 +165,13 @@ export function HomeCategories({ products }: { products: Product[] }) {
 export function DessertSpotlight({
   product,
   onSelect,
+  paused,
 }: {
   product: Product;
   onSelect: SelectProduct;
+  paused: boolean;
 }) {
+  const film = productFilm(product);
   return (
     <section
       id="hecho-con-carino"
@@ -175,13 +180,24 @@ export function DessertSpotlight({
     >
       <div className="spotlight-editorial-layout">
         <figure className="spotlight-editorial-figure" data-reveal>
-          <div className="spotlight-editorial-photo">
-            <Image
-              src={product.image}
-              alt={product.name}
-              fill
-              sizes="(max-width: 760px) 90vw, (max-width: 1300px) 50vw, 640px"
-            />
+          <div
+            className={`spotlight-editorial-photo${film ? " has-product-film" : ""}`}
+          >
+            {film ? (
+              <ProductFilm
+                media={film}
+                name={product.name}
+                autoplay
+                paused={paused}
+              />
+            ) : (
+              <Image
+                src={product.image}
+                alt={product.name}
+                fill
+                sizes="(max-width: 760px) 90vw, (max-width: 1300px) 50vw, 640px"
+              />
+            )}
           </div>
           <figcaption>
             <span>POSTRE DESTACADO</span>

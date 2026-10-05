@@ -28,6 +28,7 @@ export function ProductPage({
   inCart,
   cartCount,
   ready,
+  paused,
   onAdd,
   onOrder,
   onViewCart,
@@ -37,6 +38,7 @@ export function ProductPage({
   inCart: number;
   cartCount: number;
   ready: boolean;
+  paused: boolean;
   onAdd: (amount: number, variant: string) => void;
   onOrder: (amount: number, variant: string) => void;
   onViewCart: () => void;
@@ -94,7 +96,7 @@ export function ProductPage({
         <span aria-current="page">{product.name}</span>
       </div>
       <article id="ficha-postre" className="product-page section-wrap">
-        <ProductGallery product={product} />
+        <ProductGallery product={product} paused={paused} />
         <div className="product-page-copy">
           <div className="product-page-heading-row">
             <span className="eyebrow">

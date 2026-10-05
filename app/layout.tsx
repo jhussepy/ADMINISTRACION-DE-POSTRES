@@ -8,6 +8,7 @@ import "./dessert-film.css";
 import "./commerce.css";
 import "./editorial.css";
 import "./product-experience.css";
+import "./product-video.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl()),

@@ -126,3 +126,10 @@ En celular, la ficha conserva un acceso a agregar la presentación y cantidad el
 [Ficha en computadora](docs/product-experience-desktop.webp) · [Galería ampliada](docs/product-experience-gallery.webp) · [Presentaciones en celular](docs/product-experience-options.webp) · [Carrito lateral](docs/product-experience-cart.webp) · [Carrito en celular](docs/product-experience-cart-mobile.webp) · [Vista rápida](docs/product-experience-quick-view.webp)
 
 Esta mejora gráfica no requiere ejecutar SQL ni cambiar variables de entorno.
+
+
+## Video del pie de limón
+
+El video enviado por el propietario aparece en «El toque Yemape» y como opción de la galería de `pie-limon`, tanto en su ficha como en la vista rápida. Usa un fotograma del propio clip como respaldo, respeta el encuadre horizontal y ofrece pausa y «Ver otra vez». Las fotos administradas siguen disponibles en la galería.
+
+[Comportamiento y archivos del video](docs/PIE_DE_LIMON_VIDEO.md). Esta incorporación no requiere SQL ni nuevas variables.
