@@ -373,6 +373,7 @@ export async function createDessertScene(
   let visible = false;
   let disposed = false;
   let failed = false;
+  let painted = false;
   let frame = 0;
   let last = 0;
   let time = 0;
@@ -419,6 +420,7 @@ export async function createDessertScene(
     }
     if (crumbs) crumbs.rotation.y = reduced ? 0 : Math.sin(time * 0.24) * 0.16;
     renderer.render(world, camera);
+    painted = true;
     host.dataset.angle = yaw.toFixed(4);
     host.dataset.frames = String(renderer.info.render.frame);
     host.dataset.state = reduced ? "reduced" : isActive() ? "active" : "paused";
@@ -433,7 +435,7 @@ export async function createDessertScene(
     frame = 0;
     last = 0;
     host.dataset.state = reduced ? "reduced" : isActive() ? "active" : "paused";
-    schedule();
+    if (isActive() || !painted) schedule();
   }
   function resize() {
     const { width, height } = host.getBoundingClientRect();
@@ -455,6 +457,7 @@ export async function createDessertScene(
   function preferenceChange() {
     reduced = preference.matches;
     sync();
+    schedule();
   }
   function onScroll() {
     if (!visible || reduced || paused) return;
