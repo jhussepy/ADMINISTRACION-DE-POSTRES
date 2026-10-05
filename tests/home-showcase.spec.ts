@@ -212,7 +212,7 @@ test("data saver defers video bytes until manual playback", async ({
   await expect(film).toHaveAttribute("data-state", "playing");
 });
 
-test("film framing fits five widths and the category scroller remains reachable", async ({
+test("film framing fits eight widths and the category scroller remains reachable", async ({
   page,
 }, testInfo) => {
   test.skip(
@@ -221,7 +221,7 @@ test("film framing fits five widths and the category scroller remains reachable"
   );
   test.setTimeout(60000);
   await page.emulateMedia({ reducedMotion: "reduce" });
-  for (const width of [375, 700, 768, 1024, 1440]) {
+  for (const width of [320, 375, 621, 700, 768, 950, 1024, 1440]) {
     await page.setViewportSize({ width, height: 1000 });
     await page.goto("/");
     const frame = page.locator(".dessert-film-frame");
@@ -260,4 +260,62 @@ test("film framing fits five widths and the category scroller remains reachable"
   await expect(
     page.getByRole("heading", { name: "De un antojo a tu mesa." }),
   ).toBeInViewport();
+});
+
+test("photographic categories open their filter and preserve the cart on return", async ({
+  page,
+}) => {
+  await page.goto("/catalogo");
+  await page
+    .getByRole("button", { name: "Agregar Torta de chocolate al carrito" })
+    .click();
+  await page
+    .getByRole("banner")
+    .getByRole("link", { name: "Yemape, inicio" })
+    .click();
+  const categories = page.getByRole("region", {
+    name: "Categorías de postres",
+  });
+  await expect(categories.locator(".photo-category")).toHaveCount(6);
+  await categories.getByRole("link", { name: "Pies", exact: true }).click();
+  await expect(page).toHaveURL(/\/catalogo\?categoria=Pies$/);
+  await expect(page.locator(".product-card")).toHaveCount(3);
+  await expect(
+    page.getByRole("button", { name: "Pies", exact: true }),
+  ).toHaveAttribute("aria-pressed", "true");
+  await page.goBack();
+  await expect(page).toHaveURL(/\/$/);
+  await page
+    .getByRole("button", { name: "Abrir carrito, 1 productos" })
+    .click();
+  await expect(page.getByRole("dialog", { name: "Tu carrito" })).toContainText(
+    "Torta de chocolate",
+  );
+});
+
+test("editorial photograph loads and reduced motion leaves every section readable", async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/");
+  const photo = page.locator(".spotlight-editorial-photo img");
+  await photo.scrollIntoViewIfNeeded();
+  await expect
+    .poll(() => photo.evaluate((el: HTMLImageElement) => el.naturalWidth), {
+      timeout: 15000,
+    })
+    .toBeGreaterThan(0);
+  await expect(page.locator('[data-reveal-state="pending"]')).toHaveCount(0);
+  await expect(page.locator(".editorial-spotlight")).toContainText(
+    "Torta de chocolate",
+  );
+  await page
+    .locator(".editorial-spotlight")
+    .getByRole("button", {
+      name: "Elegir Torta de chocolate en el postre estrella",
+    })
+    .click();
+  await expect(
+    page.getByRole("dialog", { name: "Torta de chocolate", exact: true }),
+  ).toBeVisible();
 });

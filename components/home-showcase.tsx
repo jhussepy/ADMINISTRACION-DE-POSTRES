@@ -2,8 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowDown, ArrowRight, CakeSlice, MessageCircle } from "lucide-react";
+import { ArrowDown, ArrowRight, MessageCircle } from "lucide-react";
 import type { Product } from "@/lib/types";
+import { categories } from "@/lib/types";
 import { DessertFilm } from "./dessert-film";
 
 type SelectProduct = (product: Product, trigger: HTMLButtonElement) => void;
@@ -105,6 +106,60 @@ export function HomeHero({
   );
 }
 
+export function HomeCategories({ products }: { products: Product[] }) {
+  const selections = categories.flatMap((category) => {
+    const cover = products.find((product) => product.category === category);
+    return cover ? [{ category, cover }] : [];
+  });
+  if (!selections.length) return null;
+
+  return (
+    <section
+      className="home-categories category-section"
+      aria-label="Categorías de postres"
+    >
+      <div className="section-heading" data-reveal>
+        <div>
+          <span className="eyebrow">LA CARTA, A TU MANERA</span>
+          <h2>Cada antojo tiene su lugar.</h2>
+        </div>
+        <Link className="text-link" href="/catalogo">
+          Toda la carta <ArrowRight size={18} aria-hidden="true" />
+        </Link>
+      </div>
+      <div className="category-list photo-category-list">
+        {selections.map(({ category, cover }, index) => (
+          <Link
+            className="photo-category"
+            key={category}
+            href={`/catalogo?categoria=${encodeURIComponent(category)}`}
+            aria-label={category}
+          >
+            <div className="photo-category-frame">
+              <Image
+                src={cover.image}
+                alt=""
+                fill
+                sizes="(max-width: 620px) 42vw, (max-width: 950px) 28vw, 180px"
+              />
+            </div>
+            <div className="photo-category-caption">
+              <span className="photo-category-number" aria-hidden="true">
+                {String(index + 1).padStart(2, "0")}
+              </span>
+              <span>{category}</span>
+              <ArrowRight size={17} aria-hidden="true" />
+            </div>
+          </Link>
+        ))}
+      </div>
+      <span className="photo-category-hint" aria-hidden="true">
+        Desliza y encuentra tu antojo <ArrowRight size={14} />
+      </span>
+    </section>
+  );
+}
+
 export function DessertSpotlight({
   product,
   onSelect,
@@ -115,80 +170,46 @@ export function DessertSpotlight({
   return (
     <section
       id="hecho-con-carino"
-      className="dessert-spotlight immersive-spotlight"
+      className="dessert-spotlight immersive-spotlight editorial-spotlight"
       aria-labelledby="spotlight-title"
     >
-      <div className="spotlight-intro">
-        <span className="patisserie-eyebrow">EL TOQUE YEMAPE</span>
-        <h2 id="spotlight-title">
-          El detalle que hace
-          <br />
-          <em>la diferencia.</em>
-        </h2>
-        <p>
-          Ese cumpleaños que esperabas, una tarde en familia o un detalle para
-          alguien especial. Hay un postre para cada momento.
-        </p>
-      </div>
-      <div className="spotlight-composition">
-        <article className="spotlight-feature feature-one">
-          <span>01 / TU ANTOJO</span>
-          <h3>El sabor que eliges</h3>
-          <p>
-            Descubre la descripción de cada postre y encuentra tu próximo
-            favorito.
-          </p>
-        </article>
-        <article className="spotlight-feature feature-two">
-          <span>02 / TU PRESENTACIÓN</span>
-          <h3>Para tu momento</h3>
-          <p>
-            Revisa las presentaciones en la ficha. Coordinamos tamaño y
-            disponibilidad contigo.
-          </p>
-        </article>
-        <div className="spotlight-dessert is-photo">
-          <div className="spotlight-photo">
+      <div className="spotlight-editorial-layout">
+        <figure className="spotlight-editorial-figure" data-reveal>
+          <div className="spotlight-editorial-photo">
             <Image
               src={product.image}
               alt={product.name}
               fill
-              sizes="(max-width: 700px) 90vw, 540px"
+              sizes="(max-width: 760px) 90vw, (max-width: 1300px) 50vw, 640px"
             />
           </div>
+          <figcaption>
+            <span>POSTRE DESTACADO</span>
+            <span>{product.category}</span>
+          </figcaption>
+        </figure>
+        <div className="spotlight-editorial-copy" data-reveal>
+          <span className="patisserie-eyebrow">EL TOQUE YEMAPE</span>
+          <h2 id="spotlight-title">
+            El detalle que hace <em>la diferencia.</em>
+          </h2>
+          <div className="spotlight-editorial-product">
+            <h3>{product.name}</h3>
+            <p>{product.description}</p>
+          </div>
+          <button
+            type="button"
+            className="button"
+            onClick={(event) => onSelect(product, event.currentTarget)}
+            aria-label={`Elegir ${product.name} en el postre estrella`}
+          >
+            Elige tu presentación <ArrowRight size={18} aria-hidden="true" />
+          </button>
+          <p className="spotlight-editorial-note">
+            Lo coordinamos contigo por WhatsApp.
+            <small>Presentación, disponibilidad y precio por confirmar.</small>
+          </p>
         </div>
-        <article className="spotlight-feature feature-three">
-          <span>03 / A TU RITMO</span>
-          <h3>Con cuenta o sin ella</h3>
-          <p>
-            Explora, elige y llena tu carrito. Puedes pedir sin crear una
-            cuenta.
-          </p>
-        </article>
-        <article className="spotlight-feature feature-four">
-          <span>04 / CONTIGO</span>
-          <h3>Lo conversamos</h3>
-          <p>
-            Confirmamos fecha, entrega e importe por WhatsApp antes de preparar
-            tu pedido.
-          </p>
-        </article>
-      </div>
-      <div className="spotlight-choice">
-        <span className="spotlight-category">
-          <CakeSlice size={17} aria-hidden="true" /> {product.category}
-        </span>
-        <h3>{product.name}</h3>
-        <p>{product.description}</p>
-        <button
-          type="button"
-          className="button"
-          onClick={(event) => onSelect(product, event.currentTarget)}
-          aria-label={`Elegir ${product.name} en el postre estrella`}
-        >
-          Elige tu presentación <ArrowRight size={18} aria-hidden="true" />
-        </button>
-        <small>Presentación, disponibilidad y precio por confirmar.</small>
       </div>
     </section>
   );

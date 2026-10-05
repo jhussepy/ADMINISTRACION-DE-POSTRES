@@ -49,7 +49,8 @@ import { ProductDetails } from "./product-details";
 import { ProductPage } from "./product-page";
 import { StoreFaq } from "./store-faq";
 import { WaveGallery } from "./wave-gallery";
-import { HomeHero, DessertSpotlight } from "./home-showcase";
+import { HomeHero, HomeCategories, DessertSpotlight } from "./home-showcase";
+import { useScrollReveal } from "./scroll-reveal";
 type Account = {
   name: string;
   email: string;
@@ -107,6 +108,8 @@ export function Storefront({
   initialSort?: CatalogSort;
 }) {
   const router = useRouter();
+  const storefrontRef = useRef<HTMLDivElement>(null);
+  useScrollReveal(storefrontRef, view === "home");
   const [cart, setCart] = useState<CartItem[]>([]),
     [ready, setReady] = useState(false),
     [storageError, setStorageError] = useState(false);
@@ -311,7 +314,7 @@ export function Storefront({
     timer.current = setTimeout(() => setNotice(""), 3000);
   }
   return (
-    <>
+    <div className="yemape-public" ref={storefrontRef}>
       <a
         className="skip-link"
         href={
@@ -391,6 +394,7 @@ export function Storefront({
               className="icon-button mobile-menu"
               aria-expanded={menu}
               aria-label="Abrir menú"
+              aria-controls="store-navigation"
               onClick={() => setMenu(!menu)}
             >
               {menu ? <X /> : <Menu />}
@@ -398,6 +402,7 @@ export function Storefront({
           </div>
         </div>
         <nav
+          id="store-navigation"
           className={`main-nav ${menu ? "is-open" : ""}`}
           aria-label="Navegación principal"
         >
@@ -499,55 +504,44 @@ export function Storefront({
                 : "catalog-layout"
             }
           >
-            <section
-              className="category-section"
-              aria-label="Categorías de postres"
-            >
-              {view === "catalog" && (
-                <div className="catalog-category-heading">
-                  <div>
-                    <span className="eyebrow">EXPLORA YEMAPE</span>
-                    <h2>Encuentra tu favorito</h2>
+            {view === "home" ? (
+              <HomeCategories products={products} />
+            ) : (
+              <section
+                className="category-section"
+                aria-label="Categorías de postres"
+              >
+                {view === "catalog" && (
+                  <div className="catalog-category-heading">
+                    <div>
+                      <span className="eyebrow">EXPLORA YEMAPE</span>
+                      <h2>Encuentra tu favorito</h2>
+                    </div>
+                    <span className="category-scroll-hint" aria-hidden="true">
+                      Desliza para ver más <ArrowRight size={14} />
+                    </span>
                   </div>
-                  <span className="category-scroll-hint" aria-hidden="true">
-                    Desliza para ver más <ArrowRight size={14} />
-                  </span>
+                )}
+                <div className="category-list">
+                  {(["Todos", ...availableCategories] as const).map((c) => {
+                    const Icon = categoryIcons[c];
+                    return (
+                      <button
+                        className={`category ${category === c ? "selected" : ""}`}
+                        key={c}
+                        onClick={() => choose(c)}
+                        aria-pressed={category === c}
+                      >
+                        <span className="category-icon">
+                          <Icon size={27} strokeWidth={1.4} />
+                        </span>
+                        <span>{c === "Todos" ? "Todos los antojos" : c}</span>
+                      </button>
+                    );
+                  })}
                 </div>
-              )}
-              <div className="category-list">
-                {(["Todos", ...availableCategories] as const).map((c) => {
-                  const Icon = categoryIcons[c];
-                  return view === "home" ? (
-                    <Link
-                      className="category"
-                      key={c}
-                      href={
-                        c === "Todos"
-                          ? "/catalogo"
-                          : `/catalogo?categoria=${encodeURIComponent(c)}`
-                      }
-                    >
-                      <span className="category-icon">
-                        <Icon size={27} strokeWidth={1.4} />
-                      </span>
-                      <span>{c === "Todos" ? "Toda la carta" : c}</span>
-                    </Link>
-                  ) : (
-                    <button
-                      className={`category ${category === c ? "selected" : ""}`}
-                      key={c}
-                      onClick={() => choose(c)}
-                      aria-pressed={category === c}
-                    >
-                      <span className="category-icon">
-                        <Icon size={27} strokeWidth={1.4} />
-                      </span>
-                      <span>{c === "Todos" ? "Todos los antojos" : c}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </section>
+              </section>
+            )}
             <section
               id={view === "home" ? "destacados" : "catalogo"}
               className={`catalog section-wrap ${view === "home" ? "featured-catalog" : ""}`}
@@ -726,15 +720,12 @@ export function Storefront({
                             fill
                             sizes="(max-width: 359px) 100vw, (max-width: 1020px) 50vw, 25vw"
                           />
-                          <span className="product-label">{p.category}</span>
                           <span className="product-discover">
                             Ver detalles <ArrowRight size={15} />
                           </span>
                         </button>
                         <div className="product-info">
-                          <span className="product-presentation">
-                            {first.label}
-                          </span>
+                          <span className="product-label">{p.category}</span>
                           <h3>
                             <Link
                               className="product-title-button"
@@ -743,6 +734,9 @@ export function Storefront({
                               {p.name}
                             </Link>
                           </h3>
+                          <span className="product-presentation">
+                            {first.label}
+                          </span>
                           <p>{p.description}</p>
                           <div className="product-buy">
                             <strong>
@@ -856,6 +850,7 @@ export function Storefront({
                     key={item.title}
                     href={`/catalogo?categoria=${item.category}`}
                     className="occasion-card"
+                    data-reveal
                   >
                     <Image
                       src={item.image}
@@ -1094,7 +1089,7 @@ export function Storefront({
           )
         }
       />
-    </>
+    </div>
   );
 }
 function CartDialog({
