@@ -200,6 +200,8 @@ export function Storefront({
   const summary = cartSummary(cart, products);
   const featured =
     products.find((p) => p.id === "torta-chocolate") ?? products[0];
+  const spotlight =
+    products.find((p) => p.id === "pie-limon" && p.active) ?? featured;
   const customCakeAvailable = products.some(
     (p) => p.id === "torta-personalizada",
   );
@@ -489,6 +491,7 @@ export function Storefront({
               .filter((item) => item.id === product.id)
               .reduce((n, item) => n + item.quantity, 0)}
             ready={ready}
+            paused={sceneMotionPaused}
             onAdd={(amount, variant) => add(product, amount, variant)}
             onOrder={(amount, variant) => {
               add(product, amount, variant);
@@ -807,9 +810,10 @@ export function Storefront({
             </section>
           </div>
         )}
-        {view === "home" && featured && (
+        {view === "home" && spotlight && (
           <DessertSpotlight
-            product={featured}
+            product={spotlight}
+            paused={sceneMotionPaused}
             onSelect={(selected, trigger) => {
               detailTrigger.current = trigger;
               setSelectedProduct(selected);

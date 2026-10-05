@@ -6,18 +6,24 @@ import {
   ArrowLeft,
   ArrowRight,
   Expand,
+  Play,
   X,
   ZoomIn,
   ZoomOut,
 } from "lucide-react";
 import type { Product, ProductImage } from "@/lib/types";
+import { productFilm } from "@/lib/product-media";
+import { ProductFilm } from "./product-film";
+import { ProductVideoDialog } from "./product-video-dialog";
 
 export function ProductGallery({
   product,
   compact = false,
+  paused = false,
 }: {
   product: Product;
   compact?: boolean;
+  paused?: boolean;
 }) {
   const available = product.gallery?.filter((photo) => photo.active) ?? [];
   const photos: ProductImage[] = available.length
@@ -34,6 +40,8 @@ export function ProductGallery({
           sort_order: 0,
         },
       ];
+  const film = productFilm(product);
+  const [view, setView] = useState<"photo" | "video">("photo");
   const cover = photos.find((photo) => photo.is_cover) ?? photos[0];
   const [activeId, setActiveId] = useState(cover.id);
   const [expanded, setExpanded] = useState(false);
@@ -51,38 +59,64 @@ export function ProductGallery({
     <div
       className={`product-page-media${compact ? " compact-product-gallery" : ""}`}
     >
-      <div className={`product-page-image${compact ? " detail-image" : ""}`}>
-        <button
-          ref={trigger}
-          type="button"
-          className="product-gallery-open"
-          aria-label={`Ampliar fotografía de ${product.name}`}
-          aria-haspopup="dialog"
-          onClick={() => setExpanded(true)}
-        >
-          <span className="product-gallery-frame" key={active.id}>
-            <Image
-              src={active.url}
-              alt={
-                active.alt_text || `Presentación referencial de ${product.name}`
-              }
-              fill
-              sizes={
-                compact
-                  ? "(max-width: 760px) 92vw, 490px"
-                  : "(max-width: 760px) 92vw, (max-width: 1440px) 50vw, 620px"
-              }
-              loading="eager"
-            />
-          </span>
-          <span className="product-gallery-expand">
-            <Expand size={16} aria-hidden="true" /> Ampliar foto
-          </span>
-        </button>
-      </div>
+      {view === "video" && film ? (
+        <div className="product-gallery-video">
+          <ProductFilm
+            media={film}
+            name={product.name}
+            requestedPlay
+            paused={paused || expanded}
+          />
+          <button
+            ref={trigger}
+            type="button"
+            className="product-video-expand"
+            aria-label={`Ampliar video de ${product.name}`}
+            aria-haspopup="dialog"
+            onClick={() => setExpanded(true)}
+          >
+            <Expand size={16} aria-hidden="true" /> Ampliar video
+          </button>
+        </div>
+      ) : (
+        <div className={`product-page-image${compact ? " detail-image" : ""}`}>
+          <button
+            ref={trigger}
+            type="button"
+            className="product-gallery-open"
+            aria-label={`Ampliar fotografía de ${product.name}`}
+            aria-haspopup="dialog"
+            onClick={() => setExpanded(true)}
+          >
+            <span className="product-gallery-frame" key={active.id}>
+              <Image
+                src={active.url}
+                alt={
+                  active.alt_text ||
+                  `Presentación referencial de ${product.name}`
+                }
+                fill
+                sizes={
+                  compact
+                    ? "(max-width: 760px) 92vw, 490px"
+                    : "(max-width: 760px) 92vw, (max-width: 1440px) 50vw, 620px"
+                }
+                loading="eager"
+              />
+            </span>
+            <span className="product-gallery-expand">
+              <Expand size={16} aria-hidden="true" /> Ampliar foto
+            </span>
+          </button>
+        </div>
+      )}
       <div className="product-gallery-caption">
-        <span>Fotografía referencial</span>
-        {photos.length > 1 && (
+        <span>
+          {view === "video"
+            ? "Video referencial · 10 segundos"
+            : "Fotografía referencial"}
+        </span>
+        {view === "photo" && photos.length > 1 && (
           <div className="product-gallery-navigation">
             <button
               type="button"
@@ -106,7 +140,7 @@ export function ProductGallery({
           </div>
         )}
       </div>
-      {photos.length > 1 && (
+      {(photos.length > 1 || film) && (
         <div
           className="product-gallery-thumbs"
           aria-label={`Galería de ${product.name}`}
@@ -115,26 +149,53 @@ export function ProductGallery({
             <button
               type="button"
               key={photo.id}
-              className={photo.id === active.id ? "is-active" : ""}
+              className={
+                view === "photo" && photo.id === active.id ? "is-active" : ""
+              }
               aria-label={`Ver foto ${position + 1} de ${photos.length} de ${product.name}`}
-              aria-pressed={photo.id === active.id}
-              onClick={() => setActiveId(photo.id)}
+              aria-pressed={view === "photo" && photo.id === active.id}
+              onClick={() => {
+                setActiveId(photo.id);
+                setView("photo");
+              }}
             >
               <Image src={photo.url} alt="" fill sizes="84px" />
             </button>
           ))}
+          {film && (
+            <button
+              type="button"
+              className={`product-gallery-video-thumb${view === "video" ? " is-active" : ""}`}
+              aria-label={`Ver video de ${product.name}`}
+              aria-pressed={view === "video"}
+              onClick={() => setView("video")}
+            >
+              <Image src={film.poster} alt="" fill sizes="84px" />
+              <Play size={18} aria-hidden="true" />
+              <span>Video</span>
+            </button>
+          )}
         </div>
       )}
-      {expanded && (
-        <PhotoLightbox
-          productName={product.name}
-          photo={active}
-          index={index}
-          count={photos.length}
-          move={move}
+      {expanded && view === "video" && film ? (
+        <ProductVideoDialog
+          media={film}
+          name={product.name}
           onClose={() => setExpanded(false)}
           returnFocusTo={trigger.current}
         />
+      ) : (
+        expanded && (
+          <PhotoLightbox
+            productName={product.name}
+            photo={active}
+            index={index}
+            count={photos.length}
+            move={move}
+            onClose={() => setExpanded(false)}
+            returnFocusTo={trigger.current}
+          />
+        )
       )}
     </div>
   );

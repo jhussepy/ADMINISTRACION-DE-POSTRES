@@ -16,7 +16,7 @@ El archivo es una película con acercamiento de cámara. No contiene una vuelta 
 - Pausa al abrir la ficha, el carrito o el menú; fuera de pantalla y con la pestaña oculta. Una pausa deliberada del visitante se conserva al volver a la escena.
 - Si el navegador bloquea la reproducción automática, Reproducir permite iniciarla manualmente.
 
-El video se sirve desde el mismo proyecto de Vercel. No hace llamadas a Higgsfield ni requiere nuevas variables o SQL. El postre estrella utiliza la fotografía del catálogo; no se reproduce una segunda película.
+El video se sirve desde el mismo proyecto de Vercel. No hace llamadas a Higgsfield ni requiere nuevas variables o SQL. La sección «El toque Yemape» incorpora ahora la película del pie de limón con carga por visibilidad y reproducción única. Consulta [Video del pie de limón](PIE_DE_LIMON_VIDEO.md) para los controles y la galería.
 
 La pieza se muestra únicamente para `torta-chocolate` con su portada original. Si administración cambia la portada del producto, la web utiliza esa fotografía; si no hay productos disponibles no muestra una torta inventada.
 

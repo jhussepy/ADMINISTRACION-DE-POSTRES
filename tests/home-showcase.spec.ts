@@ -73,14 +73,18 @@ test("uploaded cake film plays, pauses, and leaves both product entries usable",
   const spotlight = page.locator(".immersive-spotlight");
   await spotlight
     .getByRole("button", {
-      name: "Elegir Torta de chocolate en el postre estrella",
+      name: "Elegir Pie de limón en el postre estrella",
     })
     .click();
-  await detail.getByRole("button", { name: /^Agregar 1 al carrito/ }).click();
+  await page
+    .getByRole("dialog", { name: "Pie de limón", exact: true })
+    .getByRole("button", { name: /^Agregar 1 al carrito/ })
+    .click();
   await page
     .getByRole("button", { name: /Abrir carrito, 2 productos/ })
     .click();
-  await expect(cart).toContainText("2");
+  await expect(cart.locator(".cart-item")).toHaveCount(2);
+  await expect(cart).toContainText("Pie de limón");
   expect(models).toEqual([]);
   expect(errors).toEqual([]);
 });
@@ -307,15 +311,15 @@ test("editorial photograph loads and reduced motion leaves every section readabl
     .toBeGreaterThan(0);
   await expect(page.locator('[data-reveal-state="pending"]')).toHaveCount(0);
   await expect(page.locator(".editorial-spotlight")).toContainText(
-    "Torta de chocolate",
+    "Pie de limón",
   );
   await page
     .locator(".editorial-spotlight")
     .getByRole("button", {
-      name: "Elegir Torta de chocolate en el postre estrella",
+      name: "Elegir Pie de limón en el postre estrella",
     })
     .click();
   await expect(
-    page.getByRole("dialog", { name: "Torta de chocolate", exact: true }),
+    page.getByRole("dialog", { name: "Pie de limón", exact: true }),
   ).toBeVisible();
 });
