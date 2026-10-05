@@ -89,18 +89,30 @@ test("checkout summary follows delivery and keeps customer data when editing", a
   });
 });
 
-test("checkout errors focus the explanation and preserve the selection", async ({
+test("each failed checkout attempt refocuses the same error and preserves the selection", async ({
   page,
 }) => {
   const dialog = await openCheckout(page);
   await dialog.getByLabel("Tu nombre", { exact: true }).fill("María Pérez");
   await dialog.getByLabel("Teléfono para coordinar").fill("abcdefghi");
   await dialog.getByLabel("Fecha deseada").fill("2099-09-30");
-  await dialog
-    .getByRole("button", { name: "Finalizar pedido por WhatsApp" })
-    .click();
-  await expect(dialog.getByRole("alert")).toBeFocused();
-  await expect(dialog.getByRole("alert")).toContainText("teléfono");
+  const submit = dialog.getByRole("button", {
+    name: "Finalizar pedido por WhatsApp",
+  });
+  const alert = dialog.getByRole("alert");
+  for (let attempt = 0; attempt < 3; attempt++) {
+    await submit.focus();
+    await expect(submit).toBeFocused();
+    await submit.click();
+    await expect(alert).toBeFocused();
+    await expect(alert).toContainText("teléfono");
+    const noticeBounds = await alert.boundingBox();
+    const dialogBounds = await dialog.boundingBox();
+    expect(noticeBounds!.y).toBeGreaterThanOrEqual(dialogBounds!.y);
+    expect(noticeBounds!.y + noticeBounds!.height).toBeLessThanOrEqual(
+      dialogBounds!.y + dialogBounds!.height,
+    );
+  }
   await expect(dialog.getByLabel("Tu nombre", { exact: true })).toHaveValue(
     "María Pérez",
   );

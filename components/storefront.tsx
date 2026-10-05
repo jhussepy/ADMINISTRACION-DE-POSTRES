@@ -1120,7 +1120,7 @@ function CartDialog({
   const errorRef = useRef<HTMLParagraphElement>(null);
   const checkoutKey = useRef("");
   const [step, setStep] = useState<"cart" | "details">("cart");
-  const [error, setError] = useState("");
+  const [error, setError] = useState<{ message: string } | null>(null);
   const [pending, startTransition] = useTransition();
   const [details, setDetails] = useState<CheckoutDetails>({
     name: account?.profile?.full_name ?? "",
@@ -1142,7 +1142,7 @@ function CartDialog({
       checkoutKey.current = crypto.randomUUID();
       setToday(limaToday());
       setStep("cart");
-      setError("");
+      setError(null);
       document.body.style.overflow = "hidden";
     } else {
       ref.current?.close();
@@ -1155,6 +1155,7 @@ function CartDialog({
     if (open) ref.current?.scrollTo({ top: 0, behavior: "instant" });
   }, [step, open]);
   useEffect(() => {
+    // Each failed attempt creates a new notice, even when its text is unchanged.
     if (error) errorRef.current?.focus();
   }, [error]);
   const requestedDate = validDate(details.date)
@@ -1173,10 +1174,10 @@ function CartDialog({
     e.preventDefault();
     const problem = checkoutError(details, limaToday(), hasCustomCake);
     if (problem) {
-      setError(problem);
+      setError({ message: problem });
       return;
     }
-    setError("");
+    setError(null);
     startTransition(async () => {
       try {
         const result = await prepareCheckout(
@@ -1185,14 +1186,15 @@ function CartDialog({
           checkoutKey.current,
         );
         if (result.error || !result.url) {
-          setError(result.error ?? "No pudimos abrir WhatsApp.");
+          setError({ message: result.error ?? "No pudimos abrir WhatsApp." });
           return;
         }
         window.location.assign(result.url);
       } catch {
-        setError(
-          "No pudimos conectar. Tu carrito sigue guardado; vuelve a intentarlo.",
-        );
+        setError({
+          message:
+            "No pudimos conectar. Tu carrito sigue guardado; vuelve a intentarlo.",
+        });
       }
     });
   }
@@ -1661,7 +1663,7 @@ function CartDialog({
                       role="alert"
                       tabIndex={-1}
                     >
-                      {error}
+                      {error.message}
                     </p>
                   )}
                   <button
