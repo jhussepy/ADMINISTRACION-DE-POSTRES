@@ -5,6 +5,7 @@ Primera versión de la tienda de **Repostería Yemape**, desarrollada con Next.j
 ## Qué está implementado
 
 - Página principal responsive, con identidad propia, portada con el video de la torta enviado por el propietario y fotografías de Yemape optimizadas en WebP.
+- Diseño público renovado: cabecera compacta, categorías fotográficas con las portadas actuales del catálogo, postre destacado con fotografía grande, tarjetas sin etiquetas sobre la imagen y botones uniformes. Las entradas suaves al desplazarse respetan movimiento reducido y el contenido permanece visible sin JavaScript.
 - Catálogo inicial de once productos, incluidos pies de limón, maracuyá y manzana, y brownie de chocolate, con buscador y categorías.
 - Ficha ampliada de cada postre con imagen completa, presentaciones seleccionables y selector de cantidad.
 - Catálogo de dos columnas en celulares desde 360 px y acceso fijo al carrito cuando contiene productos.
@@ -113,5 +114,4 @@ Referencia de estructura aportada por el propietario: María Almenara. No se han
 
 ## Capturas de la versión verificada
 
-[Portada en computadora](docs/preview-desktop.webp) · [Portada en celular](docs/preview-mobile.webp) · [Ficha de producto](docs/preview-product.webp)
-
+[Categorías fotográficas](docs/editorial-categories.webp) · [Postre destacado](docs/editorial-spotlight.webp) · [Catálogo](docs/editorial-catalog.webp) · [Portada en celular](docs/editorial-mobile.webp) · [Ficha de producto](docs/preview-product.webp)
