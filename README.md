@@ -115,3 +115,14 @@ Referencia de estructura aportada por el propietario: María Almenara. No se han
 ## Capturas de la versión verificada
 
 [Categorías fotográficas](docs/editorial-categories.webp) · [Postre destacado](docs/editorial-spotlight.webp) · [Catálogo](docs/editorial-catalog.webp) · [Portada en celular](docs/editorial-mobile.webp) · [Ficha de producto](docs/preview-product.webp)
+
+
+## Fichas y carrito
+
+La ficha y la vista rápida comparten una galería de fotos reales: miniaturas, cambio de foto y vista ampliada con acercamiento. Las fotos inactivas no se muestran. Si el producto tiene una sola foto, se presenta esa foto sin inventar ángulos adicionales. Las fotos adicionales se cargan desde la galería del panel existente.
+
+En celular, la ficha conserva un acceso a agregar la presentación y cantidad elegidas; el carrito aparece como una pantalla completa. En computadora, el carrito abre a la derecha y mantiene el resumen separado de los productos que se desplazan. El formulario sigue permitiendo pedir como invitado o con cuenta.
+
+[Ficha en computadora](docs/product-experience-desktop.webp) · [Galería ampliada](docs/product-experience-gallery.webp) · [Presentaciones en celular](docs/product-experience-options.webp) · [Carrito lateral](docs/product-experience-cart.webp) · [Carrito en celular](docs/product-experience-cart-mobile.webp) · [Vista rápida](docs/product-experience-quick-view.webp)
+
+Esta mejora gráfica no requiere ejecutar SQL ni cambiar variables de entorno.

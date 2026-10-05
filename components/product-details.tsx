@@ -1,13 +1,12 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { X, Minus, Plus, ShoppingBag, MessageCircle } from "lucide-react";
 import type { Product } from "@/lib/types";
 import { MAX_QUANTITY, money } from "@/lib/cart";
-import { productImages } from "@/lib/products";
 import { presentation, presentations } from "@/lib/demo-catalog";
 import { PresentationPicker } from "./presentation-picker";
+import { ProductGallery } from "./product-gallery";
 export function ProductDetails({
   product,
   inCart,
@@ -22,7 +21,6 @@ export function ProductDetails({
   onAdd: (quantity: number, variant: string) => void;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
-  const imageSize = productImages.find((image) => image.path === product.image);
   const [quantity, setQuantity] = useState(1);
   const [variant, setVariant] = useState(() => presentations(product)[0].id);
   const offer = presentation(product, variant)!;
@@ -49,7 +47,8 @@ export function ProductDetails({
         if (e.target === dialog.current) onClose();
       }}
     >
-      <div className="product-detail-layout">
+      <div className="product-detail-toolbar">
+        <span className="eyebrow">VISTA RÁPIDA</span>
         <button
           className="icon-button detail-close"
           aria-label="Cerrar detalle del producto"
@@ -58,15 +57,9 @@ export function ProductDetails({
         >
           <X />
         </button>
-        <div className="detail-image">
-          <Image
-            src={product.image}
-            alt={`Presentación de ${product.name}`}
-            width={imageSize?.width ?? 700}
-            height={imageSize?.height ?? 940}
-            sizes="(max-width: 680px) 85vw, 450px"
-          />
-        </div>
+      </div>
+      <div className="product-detail-layout">
+        <ProductGallery product={product} compact />
         <div className="detail-copy">
           <span className="eyebrow">{product.category}</span>
           <h2 id="product-detail-title">{product.name}</h2>

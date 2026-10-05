@@ -314,7 +314,7 @@ export function Storefront({
     timer.current = setTimeout(() => setNotice(""), 3000);
   }
   return (
-    <div className="yemape-public" ref={storefrontRef}>
+    <div className="yemape-public" data-store-view={view} ref={storefrontRef}>
       <a
         className="skip-link"
         href={
@@ -484,6 +484,7 @@ export function Storefront({
             key={product.id}
             product={product}
             products={products}
+            cartCount={summary.count}
             inCart={cart
               .filter((item) => item.id === product.id)
               .reduce((n, item) => n + item.quantity, 0)}
@@ -1022,7 +1023,7 @@ export function Storefront({
           finalizar.
         </div>
       )}
-      {summary.count > 0 && (
+      {summary.count > 0 && view !== "product" && (
         <div className="mobile-cart-dock" aria-label="Acceso rápido al carrito">
           <div>
             <strong>
@@ -1246,118 +1247,130 @@ function CartDialog({
             </div>
             {step === "cart" ? (
               <>
-                <div className="cart-items">
-                  {lines.map((l) => (
-                    <article className="cart-item" key={`${l.id}:${l.variant}`}>
-                      <Image
-                        src={l.product.image}
-                        alt={l.product.name}
-                        width={82}
-                        height={92}
-                      />
-                      <div className="cart-item-info">
-                        <h3>{l.product.name}</h3>
-                        {presentations(l.product).length > 1 ? (
-                          <label className="cart-presentation">
-                            Presentación de {l.product.name}
-                            <select
-                              value={l.variant}
-                              onChange={(e) =>
-                                chooseVariant(l.id, l.variant!, e.target.value)
-                              }
-                            >
-                              {presentations(l.product).map((option) => (
-                                <option key={option.id} value={option.id}>
-                                  {option.label}
-                                </option>
-                              ))}
-                            </select>
-                          </label>
-                        ) : (
-                          <p>{l.offer.label}</p>
-                        )}
-                        <strong>
-                          {l.offer.priceCents === null
-                            ? "Por cotizar"
-                            : `${money(l.offer.priceCents * l.quantity)}${l.offer.example ? " · ejemplo" : ""}`}
-                        </strong>
-                        <div className="quantity">
-                          <button
-                            aria-label={`Quitar una unidad de ${l.product.name}`}
-                            onClick={() => change(l.id, -1, l.variant!)}
-                          >
-                            <Minus size={14} />
-                          </button>
-                          <span aria-label="Cantidad">{l.quantity}</span>
-                          <button
-                            aria-label={`Sumar una unidad de ${l.product.name}`}
-                            disabled={
-                              lines
-                                .filter((line) => line.id === l.id)
-                                .reduce((n, line) => n + line.quantity, 0) >=
-                              MAX_QUANTITY
-                            }
-                            onClick={() => change(l.id, 1, l.variant!)}
-                          >
-                            <Plus size={14} />
-                          </button>
-                        </div>
-                      </div>
-                      <button
-                        className="remove-button"
-                        onClick={() => remove(l.id, l.variant!)}
-                        aria-label={`Eliminar ${l.product.name}`}
+                <div className="cart-selection">
+                  <div className="cart-items">
+                    {lines.map((l) => (
+                      <article
+                        className="cart-item"
+                        key={`${l.id}:${l.variant}`}
                       >
-                        <X size={17} />
-                      </button>
-                    </article>
-                  ))}
-                </div>
-                <div className="cart-total">
-                  <span>
-                    {examples
-                      ? "Estimado de muestra"
-                      : unpriced
-                        ? "Productos con precio"
-                        : "Subtotal de productos"}
-                  </span>
-                  <strong>
-                    {unpriced && subtotal === 0
-                      ? "Por cotizar"
-                      : money(subtotal)}
-                  </strong>
-                </div>
-                {unpriced && (
+                        <Image
+                          src={l.product.image}
+                          alt={l.product.name}
+                          width={82}
+                          height={92}
+                        />
+                        <div className="cart-item-info">
+                          <h3>{l.product.name}</h3>
+                          {presentations(l.product).length > 1 ? (
+                            <label className="cart-presentation">
+                              Presentación de {l.product.name}
+                              <select
+                                value={l.variant}
+                                onChange={(e) =>
+                                  chooseVariant(
+                                    l.id,
+                                    l.variant!,
+                                    e.target.value,
+                                  )
+                                }
+                              >
+                                {presentations(l.product).map((option) => (
+                                  <option key={option.id} value={option.id}>
+                                    {option.label}
+                                  </option>
+                                ))}
+                              </select>
+                            </label>
+                          ) : (
+                            <p>{l.offer.label}</p>
+                          )}
+                          <strong>
+                            {l.offer.priceCents === null
+                              ? "Por cotizar"
+                              : `${money(l.offer.priceCents * l.quantity)}${l.offer.example ? " · ejemplo" : ""}`}
+                          </strong>
+                          <div className="quantity">
+                            <button
+                              aria-label={`Quitar una unidad de ${l.product.name}`}
+                              onClick={() => change(l.id, -1, l.variant!)}
+                            >
+                              <Minus size={14} />
+                            </button>
+                            <span aria-label="Cantidad">{l.quantity}</span>
+                            <button
+                              aria-label={`Sumar una unidad de ${l.product.name}`}
+                              disabled={
+                                lines
+                                  .filter((line) => line.id === l.id)
+                                  .reduce((n, line) => n + line.quantity, 0) >=
+                                MAX_QUANTITY
+                              }
+                              onClick={() => change(l.id, 1, l.variant!)}
+                            >
+                              <Plus size={14} />
+                            </button>
+                          </div>
+                        </div>
+                        <button
+                          className="remove-button"
+                          onClick={() => remove(l.id, l.variant!)}
+                          aria-label={`Eliminar ${l.product.name}`}
+                        >
+                          <X size={17} />
+                        </button>
+                      </article>
+                    ))}
+                  </div>
+                  {unpriced && (
+                    <p className="helper">
+                      Tu selección incluye productos por cotizar. Confirmaremos
+                      el importe final por WhatsApp.
+                    </p>
+                  )}
+                  {examples && (
+                    <p className="demo-disclaimer">
+                      Importes de ejemplo para probar el carrito. El precio
+                      final se cotiza por WhatsApp; no se cobra en la web.
+                    </p>
+                  )}
                   <p className="helper">
-                    Tu selección incluye productos por cotizar. Confirmaremos el
-                    importe final por WhatsApp.
+                    Delivery y disponibilidad se confirman al coordinar.
                   </p>
-                )}
-                {examples && (
-                  <p className="demo-disclaimer">
-                    Importes de ejemplo para probar el carrito. El precio final
-                    se cotiza por WhatsApp; no se cobra en la web.
-                  </p>
-                )}
-                <p className="helper">
-                  Delivery y disponibilidad se confirman al coordinar.
-                </p>
-                <button
-                  className="button full"
-                  onClick={() => setStep("details")}
-                >
-                  Continuar {account ? "" : "como invitado"}{" "}
-                  <ArrowRight size={18} />
-                </button>
-                {!account && (
-                  <p className="account-prompt">
-                    ¿Ya tienes cuenta? <Link href="/cuenta">Inicia sesión</Link>
-                    . Tu carrito se conserva.
-                  </p>
-                )}
-                <button className="text-button" onClick={close}>
-                  Seguir eligiendo
-                </button>
+                </div>
+                <div className="cart-summary">
+                  <div className="cart-total">
+                    <span>
+                      {examples
+                        ? "Estimado de muestra"
+                        : unpriced
+                          ? "Productos con precio"
+                          : "Subtotal de productos"}
+                    </span>
+                    <strong>
+                      {unpriced && subtotal === 0
+                        ? "Por cotizar"
+                        : money(subtotal)}
+                    </strong>
+                  </div>
+                  <button
+                    className="button full"
+                    onClick={() => setStep("details")}
+                  >
+                    Continuar {account ? "" : "como invitado"}{" "}
+                    <ArrowRight size={18} />
+                  </button>
+                  {!account && (
+                    <p className="account-prompt">
+                      ¿Ya tienes cuenta?{" "}
+                      <Link href="/cuenta">Inicia sesión</Link>. Tu carrito se
+                      conserva.
+                    </p>
+                  )}
+                  <button className="text-button" onClick={close}>
+                    Seguir eligiendo
+                  </button>
+                </div>
               </>
             ) : (
               <form onSubmit={submit} className="checkout-form">
