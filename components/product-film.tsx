@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import Image from "next/image";
-import { Pause, Play, RotateCcw } from "lucide-react";
+import { Pause, Play } from "lucide-react";
 import type { ProductFilmMedia } from "@/lib/product-media";
 
 type Connection = EventTarget & { saveData?: boolean };
@@ -27,7 +27,6 @@ export function ProductFilm({
   blockedByOverlay.current = paused;
   const userPaused = useRef(false);
   const optedIn = useRef(requestedPlay);
-  const ended = useRef(false);
   const failed = useRef(false);
   const [source, setSource] = useState("");
   const [hasFrame, setHasFrame] = useState(false);
@@ -50,7 +49,6 @@ export function ProductFilm({
       !blockedByOverlay.current &&
       !userPaused.current &&
       !failed.current &&
-      !ended.current &&
       (optedIn.current ||
         (autoplay && !preference.matches && !connection?.saveData));
 
@@ -59,9 +57,7 @@ export function ProductFilm({
       if (!shouldPlay()) {
         attempt++;
         player!.pause();
-        setStatus(
-          failed.current ? "fallback" : ended.current ? "ended" : "paused",
-        );
+        setStatus(failed.current ? "fallback" : "paused");
         return;
       }
       setSource((current) => {
@@ -124,19 +120,13 @@ export function ProductFilm({
     else {
       userPaused.current = false;
       optedIn.current = true;
-      if (ended.current) {
-        ended.current = false;
-        if (video.current) video.current.currentTime = 0;
-      }
     }
     sync.current();
   }
   const playing = status === "playing" || status === "loading";
   const label = playing
     ? `Pausar video de ${name}`
-    : status === "ended"
-      ? `Ver otra vez el video de ${name}`
-      : `Reproducir video de ${name}`;
+    : `Reproducir video de ${name}`;
 
   return (
     <div
@@ -158,6 +148,7 @@ export function ProductFilm({
           ref={video}
           src={source || undefined}
           muted
+          loop
           playsInline
           preload="none"
           width="1280"
@@ -166,10 +157,6 @@ export function ProductFilm({
           aria-describedby={descriptionId}
           className={hasFrame && status !== "fallback" ? "has-frame" : ""}
           onLoadedData={() => setHasFrame(true)}
-          onEnded={() => {
-            ended.current = true;
-            sync.current();
-          }}
           onError={() => {
             failed.current = true;
             setHasFrame(false);
@@ -188,18 +175,10 @@ export function ProductFilm({
           >
             {playing ? (
               <Pause size={17} aria-hidden="true" />
-            ) : status === "ended" ? (
-              <RotateCcw size={17} aria-hidden="true" />
             ) : (
               <Play size={17} aria-hidden="true" />
             )}
-            <span>
-              {playing
-                ? "Pausar"
-                : status === "ended"
-                  ? "Ver otra vez"
-                  : "Reproducir"}
-            </span>
+            <span>{playing ? "Pausar" : "Reproducir"}</span>
           </button>
         )}
       </div>
