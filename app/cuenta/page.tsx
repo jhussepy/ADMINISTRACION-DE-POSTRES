@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { SignOutButton } from "@clerk/nextjs";
 import { Heart, ShoppingBag, MapPin, ShieldCheck } from "lucide-react";
 import { getAccount } from "@/lib/data";
@@ -26,6 +27,8 @@ export default async function AccountPage({
       <PageHeader />
       <main className="account-layout">
         <section className="account-story">
+          <div className="account-photo"><Image src="/images/pie-limon-film-poster.webp" alt="Pie de limón de Yemape con merengue" width={1280} height={720} loading="eager" sizes="(max-width: 760px) 100vw, 50vw" /></div>
+          <div className="account-story-copy">
           <span className="eyebrow">TU RINCÓN EN YEMAPE</span>
           <h1>
             {account ? (
@@ -66,6 +69,7 @@ export default async function AccountPage({
               </Link>
             </p>
           )}
+          </div>
         </section>
 
         <section className="account-card">
