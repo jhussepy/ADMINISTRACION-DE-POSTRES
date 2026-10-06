@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/data";
 import { PageHeader } from "@/components/page-header";
+import { AdminNavigation } from "@/components/admin-navigation";
 export const dynamic = "force-dynamic";
 export const metadata = {
   title: "Administración",
@@ -15,7 +16,9 @@ export default async function AdminLayout({
   return (
     <>
       <PageHeader />
-      <main className="admin-shell">
+      <div className="atelier-layout">
+      <AdminNavigation />
+      <main className="admin-shell" id="admin-content">
         <div className="admin-heading">
           <div>
             <span className="eyebrow">YEMAPE · ADMINISTRACIÓN</span>
@@ -25,16 +28,9 @@ export default async function AdminLayout({
             Mi cuenta
           </Link>
         </div>
-        <nav className="admin-nav" aria-label="Administración">
-          <Link href="/admin">Resumen</Link>
-          <Link href="/admin/productos">Productos</Link>
-          <Link href="/admin/pedidos">Pedidos</Link>
-          <Link href="/admin/pagos">Pagos</Link>
-          <Link href="/admin/clientes">Clientes</Link>
-          <Link href="/admin/calendario">Calendario</Link>
-        </nav>
         {children}
       </main>
+      </div>
     </>
   );
 }
