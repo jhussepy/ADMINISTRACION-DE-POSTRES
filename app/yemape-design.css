@@ -197,3 +197,48 @@ input[type=radio], input[type=checkbox] { accent-color: var(--wine); }
 @media (prefers-reduced-motion: reduce) {
   .button, .yemape-store .product-card, .atelier-navigation a { transition: none; }
 }
+
+/* The spotlight now has a light background; replace its former light-on-dark palette. */
+.yemape-public .editorial-spotlight {
+  color: var(--ink);
+}
+.yemape-public .editorial-spotlight .spotlight-editorial-copy h2,
+.yemape-public .editorial-spotlight .spotlight-editorial-product h3 {
+  color: var(--ink);
+}
+.yemape-public .editorial-spotlight .spotlight-editorial-copy h2 em,
+.yemape-public .editorial-spotlight .patisserie-eyebrow {
+  color: var(--wine);
+}
+.yemape-public .editorial-spotlight .spotlight-editorial-product {
+  border-top-color: #cbbfb3;
+}
+.yemape-public .editorial-spotlight .spotlight-editorial-product p {
+  color: #655458;
+  font-size: 16px;
+}
+.yemape-public .editorial-spotlight .spotlight-editorial-note,
+.yemape-public .editorial-spotlight .spotlight-editorial-figure figcaption {
+  color: #655458;
+}
+.yemape-public .editorial-spotlight .spotlight-editorial-note {
+  font-size: 14px;
+}
+.yemape-public .editorial-spotlight .spotlight-editorial-note small {
+  font-size: 12px;
+}
+.yemape-public .editorial-spotlight .spotlight-editorial-figure figcaption {
+  font-size: 11px;
+}
+.yemape-public .editorial-spotlight .spotlight-editorial-copy .button {
+  background: var(--wine);
+  border-color: var(--wine);
+  color: #fffcf7;
+}
+.yemape-public .editorial-spotlight .spotlight-editorial-copy .button:hover {
+  background: var(--wine-dark);
+  border-color: var(--wine-dark);
+}
+.yemape-public .editorial-spotlight :focus-visible {
+  outline-color: var(--wine);
+}
