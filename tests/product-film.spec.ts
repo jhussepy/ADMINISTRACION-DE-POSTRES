@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-test("lemon pie spotlight loads on visibility, plays once and can replay or pause", async ({
+test("lemon pie spotlight loads on visibility, loops automatically and can pause", async ({
   page,
 }, testInfo) => {
   test.setTimeout(60000);
@@ -31,7 +31,7 @@ test("lemon pie spotlight loads on visibility, plays once and can replay or paus
   ).toEqual({
     width: testInfo.project.name === "mobile" ? 768 : 1280,
     height: testInfo.project.name === "mobile" ? 432 : 720,
-    loop: false,
+    loop: true,
     muted: true,
     inline: true,
   });
@@ -40,17 +40,19 @@ test("lemon pie spotlight loads on visibility, plays once and can replay or paus
     testInfo.project.name === "mobile" ? "pie-limon-mobile." : "pie-limon.",
   );
   expect(new Set(requests.map((url) => new URL(url).pathname)).size).toBe(1);
-  await video.evaluate((v: HTMLVideoElement) => {
-    v.currentTime = v.duration - 0.15;
-  });
-  await expect(film).toHaveAttribute("data-state", "ended");
-  await film
-    .getByRole("button", { name: "Ver otra vez el video de Pie de limón" })
-    .click();
-  await expect(film).toHaveAttribute("data-state", "playing");
-  await expect
-    .poll(() => video.evaluate((v: HTMLVideoElement) => v.currentTime))
-    .toBeLessThan(2);
+  for (let cycle = 0; cycle < 2; cycle++) {
+    await video.evaluate((v: HTMLVideoElement) => {
+      v.currentTime = v.duration - 0.15;
+    });
+    await expect
+      .poll(() => video.evaluate((v: HTMLVideoElement) => v.currentTime))
+      .toBeLessThan(2);
+    await expect(video).toHaveJSProperty("paused", false);
+    await expect(film).toHaveAttribute("data-state", "playing");
+  }
+  await expect(
+    film.getByRole("button", { name: /Ver otra vez/ }),
+  ).toHaveCount(0);
   await spotlight
     .getByRole("button", { name: "Elegir Pie de limón en el postre estrella" })
     .click();

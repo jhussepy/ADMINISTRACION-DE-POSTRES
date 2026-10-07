@@ -10,7 +10,7 @@ Se incorpora el archivo `gemini_generated_video_4e80e421.mp4` aportado por el pr
 
 ## Reproducción y rendimiento
 
-- Reproducción silenciosa y una sola vez. Al terminar permanece el último plano y se ofrece «Ver otra vez»; no hay un salto automático al primer plano.
+- Reproducción silenciosa en bucle continuo. Al terminar vuelve automáticamente al principio, sin pulsar «Ver otra vez». El control permite pausar y reanudar.
 - El video destacado se solicita al entrar en pantalla. Con movimiento reducido o ahorro de datos, aparece el fotograma de respaldo hasta que el visitante pulsa Reproducir.
 - Elegir «Video» o ampliarlo es una acción explícita y permite reproducirlo aun con esas preferencias. Una pausa deliberada se conserva al salir de pantalla y regresar.
 - Pausa fuera de pantalla, con la pestaña oculta y durante los paneles que cubren la escena. Ampliar el video pausa el reproductor de la ficha para que no siga reproduciéndose debajo.
@@ -22,6 +22,6 @@ No requiere SQL, nuevas variables de entorno ni servicios externos de generació
 
 ## Verificación y capturas
 
-Las pruebas de navegador comprueban carga por visibilidad, dimensiones decodificadas, reproducción única, repetición, pausa, preferencias de accesibilidad, galería, ventanas anidadas, foco y disponibilidad del carrito. Las pruebas no envían mensajes ni realizan cobros.
+Las pruebas de navegador comprueban carga por visibilidad, dimensiones decodificadas, repetición automática, pausa, preferencias de accesibilidad, galería, ventanas anidadas, foco y disponibilidad del carrito. Las pruebas no envían mensajes ni realizan cobros.
 
 [Sección en computadora](pie-film-desktop.webp) · [Sección en celular](pie-film-mobile.webp) · [Ficha en computadora](pie-film-product-desktop.webp) · [Ficha en celular](pie-film-product-mobile.webp) · [Video ampliado en celular](pie-film-expanded-mobile.webp)
