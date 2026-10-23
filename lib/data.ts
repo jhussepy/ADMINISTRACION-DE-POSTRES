@@ -19,8 +19,18 @@ export const getProducts = cache(async (): Promise<Product[]> => {
     .select("*")
     .eq("active", true)
     .order("sort_order");
-  if (error)
-    throw new Error("No se pudo cargar el catálogo. Inténtalo de nuevo.");
+  if (error) {
+    console.error("[catalog] No se pudo consultar products en Supabase.", {
+      code: error.code,
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+    });
+
+    // Mantiene la tienda disponible cuando la consulta remota falla.
+    // El error original queda en los logs para poder corregir la causa en Supabase.
+    return initialProducts;
+  }
 
   const products = data as Product[];
   const [variantsResult, imagesResult] = await Promise.all([
